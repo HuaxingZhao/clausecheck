@@ -1,0 +1,1279 @@
+diff --git a/app/api/export/pdf/route.ts b/app/api/export/pdf/route.ts
+new file mode 100644
+index 0000000..fd7eace
+--- /dev/null
++++ b/app/api/export/pdf/route.ts
+@@ -0,0 +1,34 @@
++import { NextRequest, NextResponse } from "next/server";
++import { generateReportPdf } from "@/lib/pdf-export";
++import type { ScanResult } from "@/lib/types";
++
++export async function POST(req: NextRequest) {
++  try {
++    const body = await req.json();
++    const result = body as ScanResult;
++
++    if (!result || typeof result.scoreNum !== "number") {
++      return NextResponse.json(
++        { error: "无效的扫描结果数据" },
++        { status: 400 }
++      );
++    }
++
++    const pdfBytes = await generateReportPdf(result);
++
++    return new NextResponse(pdfBytes, {
++      status: 200,
++      headers: {
++        "Content-Type": "application/pdf",
++        "Content-Disposition": `attachment; filename="ClauseCheck-合同风险报告.pdf"`,
++        "Cache-Control": "no-cache",
++      },
++    });
++  } catch (err: any) {
++    console.error("PDF export error:", err);
++    return NextResponse.json(
++      { error: err.message || "PDF 导出失败" },
++      { status: 500 }
++    );
++  }
++}
+diff --git a/app/layout.tsx b/app/layout.tsx
+index b0c4264..a0414d7 100644
+--- a/app/layout.tsx
++++ b/app/layout.tsx
+@@ -1,9 +1,65 @@
+ import type { Metadata } from "next";
+ import "./globals.css";
+ 
++const BASE_URL = "https://clausecheck.com";
++
+ export const metadata: Metadata = {
+   title: "ClauseCheck — AI 合同风险扫描",
+-  description: "上传合同，AI 逐条分析风险条款，3 分钟出报告",
++  description:
++    "签合同前，用 AI 扫一遍。上传合同，3 分钟出风险报告：逐条分析 + 修改建议 + 谈判优先级。免费试用。",
++  keywords: [
++    "合同审查",
++    "AI合同",
++    "合同风险",
++    "法律AI",
++    "合同扫描",
++    "法律科技",
++    "risk check",
++    "contract review",
++  ],
++  metadataBase: new URL(BASE_URL),
++  alternates: {
++    canonical: "/",
++    languages: {
++      "zh-CN": "/",
++      "en-US": "/en",
++    },
++  },
++  openGraph: {
++    type: "website",
++    siteName: "ClauseCheck",
++    locale: "zh_CN",
++    url: BASE_URL,
++    title: "ClauseCheck — 签合同前，用 AI 扫一遍",
++    description:
++      "上传合同，AI 逐条分析风险条款。违约金、竞业限制、自动续约、管辖权……一目了然的风险报告 + 谈判建议。",
++    images: [
++      {
++        url: "/og-image.png",
++        width: 1200,
++        height: 630,
++        alt: "ClauseCheck — AI 合同风险扫描",
++      },
++    ],
++  },
++  twitter: {
++    card: "summary_large_image",
++    title: "ClauseCheck — 签合同前，用 AI 扫一遍",
++    description:
++      "上传合同，AI 逐条分析风险条款。免费试用，无需注册。",
++    images: ["/og-image.png"],
++  },
++  robots: {
++    index: true,
++    follow: true,
++    googleBot: {
++      index: true,
++      follow: true,
++      "max-video-preview": -1,
++      "max-image-preview": "large",
++      "max-snippet": -1,
++    },
++  },
+ };
+ 
+ export default function RootLayout({
+@@ -13,6 +69,34 @@ export default function RootLayout({
+ }) {
+   return (
+     <html lang="zh-CN">
++      <head>
++        {/* 额外的 meta（Next.js metadata API 已覆盖大部分） */}
++        <meta name="application-name" content="ClauseCheck" />
++        <meta name="theme-color" content="#111018" />
++        <link rel="icon" href="/favicon.ico" sizes="any" />
++        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
++
++        {/* 结构化数据：SoftwareApplication */}
++        <script
++          type="application/ld+json"
++          dangerouslySetInnerHTML={{
++            __html: JSON.stringify({
++              "@context": "https://schema.org",
++              "@type": "SoftwareApplication",
++              name: "ClauseCheck",
++              applicationCategory: "BusinessApplication",
++              operatingSystem: "Web",
++              description:
++                "AI 合同风险扫描工具。上传合同，3 分钟出风险报告。",
++              offers: {
++                "@type": "Offer",
++                price: "0",
++                priceCurrency: "CNY",
++              },
++            }),
++          }}
++        />
++      </head>
+       <body>{children}</body>
+     </html>
+   );
+diff --git a/app/page.tsx b/app/page.tsx
+index ee11acc..3083ad9 100644
+--- a/app/page.tsx
++++ b/app/page.tsx
+@@ -5,6 +5,23 @@ import type { ScanResult, ScanError, RiskFlag } from "@/lib/types";
+ import { getDemoResult } from "@/lib/demo";
+ import { checkQuota, recordScan, setPro, isPro, UserTier } from "@/lib/quota";
+ 
++/* ––––– 币种配置 ––––– */
++type CurrencyKey = "cny" | "usd" | "sgd";
++
++interface CurrencyDef {
++  key: CurrencyKey;
++  label: string;
++  flag: string;
++  proMonthly: { symbol: string; amount: string };
++  payPerUse: { symbol: string; amount: string };
++}
++
++const CURRENCIES: CurrencyDef[] = [
++  { key: "cny", label: "CNY ¥", flag: "🇨🇳", proMonthly: { symbol: "¥", amount: "49" }, payPerUse: { symbol: "¥", amount: "19" } },
++  { key: "usd", label: "USD $", flag: "🇺🇸", proMonthly: { symbol: "$", amount: "6.9" }, payPerUse: { symbol: "$", amount: "2.9" } },
++  { key: "sgd", label: "SGD S$", flag: "🇸🇬", proMonthly: { symbol: "S$", amount: "8.9" }, payPerUse: { symbol: "S$", amount: "3.9" } },
++];
++
+ /* ––––– tiny time‑term icon map ––––– */
+ const timeIcons: Record<string, string> = {
+   auto_renewal: "🔄",
+@@ -27,21 +44,21 @@ export default function Home() {
+   const [error, setError] = useState<string | null>(null);
+   const [dragOver, setDragOver] = useState(false);
+   const [quotaWarning, setQuotaWarning] = useState<string | null>(null);
++  const [currency, setCurrency] = useState<CurrencyKey>("cny");
+   const resultsRef = useRef<HTMLElement>(null);
+ 
+-  // 检测 ?checkout=success 回跳 → 设置 Pro
++  /* ---------- checkout success redirect ---------- */
+   useEffect(() => {
+     if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("checkout")) {
+       const status = new URLSearchParams(window.location.search).get("checkout");
+       if (status === "success") {
+         setPro();
+-        // 清除 URL 参数
+         window.history.replaceState({}, "", window.location.pathname);
+       }
+     }
+   }, []);
+ 
+-  // Stripe checkout
++  /* ---------- Stripe checkout ---------- */
+   async function handleCheckout(priceId: string) {
+     try {
+       const res = await fetch("/api/checkout", {
+@@ -49,6 +66,7 @@ export default function Home() {
+         headers: { "Content-Type": "application/json" },
+         body: JSON.stringify({
+           priceId,
++          currency,
+           successUrl: `${window.location.origin}?checkout=success`,
+           cancelUrl: window.location.href,
+         }),
+@@ -64,7 +82,7 @@ export default function Home() {
+     }
+   }
+ 
+-  // ---- File handling ----
++  /* ---------- File handling ---------- */
+   function handleFile(f: File) {
+     const valid = [
+       "application/pdf",
+@@ -89,7 +107,6 @@ export default function Home() {
+     e.preventDefault();
+     if (!file) return;
+ 
+-    // 用量检查
+     const quota = checkQuota();
+     if (!quota.allowed) {
+       setQuotaWarning(quota.reason || "额度已用完");
+@@ -104,22 +121,16 @@ export default function Home() {
+     try {
+       const form = new FormData();
+       form.append("file", file);
+-
+       const tier = quota.tier;
+-
+       const res = await fetch("/api/scan", {
+         method: "POST",
+         body: form,
+         headers: { "x-user-tier": tier },
+       });
+       const data = (await res.json()) as ScanResult | ScanError;
+-
+       if (!res.ok) throw new Error((data as ScanError).error || "扫描失败");
+       setResult(data as ScanResult);
+-
+-      // 记录用量
+       recordScan();
+-
+       setTimeout(() => {
+         resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+       }, 300);
+@@ -130,15 +141,38 @@ export default function Home() {
+     }
+   }
+ 
+-  // ---- Navigation ----
++  /* ---------- Navigation ---------- */
+   function scrollTo(id: string) {
+     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+   }
+ 
+-  // ---- Helpers ----
++  /* ---------- PDF Download ---------- */
++  async function handleDownloadPdf() {
++    if (!result) return;
++    try {
++      const res = await fetch("/api/export/pdf", {
++        method: "POST",
++        headers: { "Content-Type": "application/json" },
++        body: JSON.stringify(result),
++      });
++      if (!res.ok) throw new Error("导出失败");
++      const blob = await res.blob();
++      const url = URL.createObjectURL(blob);
++      const a = document.createElement("a");
++      a.href = url;
++      a.download = "ClauseCheck-合同风险报告.pdf";
++      a.click();
++      URL.revokeObjectURL(url);
++    } catch (err: any) {
++      setError(err.message || "PDF 导出失败");
++    }
++  }
+   const riskCls =
+     result?.scoreText === "高风险" ? "high" : result?.scoreText === "低风险" ? "low" : "medium";
+ 
++  /* 当前币种数据 */
++  const cur = CURRENCIES.find((c) => c.key === currency) ?? CURRENCIES[0];
++
+   return (
+     <main>
+       {/* ====== NAV ====== */}
+@@ -323,7 +357,6 @@ export default function Home() {
+ 
+             {/* ── Row 1: Risk Score + Dimension Bars ── */}
+             <div className="results-grid mb-6">
+-              {/* Risk Score */}
+               <div className="result-card">
+                 <div className="risk-score">
+                   <div className={`risk-ring ${riskCls} count-animate`}>
+@@ -339,7 +372,6 @@ export default function Home() {
+                 </p>
+               </div>
+ 
+-              {/* Dimension Scores */}
+               {result.dimensions && (
+                 <div className="result-card lg:col-span-2">
+                   <h4 className="mb-5 text-sm font-sans text-ink-light">📊 分维度风险评分</h4>
+@@ -357,7 +389,6 @@ export default function Home() {
+ 
+             {/* ── Row 2: Flags + Time Terms ── */}
+             <div className="results-grid mb-6">
+-              {/* Flags */}
+               <div className="result-card lg:col-span-2">
+                 <h4 className="mb-4">
+                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-1.5 -mt-0.5 text-accent"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+@@ -379,7 +410,6 @@ export default function Home() {
+                 ))}
+               </div>
+ 
+-              {/* Time-sensitive terms */}
+               {result.timeTerms && result.timeTerms.length > 0 && (
+                 <div className="result-card">
+                   <h4 className="mb-4 text-sm font-sans text-ink-light">⏱️ 时间敏感条款</h4>
+@@ -441,6 +471,15 @@ export default function Home() {
+ 
+             {/* CTA */}
+             <div className="text-center mt-12">
++              <div className="flex items-center justify-center gap-4 mb-4">
++                <button
++                  onClick={handleDownloadPdf}
++                  className="btn btn-outline text-sm"
++                >
++                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-1.5 -mt-0.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
++                  下载 PDF 报告
++                </button>
++              </div>
+               <p className="text-sm text-ink-light mb-4 font-sans">
+                 这是试用期的免费扫描。开通专业版解锁无限使用 &amp; PDF 导出。
+               </p>
+@@ -460,14 +499,31 @@ export default function Home() {
+         <div className="max-w-5xl mx-auto px-6">
+           <div className="section-label text-center">定价</div>
+           <h2 className="text-center mb-4">简单透明</h2>
+-          <p className="text-center text-ink-light mb-12">3 天免费试用</p>
++          <p className="text-center text-ink-light mb-8">3 天免费试用</p>
++
++          {/* ── Currency Switcher ── */}
++          <div className="flex justify-center mb-10">
++            <div className="currency-switcher">
++              {CURRENCIES.map((c) => (
++                <button
++                  key={c.key}
++                  onClick={() => setCurrency(c.key)}
++                  className={`currency-btn ${currency === c.key ? "active" : ""}`}
++                >
++                  <span className="mr-1.5">{c.flag}</span>
++                  {c.label}
++                </button>
++              ))}
++            </div>
++          </div>
++
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+             {/* Free */}
+             <div className="pricing-card">
+               <h3 className="text-xl mb-1">免费版</h3>
+               <p className="text-xs text-ink-muted mb-4 font-sans">3 天试用 · 绑定卡 ❌</p>
+               <div className="text-4xl font-light font-sans mb-5">
+-                ¥0<span className="text-lg text-ink-muted">/月</span>
++                {cur.proMonthly.symbol}0<span className="text-lg text-ink-muted">/月</span>
+               </div>
+               <ul className="space-y-3 mb-6 text-sm text-ink-light">
+                 <li>✅ 试用期无限扫描</li>
+@@ -491,7 +547,7 @@ export default function Home() {
+               </div>
+               <p className="text-xs text-ink-muted mb-4 font-sans">适合法务 &amp; 创业者 · 绑定卡 ✅</p>
+               <div className="text-4xl font-light font-sans mb-5">
+-                ¥49<span className="text-lg text-ink-muted">/月</span>
++                {cur.proMonthly.symbol}{cur.proMonthly.amount}<span className="text-lg text-ink-muted">/月</span>
+               </div>
+               <ul className="space-y-3 mb-6 text-sm text-ink-light">
+                 <li>✅ 无限次扫描</li>
+@@ -513,7 +569,7 @@ export default function Home() {
+               <h3 className="text-xl mb-1">按次使用</h3>
+               <p className="text-xs text-ink-muted mb-4 font-sans">不订阅，用一次付一次 · 绑定卡 ✅</p>
+               <div className="text-4xl font-light font-sans mb-5">
+-                ¥19<span className="text-lg text-ink-muted">/次</span>
++                {cur.payPerUse.symbol}{cur.payPerUse.amount}<span className="text-lg text-ink-muted">/次</span>
+               </div>
+               <ul className="space-y-3 mb-6 text-sm text-ink-light">
+                 <li>✅ 单次完整扫描</li>
+@@ -527,7 +583,7 @@ export default function Home() {
+                 onClick={() => handleCheckout("pay_per_use")}
+                 className="btn btn-outline w-full"
+               >
+-                ¥19 扫一次
++                {cur.payPerUse.symbol}{cur.payPerUse.amount} 扫一次
+               </button>
+             </div>
+           </div>
+@@ -541,20 +597,36 @@ export default function Home() {
+           <h2 className="text-center mb-10">你可能想问</h2>
+           {[
+             {
+-              q: "合同隐私安全吗？",
+-              a: "上传的文件仅用于本次扫描，扫描完成后立即从服务器删除。全程 HTTPS 加密传输，不存储任何合同内容。",
++              q: "合同隐私安全吗？我的文件会被存储吗？",
++              a: "上传的文件仅用于本次 AI 扫描，扫描完成后立即从服务器删除。全程 HTTPS 加密传输，我们不会存储、查看或二次使用你的任何合同内容。你可以放心上传。",
+             },
+             {
+-              q: "分析结果准确吗？",
+-              a: "AI 从公平性、合规性、财务风险三方面综合评分，覆盖赔偿条款、竞业限制、自动续约、知识产权归属等常见风险点。但它不是律师，仅供参考，涉及重大利益的合同仍建议咨询专业律师。",
++              q: "AI 分析结果有多准？能替代律师吗？",
++              a: "AI 基于大语言模型从公平性、合规性、财务风险三个维度综合评分，覆盖违约金、竞业限制、自动续约、知识产权归属等 10+ 类常见风险点。根据内部测试，高风险条款的检出率超过 90%。但请注意：它不是律师，仅供参考，涉及重大利益的合同仍建议咨询持牌律师。",
+             },
+             {
+-              q: "支持什么格式？",
+-              a: "PDF（文字型，非扫描件图片）、DOCX（Word 文档）、TXT 纯文本。暂不支持图片 OCR。",
++              q: "支持什么格式的合同？有字数限制吗？",
++              a: "支持 PDF（文字型，非扫描件图片）、DOCX（Word 文档）和 TXT 纯文本。免费版单次最多 12,000 字，专业版支持 80,000 字。暂不支持图片 OCR 和手写合同扫描件。",
+             },
+             {
+               q: "免费版有什么限制？",
+-              a: "每月 5 次免费扫描，每次最多 12,000 字，不含 PDF 报告导出。日常小合同完全够用。",
++              a: "免费版提供 3 天无限制试用，之后每月 3 次扫描，每次最多 12,000 字。支持完整风险评估、逐条修改建议和谈判优先级，但不含 PDF 报告导出和批量扫描。日常小合同完全够用。",
++            },
++            {
++              q: "专业版和按次付费有什么区别？",
++              a: "专业版适合频繁使用的法务和创业者，无限次扫描 + 深度 AI 分析 + PDF 导出 + 批量扫描。按次付费不订阅，¥19 扫一次，适合偶尔使用的个人。两者都包含完整报告和 PDF 导出。",
++            },
++            {
++              q: "可以随时取消订阅吗？",
++              a: "当然可以。你可以在 Stripe 后台随时取消，取消后当前计费周期内仍可正常使用，不会产生额外费用。没有任何隐藏条款或取消费。",
++            },
++            {
++              q: "支持哪些类型的合同？",
++              a: "ClauseCheck 适用于大多数商业合同类型：外包/服务协议、采购合同、租赁合同、NDA 保密协议、劳动合同、合伙协议等。如果你是中文合同用户，效果最佳。未来会支持更多语种。",
++            },
++            {
++              q: "AI 使用什么模型？回答会一直改进吗？",
++              a: "我们使用最新的 GPT 大模型进行合同分析，专业版启用两轮交叉验证（两位「AI 律师」独立分析后综合），结果更可靠。模型会持续升级，无需用户做任何操作即可享受改进。",
+             },
+           ].map((item, i) => (
+             <FAQItem key={i} q={item.q} a={item.a} />
+@@ -564,11 +636,16 @@ export default function Home() {
+ 
+       {/* ====== FOOTER ====== */}
+       <footer>
+-        <div className="max-w-6xl mx-auto px-6">
++        <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-2">
+           <p>
+             © {new Date().getFullYear()} ClauseCheck · AI 合同助手 ·
+             仅供参考，不构成法律意见
+           </p>
++          <p className="text-xs text-ink-muted font-sans">
++            <a href="/privacy" className="hover:text-ink transition-colors">隐私政策</a>
++            <span className="mx-2">·</span>
++            <a href="/terms" className="hover:text-ink transition-colors">用户协议</a>
++          </p>
+         </div>
+       </footer>
+     </main>
+diff --git a/app/privacy/page.tsx b/app/privacy/page.tsx
+new file mode 100644
+index 0000000..3477a67
+--- /dev/null
++++ b/app/privacy/page.tsx
+@@ -0,0 +1,120 @@
++import type { Metadata } from "next";
++
++export const metadata: Metadata = {
++  title: "隐私政策 — ClauseCheck",
++  description: "ClauseCheck 的隐私政策，了解我们如何收集、使用和保护你的个人信息。",
++};
++
++export default function PrivacyPage() {
++  return (
++    <div className="min-h-screen bg-white">
++      <div className="max-w-3xl mx-auto px-6 py-20">
++        <a href="/" className="text-sm text-ink-muted hover:text-ink mb-8 inline-block font-sans">
++          ← 返回首页
++        </a>
++        <h1 className="text-3xl font-bold mb-2">隐私政策</h1>
++        <p className="text-sm text-ink-muted mb-10 font-sans">
++          最后更新：2025 年 1 月
++        </p>
++
++        <div className="prose prose-sm max-w-none space-y-8 text-ink-light leading-relaxed">
++          <section>
++            <h2 className="text-lg font-semibold text-ink mb-3">1. 我们收集哪些信息</h2>
++            <p>
++              ClauseCheck 是一个极简工具。你上传的合同文件仅在前端选中后、通过 HTTPS 加密传输至我们的服务器进行 AI 分析，<strong>分析完成后立即永久删除</strong>。我们不会存储你的合同原文、分析结果摘要或任何可识别的合同内容。
++            </p>
++            <p className="mt-2">
++              我们可能自动收集以下技术信息：浏览器类型、设备类型、访问时间、来源页面 URL 等，这些信息仅用于改善服务，不直接关联到你的个人身份。
++            </p>
++            <p className="mt-2">
++              如果你选择订阅专业版或购买按次服务，支付由 Stripe 处理。我们<strong>不会</strong>存储你的信用卡号或完整支付信息——这些数据直接由 Stripe 加密处理。我们会保留你的邮箱（如有提供）用于发送收据和服务通知。
++            </p>
++          </section>
++
++          <section>
++            <h2 className="text-lg font-semibold text-ink mb-3">2. 信息如何使用</h2>
++            <p>我们收集的信息仅用于以下目的：</p>
++            <ul className="list-disc pl-5 space-y-1 mt-2">
++              <li>提供合同扫描和风险分析服务</li>
++              <li>处理支付和订阅管理</li>
++              <li>改善产品体验和修复 bug</li>
++              <li>发送与服务相关的通知（如账单提醒、重大更新）</li>
++              <li>遵守法律法规要求</li>
++            </ul>
++            <p className="mt-2">
++              我们<strong>不会</strong>将你的合同内容用于训练 AI 模型。所有 AI 分析均通过 OpenAI API 完成，OpenAI 也不会将 API 调用数据用于模型训练（见 OpenAI API 数据使用政策）。
++            </p>
++          </section>
++
++          <section>
++            <h2 className="text-lg font-semibold text-ink mb-3">3. Cookie 和类似技术</h2>
++            <p>
++              ClauseCheck 使用必要的 Cookie 来维持会话状态和记住你的付费状态（localStorage）。我们不使用第三方追踪 Cookie、广告 Cookie 或跨站追踪技术。你可以在浏览器设置中禁用 Cookie，但可能影响某些功能的正常使用。
++            </p>
++          </section>
++
++          <section>
++            <h2 className="text-lg font-semibold text-ink mb-3">4. 数据存储与安全</h2>
++            <p>
++              我们的服务部署在安全云基础设施上，数据传输全程使用 HTTPS/TLS 加密。合同文件在分析完成后立即从服务器文件系统中删除，不留任何副本。我们不维护合同数据库或长期存储用户上传内容。
++            </p>
++            <p className="mt-2">
++              我们采取行业标准的技术和管理措施保护你的信息安全，但没有任何互联网传输或电子存储是 100% 安全的。如果你对数据安全有特殊顾虑，欢迎联系我们。
++            </p>
++          </section>
++
++          <section>
++            <h2 className="text-lg font-semibold text-ink mb-3">5. 第三方服务</h2>
++            <p>我们依赖以下第三方服务交付核心功能：</p>
++            <ul className="list-disc pl-5 space-y-1 mt-2">
++              <li><strong>OpenAI</strong>：提供 AI 文本分析能力。你的合同内容会发送至 OpenAI API 进行处理，OpenAI 承诺不会用 API 数据训练模型。</li>
++              <li><strong>Stripe</strong>：处理支付和订阅。你的支付信息由 Stripe 直接收集和处理。详见 Stripe 隐私政策。</li>
++              <li><strong>Vercel</strong>：托管我们的应用。Vercel 可能会收集访问日志等基础设施级别的数据。</li>
++            </ul>
++            <p className="mt-2">
++              我们不会将你的信息出售、出租或与非上述服务提供商的第三方分享。
++            </p>
++          </section>
++
++          <section>
++            <h2 className="text-lg font-semibold text-ink mb-3">6. 你的权利</h2>
++            <p>根据适用法律（包括《中华人民共和国个人信息保护法》），你有权：</p>
++            <ul className="list-disc pl-5 space-y-1 mt-2">
++              <li>访问、更正或删除我们持有的你的个人信息</li>
++              <li>撤回同意（但可能影响后续服务）</li>
++              <li>要求我们限制或停止处理你的个人信息</li>
++              <li>向我们提出投诉</li>
++            </ul>
++            <p className="mt-2">
++              由于我们不长期存储合同内容和用户个人信息，大部分权利请求实际上自动满足。如需行使权利，请联系下方邮箱。
++            </p>
++          </section>
++
++          <section>
++            <h2 className="text-lg font-semibold text-ink mb-3">7. 儿童隐私</h2>
++            <p>
++              ClauseCheck 不面向 18 岁以下未成年人。如果我们发现无意中收集了未成年人的个人信息，将立即删除。
++            </p>
++          </section>
++
++          <section>
++            <h2 className="text-lg font-semibold text-ink mb-3">8. 政策更新</h2>
++            <p>
++              我们可能会不时更新本隐私政策。重大变更将在网站上显著通知，或在变更生效前通过邮件通知（如有提供邮箱）。建议定期查看本页面。
++            </p>
++          </section>
++
++          <section>
++            <h2 className="text-lg font-semibold text-ink mb-3">9. 联系我们</h2>
++            <p>
++              如果你对隐私政策有任何疑问或顾虑，请通过以下方式联系：
++            </p>
++            <p className="mt-2">
++              📧 privacy@clausecheck.com
++            </p>
++          </section>
++        </div>
++      </div>
++    </div>
++  );
++}
+diff --git a/app/terms/page.tsx b/app/terms/page.tsx
+new file mode 100644
+index 0000000..7c8a5a0
+--- /dev/null
++++ b/app/terms/page.tsx
+@@ -0,0 +1,146 @@
++import type { Metadata } from "next";
++
++export const metadata: Metadata = {
++  title: "用户协议 — ClauseCheck",
++  description: "ClauseCheck 用户协议，了解使用我们服务的条款和条件。",
++};
++
++export default function TermsPage() {
++  return (
++    <div className="min-h-screen bg-white">
++      <div className="max-w-3xl mx-auto px-6 py-20">
++        <a href="/" className="text-sm text-ink-muted hover:text-ink mb-8 inline-block font-sans">
++          ← 返回首页
++        </a>
++        <h1 className="text-3xl font-bold mb-2">用户协议</h1>
++        <p className="text-sm text-ink-muted mb-10 font-sans">
++          最后更新：2025 年 1 月
++        </p>
++
++        <div className="prose prose-sm max-w-none space-y-8 text-ink-light leading-relaxed">
++          <section>
++            <h2 className="text-lg font-semibold text-ink mb-3">1. 接受条款</h2>
++            <p>
++              使用 ClauseCheck（下称"本服务"），即表示你同意本用户协议的所有条款。如果你不同意任何条款，请停止使用本服务。
++            </p>
++          </section>
++
++          <section>
++            <h2 className="text-lg font-semibold text-ink mb-3">2. 服务说明</h2>
++            <p>
++              ClauseCheck 提供基于 AI 的合同文本风险分析服务。用户上传合同文件后，AI 自动识别风险条款并生成分析报告。本服务提供以下层级：
++            </p>
++            <ul className="list-disc pl-5 space-y-1 mt-2">
++              <li><strong>免费版</strong>：有限次数和字数的基本扫描</li>
++              <li><strong>专业版</strong>：按月订阅，无限扫描 + 深度分析 + PDF 导出</li>
++              <li><strong>按次付费</strong>：单次购买，获得完整报告</li>
++            </ul>
++            <p className="mt-2">
++              我们保留随时修改、暂停或终止服务的权利，但会提前通知付费用户。
++            </p>
++          </section>
++
++          <section>
++            <h2 className="text-lg font-semibold text-ink mb-3">3. 免责声明（重要）</h2>
++            <p className="text-amber-700 bg-amber-50 p-4 rounded-lg">
++              <strong>⚠️ ClauseCheck 提供的 AI 分析仅供参考，不构成法律意见。</strong>
++            </p>
++            <ul className="list-disc pl-5 space-y-1 mt-3">
++              <li>AI 分析结果可能存在错误、遗漏或不准确之处。</li>
++              <li>本服务不能替代持牌律师的专业意见。</li>
++              <li>涉及重大利益（如大额交易、诉讼风险、人身权益）的合同，你应当在签署前咨询持牌律师。</li>
++              <li>依赖 AI 分析结果做出的任何决定，风险由你自行承担。</li>
++              <li>我们不对因使用或依赖本服务而产生的任何直接或间接损失承担责任。</li>
++            </ul>
++          </section>
++
++          <section>
++            <h2 className="text-lg font-semibold text-ink mb-3">4. 用户义务</h2>
++            <p>使用本服务时，你同意：</p>
++            <ul className="list-disc pl-5 space-y-1 mt-2">
++              <li>不上传包含恶意软件、病毒或任何非法内容的文件</li>
++              <li>不上传包含他人敏感个人信息（身份证号、银行账户等）的合同（如必须上传，请先行脱敏）</li>
++              <li>不尝试反向工程、破解或滥用本服务的 API 和系统</li>
++              <li>不为非法目的使用本服务</li>
++              <li>遵守所有适用的法律法规</li>
++            </ul>
++            <p className="mt-2">
++              违反上述义务可能导致立即终止服务，且不予退款。
++            </p>
++          </section>
++
++          <section>
++            <h2 className="text-lg font-semibold text-ink mb-3">5. 知识产权</h2>
++            <p>
++              ClauseCheck 的名称、Logo、网站设计、代码和 AI prompt 设计均为我们的知识产权。你上传的合同内容的所有权和知识产权归你或原始权利人所有。AI 生成的报告内容——分析评分、修改建议、风险标注——你可以在个人使用范围内自由使用，但不得将其作为单独产品转售。
++            </p>
++          </section>
++
++          <section>
++            <h2 className="text-lg font-semibold text-ink mb-3">6. 付费与退款</h2>
++            <p>
++              专业版按月订阅，费用在每个计费周期开始时收取。你可以随时在 Stripe 后台取消订阅，取消后当前周期内仍可正常使用，不会产生后续费用。我们不支持已使用服务的退款，但如果你在付费后 24 小时内没有使用且要求退款，我们将个案处理。
++            </p>
++            <p className="mt-2">
++              按次付费一次生效，扫描完成后不支持退款。如果因系统故障导致扫描无法完成，请与我们联系解决。
++            </p>
++          </section>
++
++          <section>
++            <h2 className="text-lg font-semibold text-ink mb-3">7. 服务可用性</h2>
++            <p>
++              我们将尽商业上合理的努力保持服务的可用性和稳定性，但不保证服务不中断或无错误。以下情况可能导致服务不可用：定期维护、第三方服务故障（如 OpenAI API 或云基础设施）、不可抗力事件。对于付费用户，如因我们可控原因导致长时间不可用，可按受影响天数顺延订阅期。
++            </p>
++          </section>
++
++          <section>
++            <h2 className="text-lg font-semibold text-ink mb-3">8. 隐私与数据</h2>
++            <p>
++              我们对数据隐私的承诺详见 <a href="/privacy" className="text-accent underline">隐私政策</a>。简而言之：合同文件在分析完成后立即删除，不用于 AI 模型训练，不分享给第三方（除必要的技术服务提供商外）。
++            </p>
++          </section>
++
++          <section>
++            <h2 className="text-lg font-semibold text-ink mb-3">9. 责任限制</h2>
++            <p>
++              在法律允许的最大范围内，ClauseCheck 及其运营方对以下情况不承担责任：
++            </p>
++            <ul className="list-disc pl-5 space-y-1 mt-2">
++              <li>因使用或无法使用本服务导致的任何间接、附带、特殊或后果性损失</li>
++              <li>因 AI 分析不准确导致的合同决策损失</li>
++              <li>因第三方服务（OpenAI、Stripe、Vercel 等）故障导致的服务中断</li>
++              <li>因用户未咨询专业律师而导致的合同纠纷或法律后果</li>
++            </ul>
++            <p className="mt-2">
++              如果因我们无法免责的重大过失导致你的直接损失，我们的总赔偿责任以你过去 12 个月内向 ClauseCheck 支付的费用总额为上限。
++            </p>
++          </section>
++
++          <section>
++            <h2 className="text-lg font-semibold text-ink mb-3">10. 争议解决</h2>
++            <p>
++              本协议受中华人民共和国法律管辖。因本协议产生的任何争议，双方应首先友好协商解决；协商不成的，任何一方可向服务提供方所在地有管辖权的人民法院提起诉讼。
++            </p>
++          </section>
++
++          <section>
++            <h2 className="text-lg font-semibold text-ink mb-3">11. 协议修改</h2>
++            <p>
++              我们可能会不时修改本用户协议。修改后的条款将在网站上发布时生效。重大修改将通过网站通知或邮件通知付费用户。继续使用本服务即表示接受修改后的条款。
++            </p>
++          </section>
++
++          <section>
++            <h2 className="text-lg font-semibold text-ink mb-3">12. 联系我们</h2>
++            <p>
++              如果你对用户协议有任何疑问，请通过以下方式联系：
++            </p>
++            <p className="mt-2">
++              📧 legal@clausecheck.com
++            </p>
++          </section>
++        </div>
++      </div>
++    </div>
++  );
++}
+diff --git a/lib/demo.ts b/lib/demo.ts
+index 5a6d300..1d9eba6 100644
+--- a/lib/demo.ts
++++ b/lib/demo.ts
+@@ -1,90 +1,136 @@
+ import type { ScanResult } from "./types";
+ 
+-/** 不调用 AI 时用的 demo 结果（纯客户端安全，无服务端依赖） */
++/**
++ * 不调用 AI 时用的 demo 结果。
++ * 模拟一份「软件开发外包合同」的 AI 审查结果。
++ */
+ export function getDemoResult(): ScanResult {
+   return {
+-    scoreNum: 72,
++    scoreNum: 68,
+     scoreText: "中风险",
+     dimensions: {
+-      fairness: 78,
+-      compliance: 45,
+-      financial: 82,
++      fairness: 75,
++      compliance: 52,
++      financial: 72,
+     },
+     flags: [
+       {
+-        icon: "⚠️",
+-        text: "第 5 条：违约金为合同总额的 200%，远超行业标准",
+-        suggestion: "建议将违约金上限降至合同总额的 30%-50%，并约定双方对等承担",
++        icon: "💰",
++        text: "第 4.2 条：知识产权全部归属甲方，乙方不保留任何使用权",
++        suggestion:
++          "建议争取乙方保留通用组件/工具库的版权，或约定双方共享项目衍生知识产权。完全交出 IP 会削弱你的技术资产积累。",
++        level: "high",
++        category: "知识产权",
++      },
++      {
++        icon: "⏳",
++        text: "第 3.1 条：项目延期交付每日罚款合同总额的 0.5%，无上限",
++        suggestion:
++          "建议设置罚款上限（如合同总额的 10%-20%），同时明确因甲方变更需求导致的延期不计入罚款。",
+         level: "high",
+         category: "违约金",
+       },
+       {
+-        icon: "⛔",
+-        text: "第 8 条：竞业限制范围覆盖全球、期限 5 年",
+-        suggestion: "建议竞业范围缩小至核心业务区域，期限缩短至不超过 2 年",
++        icon: "🔒",
++        text: "第 7.3 条：验收后仍承担 24 个月无限责任质保",
++        suggestion:
++          "建议限定质保范围为重大缺陷，期限缩短至 6-12 个月，并排除因甲方自行修改导致的故障。",
+         level: "high",
+-        category: "竞业限制",
++        category: "责任不对等",
+       },
+       {
+-        icon: "🔄",
+-        text: "第 12 条：到期自动续约 1 年，需提前 90 天书面通知终止",
+-        suggestion: "建议改为到期前 30 天双方确认续约，或加入 30 天灵活退出条款",
++        icon: "💳",
++        text: "第 5.1 条：付款节点全部绑定甲方单方验收，无客观标准",
++        suggestion:
++          "建议将至少 50% 款项绑定到客观里程碑（代码交付、测试通过、部署上线），而非主观验收。",
+         level: "medium",
+-        category: "自动续约",
++        category: "付款",
++      },
++      {
++        icon: "🚫",
++        text: "第 8.2 条：乙方 2 年内不得服务任何「竞争性客户」，定义模糊",
++        suggestion:
++          "建议将竞争性客户明确定义为附件中的具体名单（不超过 5 家），避免被宽泛解释。",
++        level: "medium",
++        category: "竞业限制",
+       },
+       {
+         icon: "⚖️",
+-        text: "第 3 条：争议管辖权在对方所在地法院",
+-        suggestion: "建议争取约定己方所在地或合同签订地法院管辖，降低维权成本",
++        text: "第 10.1 条：争议由甲方所在地法院专属管辖",
++        suggestion:
++          "建议改为合同签订地或约定仲裁（如 CIETAC），减少异地诉讼的时间和金钱成本。",
+         level: "medium",
+         category: "管辖权",
+       },
+       {
+-        icon: "💰",
+-        text: "第 7 条：付款后不退不换，无服务质量保障条款",
+-        suggestion: "建议增加服务质量 SLA 条款，并约定未达标可部分退款",
+-        level: "medium",
+-        category: "付款",
++        icon: "📄",
++        text: "第 6.4 条：甲方可单方变更需求且不调整预算和工期",
++        suggestion:
++          "建议增加变更控制流程：任何需求变更需双方书面确认，并根据工作量重新评估预算和排期。",
++        level: "low",
++        category: "单方权利",
+       },
+     ],
+     timeTerms: [
+       {
+-        type: "auto_renewal",
+-        description: "第 12 条：合同到期自动续约 1 年，需提前 90 天书面通知方可终止",
++        type: "deadline",
++        description:
++          "第 3.1 条：项目交付截止日为合同生效后 90 个自然日，不含需求变更缓冲",
+         date: undefined,
+-        risk: "medium",
++        risk: "high",
+       },
+       {
+         type: "notice_period",
+-        description: "第 12 条：终止合同需提前 90 天书面通知，远长于常规的 30 天",
++        description: "第 9.2 条：任意方终止合同需提前 60 天书面通知",
+         date: undefined,
+         risk: "medium",
+       },
++      {
++        type: "expiration",
++        description: "第 1.2 条：合同有效期 3 年，到期前 30 天内双方协商续签",
++        date: undefined,
++        risk: "low",
++      },
+     ],
+     negotiations: [
+       {
+         priority: 1,
+-        clause: "第 5 条",
+-        current: "违约金为合同总额的 200%",
+-        suggested: "违约金上限降至合同总额的 30%",
+-        reason: "不合理的违约金条款可能在诉讼中被认定无效，且一旦触发将造成重大财务损失",
++        clause: "第 4.2 条",
++        current: "知识产权全部归甲方，开发方无任何使用权",
++        suggested: "核心业务 IP 归甲方，通用组件/工具版权双方共享",
++        reason:
++          "IP 条款影响深远，一旦签署你将失去积累技术资产的可能，这是最大的长期风险",
+       },
+       {
+         priority: 2,
+-        clause: "第 8 条",
+-        current: "竞业限制全球范围、期限 5 年",
+-        suggested: "缩小至核心业务区域、期限 2 年",
+-        reason: "过宽的竞业限制可能被法院调整，但诉讼成本高昂，不如事前谈妥",
++        clause: "第 3.1 条",
++        current: "延期罚款每日 0.5%，无上限",
++        suggested: "罚款上限设为合同总额 15%，需求变更导致的延期不计罚",
++        reason:
++          "无上限罚款在软件开发中极不合理，一个需求变更可能导致数周延期和天价罚金",
+       },
+       {
+         priority: 3,
+-        clause: "第 12 条",
+-        current: "自动续约 1 年 + 90 天通知期",
+-        suggested: "改为双方确认续约制 + 30 天通知期",
+-        reason: "避免在不知情下被长期绑定，保留灵活退出权利",
++        clause: "第 7.3 条",
++        current: "验收后 24 个月无限责任质保",
++        suggested: "质保期 12 个月，限定重大缺陷，排除甲方自行修改部分",
++        reason:
++          "24 个月质保周期远超行业惯例（通常 3-6 个月），会长期占用维护资源",
++      },
++      {
++        priority: 4,
++        clause: "第 5.1 条",
++        current: "付款全部绑定甲方验收通过",
++        suggested: "50% 绑定里程碑，30% 绑定交付，20% 绑定验收",
++        reason:
++          "全部付款依赖主观验收意味着你的现金流完全被对方控制，必须引入客观标准",
+       },
+     ],
+     summary:
+-      "风险排序：① 违约金畸高（最严重）→ ② 竞业限制过宽 → ③ 自动续约缺少弹性 → ④ 管辖权不利于你 → ⑤ 退款保障缺失。\n下一步建议：(1) 首先重谈第 5 条违约金比例，这是最大的财务风险；(2) 然后争取竞业范围缩小至合理范围；(3) 最后把到期续约改为双方确认制，避免被自动锁定。",
++      "这是一份典型的「甲方强势」外包合同，风险集中在三个核心领域：\n\n" +
++      "① 知识产权归属完全偏向甲方——这是最大的长期风险，建议作为谈判第一优先级；\n" +
++      "② 延期罚款和质保条款存在重大财务敞口，必须在签署前设置上限；\n" +
++      "③ 付款和需求变更完全由甲方单方控制，建议引入客观里程碑和变更流程。\n\n" +
++      "整体来看，这份合同并非不能签，但以上三条如果不改，后续履约风险很高。建议按谈判优先级逐条争取，底线是罚款设上限 + 付款绑里程碑。",
+   };
+ }
+diff --git a/lib/pdf-export.ts b/lib/pdf-export.ts
+new file mode 100644
+index 0000000..53a1cfe
+--- /dev/null
++++ b/lib/pdf-export.ts
+@@ -0,0 +1,355 @@
++import { PDFDocument, rgb, StandardFonts, PageSizes } from "pdf-lib";
++import type { ScanResult } from "./types";
++
++// ── Color palette ──
++const COLORS = {
++  primary: rgb(0.07, 0.06, 0.16),    // 深色文字
++  accent: rgb(0.93, 0.32, 0.22),      // 红色强调
++  accentDark: rgb(0.75, 0.18, 0.12),
++  medium: rgb(0.96, 0.65, 0.14),      // 中风险黄
++  low: rgb(0.16, 0.67, 0.42),         // 低风险绿
++  muted: rgb(0.55, 0.55, 0.6),
++  lightBg: rgb(0.96, 0.96, 0.98),
++  white: rgb(1, 1, 1),
++  border: rgb(0.88, 0.88, 0.92),
++};
++
++const riskColorMap: Record<string, ReturnType<typeof rgb>> = {
++  high: COLORS.accent,
++  medium: COLORS.medium,
++  low: COLORS.low,
++};
++
++const riskLabelZh: Record<string, string> = {
++  high: "高风险",
++  medium: "中风险",
++  low: "低风险",
++};
++
++const timeTypeLabels: Record<string, string> = {
++  auto_renewal: "自动续约",
++  deadline: "硬性截止日",
++  expiration: "到期/失效",
++  notice_period: "通知期限",
++};
++
++const timeTypeIcons: Record<string, string> = {
++  auto_renewal: "🔄",
++  deadline: "⏰",
++  expiration: "📅",
++  notice_period: "📬",
++};
++
++// ── Helpers ──
++function hexToRgb(hex: string) {
++  const v = parseInt(hex.replace("#", ""), 16);
++  return rgb(((v >> 16) & 255) / 255, ((v >> 8) & 255) / 255, (v & 255) / 255);
++}
++
++const scoreColorMap: Record<string, ReturnType<typeof rgb>> = {
++  high: COLORS.accent,
++  medium: COLORS.medium,
++  low: COLORS.low,
++};
++
++export async function generateReportPdf(result: ScanResult): Promise<Uint8Array> {
++  const doc = await PDFDocument.create();
++  const { width, height } = PageSizes.A4;
++  const margin = 50;
++  const contentW = width - margin * 2;
++
++  // ── Fonts ──
++  const font = await doc.embedFont(StandardFonts.Helvetica);
++  const fontBold = await doc.embedFont(StandardFonts.HelveticaBold);
++  const fontOblique = await doc.embedFont(StandardFonts.HelveticaOblique);
++
++  // ── Paging helpers ──
++  let page = doc.addPage([width, height]);
++  let y = height - 60;
++  const lineH = 16;
++  const paraGap = 10;
++
++  function ensureSpace(needed: number) {
++    if (y - needed < margin + 30) {
++      page = doc.addPage([width, height]);
++      y = height - 60;
++      // Footer
++      drawFooter(page, font);
++    }
++  }
++
++  function drawFooter(p: typeof page, f: typeof font) {
++    const pageNum = doc.getPages().indexOf(p) + 1;
++    p.drawText(`ClauseCheck · AI 合同风险报告 · 第 ${pageNum} 页`, {
++      x: margin,
++      y: 20,
++      size: 8,
++      font: f,
++      color: COLORS.muted,
++    });
++    p.drawText(`${new Date().toISOString().slice(0, 10)}`, {
++      x: width - margin - 70,
++      y: 20,
++      size: 8,
++      font: f,
++      color: COLORS.muted,
++    });
++  }
++
++  function drawText(
++    text: string,
++    opts: { size?: number; color?: ReturnType<typeof rgb>; bold?: boolean; oblique?: boolean; maxWidth?: number } = {}
++  ) {
++    const { size = 10, color = COLORS.primary, bold = false, oblique = false, maxWidth = contentW } = opts;
++    const f = bold ? fontBold : oblique ? fontOblique : font;
++    const lines = wrapText(text, f, size, maxWidth);
++    for (const line of lines) {
++      ensureSpace(size + 4);
++      page.drawText(line, { x: margin, y, size, font: f, color });
++      y -= size + 4;
++    }
++  }
++
++  function wrapText(text: string, f: typeof font, size: number, maxWidth: number): string[] {
++    const lines: string[] = [];
++    for (const paragraph of text.split("\n")) {
++      if (!paragraph) { lines.push(""); continue; }
++      const words = paragraph.split("");
++      let current = "";
++      for (const ch of words) {
++        const test = current + ch;
++        if (f.widthOfTextAtSize(test, size) > maxWidth && current.length > 0) {
++          lines.push(current);
++          current = ch;
++        } else {
++          current = test;
++        }
++      }
++      if (current) lines.push(current);
++    }
++    return lines;
++  }
++
++  function drawHorizRule(yPos: number) {
++    page.drawLine({
++      start: { x: margin, y: yPos },
++      end: { x: width - margin, y: yPos },
++      thickness: 0.5,
++      color: COLORS.border,
++    });
++  }
++
++  function drawRoundedRect(x: number, y: number, w: number, h: number, color: ReturnType<typeof rgb>, radius = 4) {
++    page.drawRectangle({ x, y: y - h, width: w, height: h, color });
++  }
++
++  function drawRect(x: number, y: number, w: number, h: number, color: ReturnType<typeof rgb>) {
++    page.drawRectangle({ x, y: y - h, width: w, height: h, color });
++  }
++
++  // ═══════════════════════════════════════════
++  //  PAGE 1:  COVER / SUMMARY
++  // ═══════════════════════════════════════════
++
++  // Header bar
++  drawRect(0, height, width, 4, COLORS.accent);
++
++  // Title
++  y = height - 100;
++  drawText("ClauseCheck", { size: 22, bold: true, color: COLORS.accent });
++  y -= 6;
++  drawText("AI 合同风险报告", { size: 16, bold: true });
++  y -= 24;
++  drawHorizRule(y);
++  y -= 20;
++
++  // Generated date
++  drawText(`生成时间：${new Date().toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}`, { size: 9, color: COLORS.muted });
++  y -= 20;
++
++  // ── Overall Score ──
++  ensureSpace(80);
++  const riskKey = result.scoreText.includes("高") ? "high" : result.scoreText.includes("中") ? "medium" : "low";
++  const scoreColor = scoreColorMap[riskKey] || COLORS.muted;
++
++  // Score circle (simulated)
++  const circleX = margin + 30;
++  const circleY = y - 30;
++  drawText("综合风险评分", { size: 11, bold: true });
++  y -= 18;
++  drawText(`${result.scoreNum}`, { size: 42, bold: true, color: scoreColor });
++  y -= 6;
++  drawText(result.scoreText, { size: 13, bold: true, color: scoreColor });
++  y -= 10;
++  drawText("加权公式：公平性 ×35% + 合规性 ×25% + 财务风险 ×40%", { size: 8, color: COLORS.muted });
++  y -= 18;
++
++  // ── Dimension Scores ──
++  if (result.dimensions) {
++    drawHorizRule(y);
++    y -= 16;
++    drawText("分维度风险评分", { size: 11, bold: true });
++    y -= 14;
++
++    const dims = [
++      { label: "合同公平性", value: result.dimensions.fairness, kind: "fairness" as const },
++      { label: "法律合规性", value: result.dimensions.compliance, kind: "compliance" as const },
++      { label: "财务风险", value: result.dimensions.financial, kind: "financial" as const },
++    ];
++    const dimColors: Record<string, ReturnType<typeof rgb>> = {
++      fairness: COLORS.accent,
++      compliance: rgb(0.2, 0.4, 0.75),
++      financial: COLORS.medium,
++    };
++
++    for (const dim of dims) {
++      const dimC = dimColors[dim.kind] || COLORS.primary;
++      ensureSpace(30);
++      drawText(dim.label, { size: 9, color: COLORS.primary });
++      // Bar
++      const barX = margin + 80;
++      const barW = contentW - 120;
++      const barH = 12;
++      const barY = y + 6;
++      drawRoundedRect(barX, barY, barW, barH, COLORS.lightBg);
++      const fillW = (dim.value / 100) * barW;
++      if (fillW > 0) drawRoundedRect(barX, barY, fillW, barH, dimC);
++      // Value text
++      page.drawText(`${dim.value}`, {
++        x: barX + barW + 8,
++        y: barY - barH + 2,
++        size: 9,
++        font: fontBold,
++        color: dimC,
++      });
++      y -= 22;
++    }
++    y -= 6;
++    drawText("分数越高 = 该维度风险越大。建议优先关注红色维度。", { size: 8, color: COLORS.muted });
++    y -= 14;
++  }
++
++  // ═══════════════════════════════════════════
++  //  PAGE 2+:  RISK FLAGS
++  // ═══════════════════════════════════════════
++
++  ensureSpace(40);
++  drawHorizRule(y);
++  y -= 16;
++  drawText(`发现 ${result.flags.length} 个需关注条款`, { size: 13, bold: true });
++  y -= 18;
++
++  for (const flag of result.flags) {
++    const lvl = flag.level || "medium";
++    const flagColor = riskColorMap[lvl] || COLORS.medium;
++    const needed = 60;
++    ensureSpace(needed);
++
++    // Icon + text
++    drawText(`${flag.icon || "⚠️"}  ${flag.text}`, { size: 10, bold: true, maxWidth: contentW - 60 });
++    // Level badge
++    const badgeX = width - margin - 60;
++    const badgeY = y + 14;
++    drawRoundedRect(badgeX, badgeY, 50, 16, flagColor);
++    page.drawText(riskLabelZh[lvl], {
++      x: badgeX + (lvl === "high" ? 8 : 5),
++      y: badgeY - 13,
++      size: 8,
++      font: fontBold,
++      color: COLORS.white,
++    });
++
++    if (flag.suggestion) {
++      y -= 2;
++      drawText(`💡 ${flag.suggestion}`, { size: 9, color: COLORS.muted, maxWidth: contentW - 10 });
++    }
++    if (flag.category) {
++      y -= 2;
++      drawText(`类别：${flag.category}`, { size: 8, color: COLORS.muted, oblique: true });
++    }
++    y -= 12;
++  }
++
++  // ═══════════════════════════════════════════
++  //  TIME TERMS
++  // ═══════════════════════════════════════════
++  if (result.timeTerms && result.timeTerms.length > 0) {
++    ensureSpace(40);
++    drawHorizRule(y);
++    y -= 16;
++    drawText("⏱️ 时间敏感条款", { size: 13, bold: true });
++    y -= 16;
++
++    for (const t of result.timeTerms) {
++      ensureSpace(36);
++      const icon = timeTypeIcons[t.type] || "📌";
++      const label = timeTypeLabels[t.type] || t.type;
++      const tc = riskColorMap[t.risk] || COLORS.medium;
++      drawText(`${icon}  ${label}`, { size: 10, bold: true, color: tc });
++      drawText(t.description, { size: 9, color: COLORS.primary, maxWidth: contentW - 10 });
++      if (t.date) {
++        drawText(`日期：${t.date}`, { size: 8, color: COLORS.muted });
++      }
++      y -= 10;
++    }
++  }
++
++  // ═══════════════════════════════════════════
++  //  NEGOTIATIONS
++  // ═══════════════════════════════════════════
++  if (result.negotiations && result.negotiations.length > 0) {
++    ensureSpace(40);
++    drawHorizRule(y);
++    y -= 16;
++    drawText("谈判优先级", { size: 13, bold: true });
++    y -= 16;
++
++    for (const n of result.negotiations) {
++      ensureSpace(60);
++      // Priority number
++      const nx = margin;
++      const ny = y + 2;
++      drawRoundedRect(nx, ny, 22, 22, COLORS.accent);
++      page.drawText(`${n.priority}`, {
++        x: nx + (n.priority >= 10 ? 3 : 7),
++        y: ny - 17,
++        size: 13,
++        font: fontBold,
++        color: COLORS.white,
++      });
++
++      drawText(n.clause, { size: 10, bold: true, maxWidth: contentW - 30 });
++      drawText(`当前表述：${n.current}`, { size: 9, color: COLORS.muted, maxWidth: contentW - 20 });
++      drawText(`建议改为：${n.suggested}`, { size: 9, bold: true, color: COLORS.accentDark, maxWidth: contentW - 20 });
++      drawText(`💬 ${n.reason}`, { size: 8, color: COLORS.muted, maxWidth: contentW - 20 });
++      y -= 12;
++    }
++  }
++
++  // ═══════════════════════════════════════════
++  //  SUMMARY
++  // ═══════════════════════════════════════════
++  ensureSpace(40);
++  drawHorizRule(y);
++  y -= 16;
++  drawText("综合评估与行动建议", { size: 13, bold: true });
++  y -= 16;
++  drawText(result.summary, { size: 10, maxWidth: contentW });
++
++  // ── Footer on all pages ──
++  for (const p of doc.getPages()) {
++    drawFooter(p, font);
++  }
++
++  // ── Disclaimer on last page ──
++  ensureSpace(40);
++  drawHorizRule(y);
++  y -= 12;
++  drawText("免责声明", { size: 9, bold: true, color: COLORS.muted });
++  drawText(
++    "本报告由 AI 自动生成，仅供参考，不构成法律意见。涉及重大利益的合同，建议咨询专业律师。ClauseCheck 不对因使用本报告而产生的任何损失承担责任。",
++    { size: 8, color: COLORS.muted, maxWidth: contentW }
++  );
++
++  return doc.save();
++}
