@@ -95,7 +95,7 @@ ${renderHeader(result)}
 ${renderScore(result)}
 ${renderDimensions(result)}
 ${renderFlags(result.flags)}
-${result.timeTerms?.length ? renderTimeTerms(result.timeTerms!) : ""}
+${result.timeTerms?.length ? renderTimeTerms(result.timeTerms) : ""}
 ${result.negotiations?.length ? renderNegotiations(result.negotiations) : ""}
 ${renderSummary(result)}
 </div>
@@ -170,8 +170,7 @@ function renderFlags(flags: ScanResult["flags"]): string {
 }
 
 /* ── Time Terms ── */
-function renderTimeTerms(terms: ScanResult["timeTerms"]): string {
-  const labels: Record<string, string> = {
+function renderTimeTerms(terms: NonNullable<ScanResult["timeTerms"]>): string {  const labels: Record<string, string> = {
     auto_renewal: "自动续期", deadline: "截止日期",
     expiration: "到期/失效", notice_period: "通知期",
   };
