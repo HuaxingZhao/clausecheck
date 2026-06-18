@@ -110,7 +110,7 @@ export default function PrivacyPage() {
               如果你对隐私政策有任何疑问或顾虑，请通过以下方式联系：
             </p>
             <p className="mt-2">
-              📧 privacy@clausecheck.com
+              📧 privacy@clausecheck.cc
             </p>
           </section>
         </div>

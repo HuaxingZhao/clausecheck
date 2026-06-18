@@ -136,7 +136,7 @@ export default function TermsPage() {
               如果你对用户协议有任何疑问，请通过以下方式联系：
             </p>
             <p className="mt-2">
-              📧 legal@clausecheck.com
+              📧 legal@clausecheck.cc
             </p>
           </section>
         </div>

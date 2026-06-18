@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-const BASE_URL = "https://clausecheck.com";
+const BASE_URL = "https://clausecheck.cc";
 
 export const metadata: Metadata = {
   title: "ClauseCheck — AI 合同风险扫描",
