@@ -95,7 +95,7 @@ ${renderHeader(result)}
 ${renderScore(result)}
 ${renderDimensions(result)}
 ${renderFlags(result.flags)}
-${result.timeTerms?.length ? renderTimeTerms(result.timeTerms) : ""}
+${result.timeTerms?.length ? renderTimeTerms(result.timeTerms!) : ""}
 ${result.negotiations?.length ? renderNegotiations(result.negotiations) : ""}
 ${renderSummary(result)}
 </div>
