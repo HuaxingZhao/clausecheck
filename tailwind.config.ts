@@ -9,7 +9,7 @@ const config: Config = {
           DEFAULT: 'rgb(250 249 246 / <alpha-value>)',
           dark: '#F0EDE8',
         },
-        ink: { DEFAULT: '#1A1A1A', light: '#6B6B6B', muted: '#9E9E9E' },
+        ink: { DEFAULT: '#1A1A1A', light: '#5C5C5C', muted: '#6B6B6B' },
         border: '#E5E0D8',
         accent: {
           DEFAULT: '#d4a574',

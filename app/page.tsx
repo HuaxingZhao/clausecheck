@@ -271,7 +271,8 @@ export default function Home() {
               <input
                 type="file"
                 accept=".pdf,.docx,.doc,.txt"
-                className="hidden"
+                className="sr-only"
+                aria-label="选择合同文件"
                 onChange={(e: ChangeEvent<HTMLInputElement>) => {
                   const f = e.target.files?.[0];
                   if (f) handleFile(f);
@@ -704,7 +705,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
     <div className={`faq-item ${open ? "open" : ""}`}>
-      <button className="faq-q" onClick={() => setOpen(!open)}>
+      <button className="faq-q" onClick={() => setOpen(!open)} aria-expanded={open}>
         <span className="font-medium">{q}</span>
         <span className={`text-ink-muted transition-transform ${open ? "rotate-45" : ""}`}>
           +
