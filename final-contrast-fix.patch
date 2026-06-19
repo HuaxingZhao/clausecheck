@@ -1,0 +1,167 @@
+diff --git a/app/globals.css b/app/globals.css
+index ac5949a..eb54554 100644
+--- a/app/globals.css
++++ b/app/globals.css
+@@ -35,12 +35,12 @@ body {
+ }
+ .btn-primary {
+   @apply text-white px-6 py-3 text-sm;
+-  background: linear-gradient(135deg, #e07b5a, #cc6a4a);
+-  box-shadow: 0 2px 8px rgba(224, 123, 90, 0.25);
++  background: linear-gradient(135deg, #b8482a, #a8321c);
++  box-shadow: 0 2px 8px rgba(184, 72, 42, 0.25);
+ }
+ .btn-primary:hover {
+-  background: linear-gradient(135deg, #cc6a4a, #b85a3d);
+-  box-shadow: 0 4px 16px rgba(224, 123, 90, 0.40);
++  background: linear-gradient(135deg, #a8321c, #90281a);
++  box-shadow: 0 4px 16px rgba(184, 72, 42, 0.40);
+   transform: translateY(-1px);
+ }
+ .btn-outline {
+@@ -86,7 +86,7 @@ body {
+ .step-num {
+   @apply text-5xl font-light mb-4;
+   font-family: system-ui, sans-serif;
+-  color: rgba(224, 123, 90, 0.20);
++  color: #C07060;
+ }
+ .step h3 {
+   @apply text-xl mb-3 font-semibold;
+@@ -157,16 +157,16 @@ body {
+          transition-all duration-300 cursor-pointer select-none
+          inline-flex items-center justify-center;
+   font-family: system-ui, sans-serif;
+-  background: linear-gradient(135deg, #e07b5a, #cc6a4a);
++  background: linear-gradient(135deg, #b8482a, #a8321c);
+   color: white;
+   border: none;
+   letter-spacing: 0.02em;
+-  box-shadow: 0 4px 16px rgba(224, 123, 90, 0.30);
++  box-shadow: 0 4px 16px rgba(184, 72, 42, 0.30);
+ }
+ .upload-submit-btn:hover:not(:disabled) {
+-  background: linear-gradient(135deg, #cc6a4a, #b85a3d);
++  background: linear-gradient(135deg, #a8321c, #90281a);
+   transform: translateY(-2px);
+-  box-shadow: 0 8px 28px rgba(224, 123, 90, 0.40);
++  box-shadow: 0 8px 28px rgba(184, 72, 42, 0.40);
+ }
+ .upload-submit-btn:disabled {
+   opacity: 0.35;
+@@ -302,7 +302,7 @@ body {
+   @apply w-10 text-right text-sm font-bold shrink-0;
+   font-family: system-ui, sans-serif;
+ }
+-.dim-val.fairness  { color: #F97316; }
++.dim-val.fairness  { color: #C2410C; }
+ .dim-val.compliance { color: #4F46E5; }
+ .dim-val.financial { color: #DC2626; }
+ 
+@@ -336,20 +336,20 @@ body {
+ }
+ .flag-level-badge.high {
+   background: #FEF2F2;
+-  color: #DC2626;
++  color: #B91C1C;
+ }
+ .flag-level-badge.medium {
+   background: #FFFBEB;
+-  color: #D97706;
++  color: #92400E;
+ }
+ .flag-level-badge.low {
+   background: #F0FDF4;
+-  color: #16A34A;
++  color: #166534;
+ }
+ 
+ .flag-suggestion {
+   @apply block text-xs mt-2 leading-relaxed;
+-  color: #6B7280;
++  color: #5B626A;
+   padding: 8px 12px;
+   background: #F9FAFB;
+   border-radius: 8px;
+@@ -378,15 +378,15 @@ body {
+ }
+ .time-badge.high {
+   background: #FEF2F2;
+-  color: #DC2626;
++  color: #B91C1C;
+ }
+ .time-badge.medium {
+   background: #FFFBEB;
+-  color: #D97706;
++  color: #92400E;
+ }
+ .time-badge.low {
+   background: #F0FDF4;
+-  color: #16A34A;
++  color: #166534;
+ }
+ 
+ /* ── Negotiations ── */
+@@ -409,9 +409,9 @@ body {
+ .nego-priority {
+   @apply w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0;
+   font-family: system-ui, sans-serif;
+-  background: linear-gradient(135deg, #e07b5a, #cc6a4a);
++  background: linear-gradient(135deg, #b8482a, #a8321c);
+   color: white;
+-  box-shadow: 0 2px 8px rgba(224, 123, 90, 0.35);
++  box-shadow: 0 2px 8px rgba(184, 72, 42, 0.35);
+ }
+ .nego-body {
+   @apply flex-1 min-w-0;
+@@ -432,7 +432,7 @@ body {
+ }
+ .nego-reason {
+   @apply text-xs leading-relaxed;
+-  color: #6B7280;
++  color: #5B626A;
+   padding: 6px 10px;
+   background: #F9FAFB;
+   border-radius: 6px;
+@@ -465,7 +465,7 @@ body {
+   font-family: system-ui, sans-serif;
+   transition: color 0.2s;
+ }
+-.faq-q:hover { color: #e07b5a; }
++.faq-q:hover { color: #b84a25; }
+ .faq-a {
+   @apply overflow-hidden transition-all duration-300;
+   max-height: 0;
+@@ -509,7 +509,7 @@ h2 { @apply text-3xl md:text-4xl font-bold leading-tight tracking-tight; }
+ .currency-btn {
+   @apply px-5 py-2.5 text-sm font-sans font-semibold rounded-full
+          transition-all duration-300 select-none relative;
+-  color: #8B8680;
++  color: #6E6862;
+   letter-spacing: 0.01em;
+ }
+ .currency-btn:hover:not(.active) {
+@@ -517,8 +517,8 @@ h2 { @apply text-3xl md:text-4xl font-bold leading-tight tracking-tight; }
+   background: rgba(255,255,255,0.55);
+ }
+ .currency-btn.active {
+-  background: linear-gradient(135deg, #e07b5a, #cc6a4a);
++  background: linear-gradient(135deg, #b8482a, #a8321c);
+   color: #fff;
+-  box-shadow: 0 3px 12px rgba(224,123,90,0.35), 0 1px 3px rgba(0,0,0,0.08);
++  box-shadow: 0 3px 12px rgba(184,72,42,0.35), 0 1px 3px rgba(0,0,0,0.08);
+   transform: scale(1.04);
+ }
+diff --git a/app/page.tsx b/app/page.tsx
+index 92fc1b2..32f9c43 100644
+--- a/app/page.tsx
++++ b/app/page.tsx
+@@ -541,7 +541,7 @@ export default function Home() {
+             <div className="pricing-card featured">
+               <div className="flex items-center gap-2 mb-1">
+                 <h3 className="text-xl">专业版</h3>
+-                <span className="text-xs bg-accent/20 text-accent-dark px-2 py-0.5 rounded-full font-sans">
++                <span className="text-xs bg-accent/20 text-[#8B3A0E] px-2 py-0.5 rounded-full font-sans">
+                   推荐
+                 </span>
+               </div>
