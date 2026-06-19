@@ -4,7 +4,6 @@ const nextConfig = {
   compress: true,
   experimental: {
     serverComponentsExternalPackages: ['pdf-parse'],
-    optimizeCss: true,
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
