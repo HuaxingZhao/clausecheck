@@ -45,18 +45,31 @@ export default function Home() {
   const [dragOver, setDragOver] = useState(false);
   const [quotaWarning, setQuotaWarning] = useState<string | null>(null);
   const [currency, setCurrency] = useState<CurrencyKey>("cny");
+  const [toast, setToast] = useState<string | null>(null);
+  const [pro, setProState] = useState(false);
   const resultsRef = useRef<HTMLElement>(null);
 
   /* ---------- checkout success redirect ---------- */
   useEffect(() => {
+    setProState(isPro());
     if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("checkout")) {
       const status = new URLSearchParams(window.location.search).get("checkout");
       if (status === "success") {
         setPro();
+        setProState(true);
+        setToast("🎉 支付成功！已解锁专业版，无限次扫描 + PDF 导出");
         window.history.replaceState({}, "", window.location.pathname);
       }
     }
   }, []);
+
+  /* ---------- toast auto-dismiss ---------- */
+  useEffect(() => {
+    if (toast) {
+      const t = setTimeout(() => setToast(null), 5000);
+      return () => clearTimeout(t);
+    }
+  }, [toast]);
 
   /* ---------- Stripe checkout ---------- */
   async function handleCheckout(priceId: string) {
@@ -180,6 +193,12 @@ export default function Home() {
         <div className="nav-inner">
           <a href="#" className="font-sans font-semibold text-lg tracking-tight">
             ClauseCheck
+            {pro && (
+              <span className="ml-2.5 inline-flex items-center gap-1 text-xs bg-accent/15 text-[#8B3A0E] px-2 py-0.5 rounded-full font-sans font-semibold align-middle">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                专业版
+              </span>
+            )}
           </a>
           <div className="flex items-center gap-6 text-sm font-sans text-ink-light">
             <button onClick={() => scrollTo("how")} className="hover:text-ink transition-colors">
@@ -519,6 +538,33 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* ---------- 已订阅状态 ---------- */}
+            {pro ? (
+              <div className="md:col-span-3 max-w-xl mx-auto w-full">
+                <div className="pricing-card featured text-center !scale-100 hover:!scale-[1.02]">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-accent"><polyline points="20 6 9 17 4 12"/></svg>
+                    <h3 className="text-xl">您已订阅专业版</h3>
+                  </div>
+                  <p className="text-sm text-ink-light mb-5 font-sans leading-relaxed">
+                    无限次扫描 · 深度 AI 分析 · 全文无长度限制 · PDF 报告导出 · 批量扫描 · 优先邮件支持
+                  </p>
+                  <p className="text-xs text-ink-muted font-sans leading-relaxed">
+                    需要管理订阅？前往{" "}
+                    <a
+                      href="https://billing.stripe.com/p/login/test_xxx"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-accent underline hover:text-[#8B3A0E] transition-colors"
+                    >
+                      Stripe 管理后台
+                    </a>
+                    {" "}查看账单、更新支付方式或取消订阅。
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <>
             {/* Free */}
             <div className="pricing-card">
               <h3 className="text-xl mb-1">免费版</h3>
@@ -587,6 +633,8 @@ export default function Home() {
                 {cur.payPerUse.symbol}{cur.payPerUse.amount} 扫一次
               </button>
             </div>
+            </>
+          )}
           </div>
         </div>
       </section>
@@ -651,6 +699,13 @@ export default function Home() {
           </p>
         </div>
       </footer>
+
+      {/* ====== TOAST ====== */}
+      {toast && (
+        <div className="toast">
+          <span>{toast}</span>
+        </div>
+      )}
     </main>
   );
 }
