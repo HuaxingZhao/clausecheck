@@ -11,6 +11,19 @@ export interface ScanResult {
   negotiations?: NegotiationPoint[];
   /** 时间敏感条款 */
   timeTerms?: TimeTerm[];
+
+  /* ––––– 深度分析专属字段（Pro / 按次付费） ––––– */
+
+  /** 合同类型，如"软件外包服务合同""劳动合同""NDA 保密协议" */
+  contractType?: string;
+  /** 最坏情况分析：如果所有不利条款同时生效，可能发生的最严重后果 */
+  worstCase?: string;
+  /** 对用户有利的条款（谈判筹码） */
+  strengths?: string[];
+  /** 缺失的关键条款 */
+  missingClauses?: MissingClause[];
+  /** 交叉验证修正说明（第二轮追加） */
+  refineNotes?: string;
 }
 
 /** 分维度风险评分 (0-100) */
@@ -29,6 +42,8 @@ export interface RiskFlag {
   level?: "high" | "medium" | "low";
   /** 风险类别 */
   category?: string;
+  /** 相关原文引用（深度模式） */
+  quote?: string;
 }
 
 /** 谈判要点 */
@@ -51,6 +66,16 @@ export interface TimeTerm {
   description: string;
   date?: string;
   risk: "high" | "medium" | "low";
+}
+
+/** 缺失的关键条款（深度模式） */
+export interface MissingClause {
+  /** 条款名称 */
+  name: string;
+  /** 为什么这份合同需要它 */
+  importance: string;
+  /** 建议增加的条款内容模板 */
+  suggestion: string;
 }
 
 export interface ScanError {
