@@ -541,7 +541,7 @@ export default function Home() {
             <div className="pricing-card featured">
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="text-xl">专业版</h3>
-                <span className="text-xs bg-accent/20 text-accent-dark px-2 py-0.5 rounded-full font-sans">
+                <span className="text-xs bg-accent/20 text-[#8B3A0E] px-2 py-0.5 rounded-full font-sans">
                   推荐
                 </span>
               </div>
