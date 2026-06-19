@@ -3,6 +3,8 @@ import { extractTextFromBuffer } from "@/lib/extract-text";
 import { analyzeContract } from "@/lib/analyze";
 import { getDemoResult } from "@/lib/demo";
 
+export const maxDuration = 60; // Pro 深度分析需要两轮 GPT-4o 调用
+
 const FREE_MAX_CHARS = 12000;
 const PRO_MAX_CHARS = 80000;
 
