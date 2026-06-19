@@ -33,9 +33,10 @@ export async function extractTextFromBuffer(
   mimeType: string
 ): Promise<ExtractedText> {
   if (mimeType === "application/pdf") {
-    const pdfParse = (await import("pdf-parse")).default;
-    const data = await pdfParse(buffer);
-    return { text: data.text, sourceType: "pdf", pageCount: data.numpages };
+    const { extractText, getDocumentProxy } = await import("unpdf");
+    const pdf = await getDocumentProxy(new Uint8Array(buffer));
+    const { totalPages, text } = await extractText(pdf, { mergePages: true });
+    return { text, sourceType: "pdf", pageCount: totalPages };
   }
 
   if (
