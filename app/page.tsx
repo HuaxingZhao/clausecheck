@@ -643,6 +643,8 @@ export default function Home() {
             仅供参考，不构成法律意见
           </p>
           <p className="text-xs text-ink-muted font-sans">
+            <a href="/about" className="hover:text-ink transition-colors">关于</a>
+            <span className="mx-2">·</span>
             <a href="/privacy" className="hover:text-ink transition-colors">隐私政策</a>
             <span className="mx-2">·</span>
             <a href="/terms" className="hover:text-ink transition-colors">用户协议</a>
