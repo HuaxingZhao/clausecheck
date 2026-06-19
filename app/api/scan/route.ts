@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { extractTextFromBuffer } from "@/lib/extract-text";
 import { analyzeContract } from "@/lib/analyze";
 import { getDemoResult } from "@/lib/demo";
+import type { ExtractedText } from "@/lib/types";
 
 export const maxDuration = 60; // Pro 深度分析需要两轮 GPT-4o 调用
 
@@ -23,7 +24,19 @@ export async function POST(req: NextRequest) {
     const mimeType = file.type || "application/octet-stream";
 
     // 提取文本
-    const extracted = await extractTextFromBuffer(buffer, mimeType);
+    let extracted: ExtractedText;
+    try {
+      extracted = await extractTextFromBuffer(buffer, mimeType);
+    } catch (extractErr: any) {
+      console.error("Text extraction failed:", extractErr);
+      return NextResponse.json(
+        {
+          error: `文本提取失败：${extractErr.message || "未知错误"}。如果您上传的是扫描件（图片型 PDF），请先转为文字型 PDF 再上传。`,
+          code: "EXTRACTION_FAILED",
+        },
+        { status: 500 }
+      );
+    }
     if (!extracted.text || extracted.text.trim().length < 50) {
       return NextResponse.json(
         { error: "未能从文件中提取到足够文本，请确认文件是文字型 PDF 或 DOCX" },
