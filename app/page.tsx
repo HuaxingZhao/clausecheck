@@ -552,7 +552,7 @@ export default function Home() {
                   <p className="text-xs text-ink-muted font-sans leading-relaxed">
                     需要管理订阅？前往{" "}
                     <a
-                      href="https://billing.stripe.com/p/login/test_xxx"
+                      href="https://billing.stripe.com/p/login/dRm3cveQW6Bg6Gz7xh00000"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-accent underline hover:text-[#8B3A0E] transition-colors"
