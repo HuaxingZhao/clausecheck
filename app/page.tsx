@@ -1,5 +1,21 @@
+import dynamic from "next/dynamic";
 import NavBar from "./nav-bar";
-import ScannerSection from "./scanner-section";
+
+const ScannerSection = dynamic(() => import("./scanner-section"), {
+  loading: () => (
+    <section className="py-24 md:py-28">
+      <div className="upload-section">
+        <div className="section-label text-center">提交合同</div>
+        <h2 className="text-center mb-3">上传合同，立刻扫描</h2>
+        <p className="text-center text-ink-light mb-10">支持 PDF、DOCX，最大 50MB</p>
+        <div className="text-center py-20">
+          <span className="dot-pulse" />
+          <span className="text-ink-muted font-sans text-sm ml-2">加载中…</span>
+        </div>
+      </div>
+    </section>
+  ),
+});
 
 export default function Home() {
   return (
