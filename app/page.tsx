@@ -37,6 +37,26 @@ const timeLabels: Record<string, string> = {
   notice_period: "通知期限",
 };
 
+{/* –––– FAQItem 组件 –––– */}
+function FAQItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={`faq-item ${open ? "open" : ""}`}>
+      <button
+        className="faq-q"
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+      >
+        <span className="font-medium">{q}</span>
+        <span className={`text-ink-muted transition-transform ${open ? "rotate-45" : ""}`}>+</span>
+      </button>
+      <div className="faq-a">
+        <p className="text-sm text-ink-light leading-relaxed">{a}</p>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
