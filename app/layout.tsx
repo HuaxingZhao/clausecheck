@@ -46,6 +46,40 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-CN">
+      <head>
+        {/* Stripe 预连接 — 消除渲染阻塞请求 (~300ms) */}
+        <link rel="preconnect" href="https://js.stripe.com" />
+        <link rel="dns-prefetch" href="https://js.stripe.com" />
+        <link rel="preconnect" href="https://api.stripe.com" />
+        <link rel="dns-prefetch" href="https://api.stripe.com" />
+
+        {/* 浏览器元数据 */}
+        <meta name="application-name" content="ClauseCheck" />
+        <meta name="theme-color" content="#111018" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+        {/* 结构化数据：SoftwareApplication */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              name: "ClauseCheck",
+              applicationCategory: "BusinessApplication",
+              operatingSystem: "Web",
+              description:
+                "AI 合同风险扫描工具。上传合同，3 分钟出风险报告。",
+              offers: {
+                "@type": "Offer",
+                price: "0",
+                priceCurrency: "CNY",
+              },
+            }),
+          }}
+        />
+      </head>
       <body>{children}</body>
     </html>
   );

@@ -5,9 +5,14 @@ const nextConfig = {
   poweredByHeader: false,
   compress: true,
   experimental: {
+    // 自动 tree-shake 第三方包的未使用代码
+    optimizePackageImports: ["@stripe/stripe-js"],
   },
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
+    removeConsole:
+      process.env.NODE_ENV === "production"
+        ? { exclude: ["error", "warn"] }
+        : false,
   },
 };
 
@@ -32,4 +37,3 @@ module.exports = withSentryConfig(
     excludeServerRoutes: [],
   }
 );
-
