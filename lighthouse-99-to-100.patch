@@ -1,0 +1,25 @@
+diff --git a/app/page.tsx b/app/page.tsx
+index a1b2c3d..e4f5g6h 100644
+--- a/app/page.tsx
++++ b/app/page.tsx
+@@ -3,7 +3,6 @@
+ import { useState, useRef, type FormEvent, type ChangeEvent } from "react";
+ import type { ScanResult, ScanError } from "@/lib/types";
+-import { getDemoResult } from "@/lib/analyze";
+ 
+ export default function Home() {
+
+diff --git a/next.config.js b/next.config.js
+index b2c3d4e..f5g6h7i 100644
+--- a/next.config.js
++++ b/next.config.js
+@@ -2,7 +2,9 @@
+ const nextConfig = {
+   experimental: {
+     serverComponentsExternalPackages: ['pdf-parse'],
++    optimizePackageImports: ['openai'],
+   },
++  poweredByHeader: false,
+ };
+ 
+ module.exports = nextConfig;
