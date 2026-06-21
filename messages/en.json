@@ -1,0 +1,190 @@
+{
+  "nav": {
+    "brand": "ClauseCheck",
+    "how": "How It Works",
+    "pricing": "Pricing",
+    "faq": "FAQ",
+    "startScan": "Start Scan"
+  },
+  "hero": {
+    "badge": "{count} contracts scanned",
+    "title1": "Before You Sign,",
+    "title2": "Let AI Review It",
+    "subtitle": "Upload your contract. AI flags every risky clause clause by clause. Report in 3 minutes — no surprises.",
+    "cta": "Scan Your Contract Free →",
+    "trust": "No signup · Encrypted · Auto-deleted after scan"
+  },
+  "how": {
+    "label": "3 Simple Steps",
+    "title": "Easier Than You Think",
+    "step1": {
+      "num": "01",
+      "title": "Upload Contract",
+      "desc": "Supports PDF & DOCX. Drag and drop or click to select. Your file is encrypted end-to-end and auto-deleted after analysis."
+    },
+    "step2": {
+      "num": "02",
+      "title": "AI Clause-by-Clause Review",
+      "desc": "Our LLM scans the full text, flagging high-risk clauses: indemnification, non-compete, auto-renewal, unilateral termination, IP ownership, and more."
+    },
+    "step3": {
+      "num": "03",
+      "title": "Report & Recommendations",
+      "desc": "A clear risk score + clause-by-clause breakdown + suggested edits. Copy and send to the other party — negotiate with confidence."
+    }
+  },
+  "upload": {
+    "label": "Try It Free",
+    "title": "Upload & Scan Instantly",
+    "subtitle": "Supports PDF, DOCX — up to 10MB",
+    "dropzone": "Drop your file here, or click to select",
+    "reselect": "Click to reselect",
+    "scanButton": "Start Scan",
+    "scanning": "AI analyzing…",
+    "scanningText": "AI is reviewing your contract clause by clause…",
+    "rescan": "🔄 Rescan",
+    "errorFormat": "Only PDF / DOCX / TXT files supported",
+    "errorSize": "File must be under 10MB"
+  },
+  "results": {
+    "label": "Scan Results",
+    "title": "Risk Report",
+    "riskScore": "Risk Score",
+    "scoreHigh": "High Risk",
+    "scoreMedium": "Medium Risk",
+    "scoreLow": "Low Risk",
+    "scoreDesc": "Score based on clause fairness, legal compliance, and potential financial exposure. Higher = needs more attention.",
+    "flagsFound": "⚑ {count} clauses flagged",
+    "overallAssessment": "📝 Overall Assessment",
+    "upgradeCta": "Upgrade to Pro · Deep Analysis →",
+    "upgradeHint": "Pro includes unlimited text length, batch scanning, and PDF report export"
+  },
+  "pricing": {
+    "label": "Pricing",
+    "title": "Simple & Transparent",
+    "subtitle": "Pay as you go. No surprise price hikes.",
+    "currencyLabel": "Currency",
+    "currencies": {
+      "usd": {
+        "label": "USD",
+        "free": { "price": "$0", "period": "/month" },
+        "pro": { "price": "$49", "period": "/month" }
+      },
+      "sgd": {
+        "label": "SGD",
+        "free": { "price": "S$0", "period": "/month" },
+        "pro": { "price": "S$66", "period": "/month" }
+      }
+    },
+    "free": {
+      "name": "Free",
+      "features": [
+        "✅ 5 free scans per month",
+        "✅ Basic risk assessment",
+        "✅ High-risk clause flagging",
+        "⏤ 12,000 character limit",
+        "⏤ No PDF report export"
+      ],
+      "cta": "Start Free"
+    },
+    "pro": {
+      "name": "Pro",
+      "badge": "Recommended",
+      "features": [
+        "✅ Unlimited scans",
+        "✅ Deep AI analysis (dual-model)",
+        "✅ No text length limit",
+        "✅ PDF report export",
+        "✅ Batch scanning"
+      ],
+      "cta": "Upgrade Now"
+    }
+  },
+  "pricingZh": {
+    "label": "定价",
+    "title": "简单透明",
+    "subtitle": "按需付费，中间不涨价",
+    "free": {
+      "name": "免费版",
+      "price": "¥0",
+      "period": "/月",
+      "features": [
+        "✅ 每月 5 次免费扫描",
+        "✅ 基础风险评估",
+        "✅ 标记高风险条款",
+        "⏤ 12,000 字文本限制",
+        "⏤ 不含 PDF 报告导出"
+      ],
+      "cta": "免费开始"
+    },
+    "pro": {
+      "name": "专业版",
+      "badge": "推荐",
+      "price": "¥49",
+      "period": "/月",
+      "features": [
+        "✅ 不限次数",
+        "✅ 深度 AI 分析（双模型交叉验证）",
+        "✅ 全文无长度限制",
+        "✅ PDF 报告导出",
+        "✅ 批量扫描"
+      ],
+      "cta": "立即升级"
+    }
+  },
+  "faq": {
+    "label": "FAQ",
+    "title": "You Might Be Wondering",
+    "items": [
+      {
+        "q": "Is my contract secure and private?",
+        "a": "Uploaded files are used only for the current scan and are immediately deleted from our servers afterward. All transfers are HTTPS-encrypted. We never store, view, or reuse your contract content."
+      },
+      {
+        "q": "How accurate is the AI? Can it replace a lawyer?",
+        "a": "Our AI covers 10+ risk categories including indemnification, non-compete, auto-renewal, and IP ownership. Internal tests show over 90% detection of high-risk clauses. However, it is not a lawyer — for high-stakes contracts, always consult a licensed attorney."
+      },
+      {
+        "q": "What file formats are supported?",
+        "a": "PDF (text-based, not scanned images), DOCX (Word), and TXT plain text. Image OCR is not yet supported."
+      },
+      {
+        "q": "What are the Free tier limits?",
+        "a": "5 free scans per month, up to 12,000 characters each. Includes risk scoring and clause flagging, but no PDF export. Perfect for everyday contracts."
+      }
+    ]
+  },
+  "faqZh": {
+    "label": "常见问题",
+    "title": "你可能想问",
+    "items": [
+      {
+        "q": "合同隐私安全吗？",
+        "a": "上传的文件仅用于本次扫描，扫描完成后立即从服务器删除。全程 HTTPS 加密传输，不存储任何合同内容。"
+      },
+      {
+        "q": "分析结果准确吗？",
+        "a": "AI 能覆盖赔偿条款、竞业限制、自动续约、知识产权归属等常见风险点。但它不是律师，仅供参考，涉及重大利益的合同仍建议咨询专业律师。"
+      },
+      {
+        "q": "支持什么格式？",
+        "a": "PDF（文字型，非扫描件图片）、DOCX（Word 文档）、TXT 纯文本。暂不支持图片 OCR。"
+      },
+      {
+        "q": "免费版有什么限制？",
+        "a": "每月 5 次免费扫描，每次最多 12,000 字，不含 PDF 报告导出。日常小合同完全够用。"
+      }
+    ]
+  },
+  "footer": {
+    "text": "© {year} ClauseCheck · AI Contract Assistant · For reference only, not legal advice"
+  },
+  "meta": {
+    "title": "ClauseCheck — AI Contract Risk Scanner",
+    "description": "Upload your contract. AI flags every risky clause. Report in 3 minutes."
+  },
+  "langSwitch": {
+    "label": "中文",
+    "to": "Switch to Chinese"
+  }
+}

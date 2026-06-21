@@ -1,0 +1,231 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* -------------------------------------------------- */
+/*  Base                                              */
+/* -------------------------------------------------- */
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+}
+body {
+  @apply bg-paper text-ink;
+  font-family: "Inter", "PingFang SC", "Microsoft YaHei", "Noto Sans SC",
+    system-ui, -apple-system, sans-serif;
+}
+
+/* -------------------------------------------------- */
+/*  Layout                                            */
+/* -------------------------------------------------- */
+.nav-inner {
+  @apply max-w-6xl mx-auto px-6 py-4 flex items-center justify-between;
+}
+.section-label {
+  @apply text-xs tracking-[0.2em] uppercase text-ink-muted mb-3;
+}
+
+/* -------------------------------------------------- */
+/*  Buttons                                           */
+/* -------------------------------------------------- */
+.btn {
+  @apply inline-flex items-center justify-center font-medium rounded-lg
+         transition-all duration-200 cursor-pointer select-none;
+  font-family: system-ui, sans-serif;
+}
+.btn-primary {
+  @apply bg-accent text-white px-6 py-3 text-sm hover:bg-accent-dark;
+}
+.btn-outline {
+  @apply border border-border text-ink px-6 py-3 text-sm hover:bg-paper-dark;
+}
+.btn-lg {
+  @apply px-8 py-4 text-base;
+}
+
+/* -------------------------------------------------- */
+/*  Hero                                              */
+/* -------------------------------------------------- */
+.hero-badge {
+  @apply flex items-center gap-2 text-sm text-ink-light font-sans
+         bg-paper-dark border border-border rounded-full px-4 py-1.5;
+}
+h1 {
+  @apply text-4xl md:text-6xl font-light leading-tight tracking-tight;
+}
+h2 {
+  @apply text-2xl md:text-4xl font-light text-center;
+}
+h3 {
+  @apply text-lg font-medium;
+}
+h4 {
+  @apply text-base font-semibold;
+}
+
+/* -------------------------------------------------- */
+/*  Steps                                             */
+/* -------------------------------------------------- */
+.steps {
+  @apply grid grid-cols-1 md:grid-cols-3 gap-8 mt-10;
+}
+.step {
+  @apply text-left;
+}
+.step-num {
+  @apply text-5xl font-light text-accent/30 mb-3 font-sans;
+}
+.step h3 {
+  @apply mb-2;
+}
+.step p {
+  @apply text-sm text-ink-light leading-relaxed;
+}
+
+/* -------------------------------------------------- */
+/*  Upload zone                                       */
+/* -------------------------------------------------- */
+.upload-zone {
+  @apply block border-2 border-dashed border-border rounded-xl p-12
+         text-center cursor-pointer transition-colors duration-200;
+}
+.upload-zone:hover {
+  @apply border-accent bg-paper-dark;
+}
+.upload-zone.has-file {
+  @apply border-accent bg-paper-dark;
+}
+.upload-icon {
+  @apply inline-flex items-center justify-center w-14 h-14
+         rounded-full bg-paper-dark text-ink-muted mb-4;
+}
+.upload-zone.has-file .upload-icon {
+  @apply text-accent;
+}
+
+/* -------------------------------------------------- */
+/*  Loading bar                                       */
+/* -------------------------------------------------- */
+.loading-bar {
+  @apply w-full max-w-md mx-auto h-1 bg-paper-dark rounded-full overflow-hidden;
+}
+.loading-bar-fill {
+  @apply h-full bg-accent rounded-full;
+  animation: loading-slide 2s ease-in-out infinite;
+}
+@keyframes loading-slide {
+  0%   { width: 0%; margin-left: 0%; }
+  50%  { width: 60%; margin-left: 20%; }
+  100% { width: 0%; margin-left: 100%; }
+}
+.scanning-text {
+  @apply text-sm text-ink-muted mt-3 font-sans;
+}
+
+/* -------------------------------------------------- */
+/*  Results                                           */
+/* -------------------------------------------------- */
+.results-grid {
+  @apply grid grid-cols-1 md:grid-cols-3 gap-6;
+}
+.result-card {
+  @apply bg-white border border-border rounded-xl p-6;
+}
+.summary-card {
+  @apply bg-white border border-border rounded-xl p-6 md:col-span-2;
+}
+.risk-score {
+  @apply flex items-center gap-4 mb-4;
+}
+.risk-ring {
+  @apply w-20 h-20 rounded-full border-[3px] flex items-center justify-center text-2xl font-light font-sans;
+}
+.risk-ring.high {
+  @apply border-red-400 text-red-600 bg-red-50;
+}
+.risk-ring.medium {
+  @apply border-amber-400 text-amber-600 bg-amber-50;
+}
+.risk-ring.low {
+  @apply border-green-400 text-green-600 bg-green-50;
+}
+.risk-label {
+  @apply inline-block text-xs font-medium rounded-full px-2.5 py-0.5;
+}
+.risk-ring.high ~ div .risk-label {
+  @apply bg-red-100 text-red-700;
+}
+.risk-ring.medium ~ div .risk-label {
+  @apply bg-amber-100 text-amber-700;
+}
+.risk-ring.low ~ div .risk-label {
+  @apply bg-green-100 text-green-700;
+}
+.flag-item {
+  @apply flex items-start gap-3 py-3 border-b border-paper-dark;
+}
+.flag-item:last-child {
+  @apply border-b-0;
+}
+.flag-icon {
+  @apply text-lg shrink-0;
+}
+.flag-text {
+  @apply text-sm text-ink-light leading-relaxed;
+}
+
+/* -------------------------------------------------- */
+/*  Pricing                                           */
+/* -------------------------------------------------- */
+.pricing-card {
+  @apply border border-border rounded-xl p-8;
+}
+.pricing-card.featured {
+  @apply ring-2 ring-accent relative;
+}
+.dark .pricing-card {
+  @apply bg-ink border-white/10;
+}
+
+/* -------------------------------------------------- */
+/*  FAQ                                               */
+/* -------------------------------------------------- */
+.faq-item {
+  @apply border-b border-border;
+}
+.faq-q {
+  @apply w-full flex items-center justify-between py-4 text-left
+         hover:text-accent transition-colors;
+}
+.faq-a {
+  @apply overflow-hidden;
+  max-height: 0;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+}
+.faq-item.open .faq-a {
+  max-height: 20rem;
+  @apply pb-4;
+}
+
+/* -------------------------------------------------- */
+/*  Footer                                            */
+/* -------------------------------------------------- */
+footer {
+  @apply border-t border-border py-8 text-center text-xs text-ink-muted;
+}
+
+/* -------------------------------------------------- */
+/*  Pulse dot (hero badge)                             */
+/* -------------------------------------------------- */
+.dot-pulse {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  animation: dot-pulse-anim 2s ease-in-out infinite;
+}
+@keyframes dot-pulse-anim {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}

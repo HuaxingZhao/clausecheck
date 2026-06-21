@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
     const form = await req.formData();
     const file = form.get("file") as File | null;
     if (!file) {
-      return NextResponse.json({ error: "请上传文件" }, { status: 400 });
+      return NextResponse.json({ error: "Please upload a file" }, { status: 400 });
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(result);
   } catch (err: any) {
     return NextResponse.json(
-      { error: err.message || "提取失败" },
+      { error: err.message || "Extraction failed" },
       { status: 500 }
     );
   }
