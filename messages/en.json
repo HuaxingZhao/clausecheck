@@ -4,7 +4,8 @@
     "how": "How It Works",
     "pricing": "Pricing",
     "faq": "FAQ",
-    "startScan": "Start Scan"
+    "startScan": "Start Scan",
+    "proBadge": "Pro"
   },
   "hero": {
     "badge": "{count} contracts scanned",
@@ -58,51 +59,126 @@
     "scoreHigh": "High Risk",
     "scoreMedium": "Medium Risk",
     "scoreLow": "Low Risk",
-    "scoreDesc": "Score based on clause fairness, legal compliance, and potential financial exposure. Higher = needs more attention.",
+    "scoreDesc": "Weighted: Fairness ×35% + Compliance ×25% + Financial ×40%",
     "flagsFound": "⚑ {count} clauses flagged",
-    "overallAssessment": "📝 Overall Assessment",
+    "overallAssessment": "📝 Overall Assessment & Action Plan",
     "upgradeCta": "Upgrade to Pro · Deep Analysis →",
-    "upgradeHint": "Pro includes unlimited text length, batch scanning, and PDF report export"
+    "upgradeHint": "Pro includes unlimited text length, batch scanning, and PDF report export",
+    "dimensionsTitle": "📊 Risk by Dimension",
+    "dimensionsHint": "Higher score = greater risk in that dimension. Focus on red areas first.",
+    "dimensionFairness": "Contract Fairness",
+    "dimensionCompliance": "Legal Compliance",
+    "dimensionFinancial": "Financial Risk",
+    "timeTermsTitle": "⏱️ Time-Sensitive Clauses",
+    "negotiationsTitle": "Negotiation Priorities",
+    "negoCurrent": "Current wording",
+    "negoSuggested": "Suggested change",
+    "downloadReport": "Download PDF Report",
+    "trialHint": "This is a free trial scan. Upgrade to Pro for unlimited scans & report export.",
+    "viewPricing": "View Pricing →",
+    "riskLevelHigh": "High",
+    "riskLevelMedium": "Medium",
+    "riskLevelLow": "Low",
+    "executiveSummary": "Executive Summary",
+    "signingRecTitle": "Signing Recommendation",
+    "signingSign": "Ready to Sign",
+    "signingSignWithChanges": "Sign After Negotiation",
+    "signingDoNotSign": "Do Not Sign As-Is",
+    "contractType": "Contract Type",
+    "worstCaseTitle": "Worst-Case Scenario",
+    "strengthsTitle": "Favorable Terms (Leverage)",
+    "missingClausesTitle": "Missing Standard Clauses",
+    "refineNotesTitle": "Quality Review Notes",
+    "actionItemsTitle": "Priority Action Items",
+    "legalBasis": "Legal basis",
+    "impact": "If unchanged",
+    "quoteLabel": "Original text"
+  },
+  "timeTerms": {
+    "auto_renewal": "Auto-renewal",
+    "deadline": "Hard deadline",
+    "expiration": "Expiration",
+    "notice_period": "Notice period"
+  },
+  "quota": {
+    "limitReached": "Monthly free limit reached. Upgrade to Pro or pay per scan.",
+    "checkoutSuccess": "🎉 Payment successful! Pro unlocked — unlimited scans + report export",
+    "checkoutError": "Payment redirect failed. Please try again."
   },
   "pricing": {
     "label": "Pricing",
     "title": "Simple & Transparent",
-    "subtitle": "Pay as you go. No surprise price hikes.",
+    "subtitle": "3-day free trial · Cancel anytime",
     "currencyLabel": "Currency",
     "currencies": {
+      "cny": {
+        "label": "CNY ¥",
+        "flag": "🇨🇳",
+        "free": { "price": "¥0", "period": "/month" },
+        "pro": { "price": "¥49", "period": "/month" },
+        "payPerUse": { "price": "¥19", "period": "/scan" }
+      },
       "usd": {
-        "label": "USD",
+        "label": "USD $",
+        "flag": "🇺🇸",
         "free": { "price": "$0", "period": "/month" },
-        "pro": { "price": "$6.9", "period": "/month" }
+        "pro": { "price": "$6.9", "period": "/month" },
+        "payPerUse": { "price": "$2.9", "period": "/scan" }
       },
       "sgd": {
-        "label": "SGD",
+        "label": "SGD S$",
+        "flag": "🇸🇬",
         "free": { "price": "S$0", "period": "/month" },
-        "pro": { "price": "S$8.9", "period": "/month" }
+        "pro": { "price": "S$8.9", "period": "/month" },
+        "payPerUse": { "price": "S$3.9", "period": "/scan" }
       }
     },
     "free": {
       "name": "Free",
+      "note": "3-day trial · No card required",
       "features": [
-        "✅ 5 free scans per month",
-        "✅ Basic risk assessment",
-        "✅ High-risk clause flagging",
-        "⏤ 12,000 character limit",
-        "⏤ No PDF report export"
+        "✅ Unlimited scans during trial",
+        "✅ Full risk assessment",
+        "✅ Clause-by-clause suggestions",
+        "✅ Negotiation priorities",
+        "⏤ 3 scans/month after trial",
+        "⏤ No report export after trial"
       ],
       "cta": "Start Free"
     },
     "pro": {
       "name": "Pro",
       "badge": "Recommended",
+      "note": "For legal teams & founders · Card required",
       "features": [
         "✅ Unlimited scans",
-        "✅ Deep AI analysis (dual-model)",
+        "✅ Deep AI analysis",
         "✅ No text length limit",
         "✅ PDF report export",
-        "✅ Batch scanning"
+        "✅ Batch scanning",
+        "✅ Priority email support"
       ],
-      "cta": "Upgrade Now"
+      "cta": "Subscribe"
+    },
+    "payPerUse": {
+      "name": "Pay-per-scan",
+      "note": "No subscription · Card required",
+      "features": [
+        "✅ One full scan",
+        "✅ Complete risk report",
+        "✅ Clause suggestions",
+        "✅ PDF report export",
+        "✅ No subscription",
+        "⏤ No batch scanning"
+      ],
+      "cta": "Scan once"
+    },
+    "subscribed": {
+      "title": "You're on Pro",
+      "desc": "Unlimited scans · Deep AI analysis · No length limit · Report export · Batch scanning · Priority support",
+      "managePrefix": "Manage subscription in",
+      "manageLink": "Stripe billing portal",
+      "manageSuffix": "to view invoices, update payment, or cancel."
     }
   },
   "pricingZh": {

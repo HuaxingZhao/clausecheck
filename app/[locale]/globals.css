@@ -192,6 +192,52 @@
     @apply bg-white rounded-2xl p-6 border border-border/50 shadow-sm;
   }
 
+  .signing-banner {
+    @apply rounded-2xl p-5 mb-6 border font-sans;
+  }
+  .signing-banner.sign { @apply bg-green-50 border-green-200; }
+  .signing-banner.sign_with_changes { @apply bg-amber-50 border-amber-200; }
+  .signing-banner.do_not_sign { @apply bg-red-50 border-red-200; }
+
+  .contract-type-badge {
+    @apply inline-block text-xs font-sans font-medium px-3 py-1 rounded-full
+           bg-accent/10 text-[#8B3A0E] mb-4;
+  }
+
+  .flag-quote {
+    @apply block text-xs text-ink-muted italic mt-1.5 pl-3 border-l-2 border-border;
+  }
+  .flag-meta {
+    @apply block text-xs text-ink-light mt-1 font-sans;
+  }
+  .flag-category {
+    @apply inline-block text-[10px] uppercase tracking-wide font-sans font-semibold
+           text-ink-muted mr-2;
+  }
+
+  .action-list {
+    @apply space-y-2 list-none;
+  }
+  .action-list li {
+    @apply text-sm text-ink-light pl-6 relative font-sans;
+  }
+  .action-list li::before {
+    content: counter(action);
+    counter-increment: action;
+    @apply absolute left-0 w-5 h-5 rounded-full bg-accent/15 text-[#8B3A0E]
+           text-xs font-semibold flex items-center justify-center;
+    display: flex;
+  }
+  .action-list { counter-reset: action; }
+
+  .strength-item {
+    @apply text-sm text-ink-light pl-5 relative before:content-['✓'] before:absolute before:left-0 before:text-green-600;
+  }
+
+  .missing-clause-item {
+    @apply border-l-2 border-amber-400 pl-4 mb-4 last:mb-0;
+  }
+
   /* ── Negotiations ── */
   .negotiations-list {
     @apply space-y-4;

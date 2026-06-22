@@ -4,7 +4,8 @@
     "how": "怎么用",
     "pricing": "定价",
     "faq": "FAQ",
-    "startScan": "开始扫描"
+    "startScan": "开始扫描",
+    "proBadge": "专业版"
   },
   "hero": {
     "badge": "已扫描 {count} 份合同",
@@ -58,42 +59,126 @@
     "scoreHigh": "高风险",
     "scoreMedium": "中风险",
     "scoreLow": "低风险",
-    "scoreDesc": "评分基于条款公平性、法律合规性和潜在财务风险综合计算。分数越高 = 越需要关注。",
+    "scoreDesc": "加权公式：公平性 ×35% + 合规性 ×25% + 财务风险 ×40%",
     "flagsFound": "⚑ 发现 {count} 个需关注条款",
-    "overallAssessment": "📝 综合评估",
+    "overallAssessment": "📝 综合评估与行动建议",
     "upgradeCta": "升级专业版 · 深度分析 →",
-    "upgradeHint": "专业版不限制文本长度，支持批量扫描和导出 PDF 报告"
+    "upgradeHint": "专业版不限制文本长度，支持批量扫描和导出报告",
+    "dimensionsTitle": "📊 分维度风险评分",
+    "dimensionsHint": "分数越高 = 该维度风险越大。建议优先关注红色维度。",
+    "dimensionFairness": "合同公平性",
+    "dimensionCompliance": "法律合规性",
+    "dimensionFinancial": "财务风险",
+    "timeTermsTitle": "⏱️ 时间敏感条款",
+    "negotiationsTitle": "谈判优先级",
+    "negoCurrent": "当前表述",
+    "negoSuggested": "建议改为",
+    "downloadReport": "下载 PDF 报告",
+    "trialHint": "这是试用期的免费扫描。开通专业版解锁无限使用 & 报告导出。",
+    "viewPricing": "查看定价 →",
+    "riskLevelHigh": "高风险",
+    "riskLevelMedium": "中风险",
+    "riskLevelLow": "低风险",
+    "executiveSummary": "高管摘要",
+    "signingRecTitle": "签署建议",
+    "signingSign": "可以签署",
+    "signingSignWithChanges": "修改后签署",
+    "signingDoNotSign": "不建议签署",
+    "contractType": "合同类型",
+    "worstCaseTitle": "最坏情况分析",
+    "strengthsTitle": "有利条款（谈判筹码）",
+    "missingClausesTitle": "缺失的关键条款",
+    "refineNotesTitle": "交叉验证说明",
+    "actionItemsTitle": "优先行动项",
+    "legalBasis": "法律依据",
+    "impact": "不修改的后果",
+    "quoteLabel": "原文引用"
+  },
+  "timeTerms": {
+    "auto_renewal": "自动续约",
+    "deadline": "硬性截止日",
+    "expiration": "到期/失效",
+    "notice_period": "通知期限"
+  },
+  "quota": {
+    "limitReached": "本月免费额度已用完，升级专业版或按次使用",
+    "checkoutSuccess": "🎉 支付成功！已解锁专业版，无限次扫描 + 报告导出",
+    "checkoutError": "支付跳转失败，请稍后再试"
   },
   "pricing": {
     "label": "定价",
     "title": "简单透明",
-    "subtitle": "按需付费，中间不涨价",
+    "subtitle": "3 天免费试用 · 随时取消",
+    "currencyLabel": "货币",
+    "currencies": {
+      "cny": {
+        "label": "CNY ¥",
+        "flag": "🇨🇳",
+        "free": { "price": "¥0", "period": "/月" },
+        "pro": { "price": "¥49", "period": "/月" },
+        "payPerUse": { "price": "¥19", "period": "/次" }
+      },
+      "usd": {
+        "label": "USD $",
+        "flag": "🇺🇸",
+        "free": { "price": "$0", "period": "/month" },
+        "pro": { "price": "$6.9", "period": "/month" },
+        "payPerUse": { "price": "$2.9", "period": "/scan" }
+      },
+      "sgd": {
+        "label": "SGD S$",
+        "flag": "🇸🇬",
+        "free": { "price": "S$0", "period": "/month" },
+        "pro": { "price": "S$8.9", "period": "/month" },
+        "payPerUse": { "price": "S$3.9", "period": "/scan" }
+      }
+    },
     "free": {
       "name": "免费版",
-      "price": "¥0",
-      "period": "/月",
+      "note": "3 天试用 · 无需绑卡",
       "features": [
-        "✅ 每月 5 次免费扫描",
-        "✅ 基础风险评估",
-        "✅ 标记高风险条款",
-        "⏤ 12,000 字文本限制",
-        "⏤ 不含 PDF 报告导出"
+        "✅ 试用期内无限扫描",
+        "✅ 完整风险评估",
+        "✅ 逐条修改建议",
+        "✅ 谈判优先级",
+        "⏤ 试用后 3 次/月",
+        "⏤ 不含报告导出"
       ],
       "cta": "免费开始"
     },
     "pro": {
       "name": "专业版",
       "badge": "推荐",
-      "price": "¥49",
-      "period": "/月",
+      "note": "适合法务 & 创业者 · 需绑卡",
       "features": [
-        "✅ 不限次数",
-        "✅ 深度 AI 分析（双模型交叉验证）",
+        "✅ 无限次扫描",
+        "✅ 深度 AI 分析",
         "✅ 全文无长度限制",
         "✅ PDF 报告导出",
-        "✅ 批量扫描"
+        "✅ 批量扫描",
+        "✅ 优先邮件支持"
       ],
-      "cta": "立即升级"
+      "cta": "开始订阅"
+    },
+    "payPerUse": {
+      "name": "按次使用",
+      "note": "不订阅，用一次付一次 · 需绑卡",
+      "features": [
+        "✅ 单次完整扫描",
+        "✅ 完整风险报告",
+        "✅ 逐条修改建议",
+        "✅ PDF 报告导出",
+        "✅ 无需订阅",
+        "⏤ 不含批量扫描"
+      ],
+      "cta": "扫一次"
+    },
+    "subscribed": {
+      "title": "您已订阅专业版",
+      "desc": "无限次扫描 · 深度 AI 分析 · 全文无长度限制 · 报告导出 · 批量扫描 · 优先邮件支持",
+      "managePrefix": "需要管理订阅？前往",
+      "manageLink": "Stripe 管理后台",
+      "manageSuffix": "查看账单、更新支付方式或取消订阅。"
     }
   },
   "faq": {

@@ -9,3 +9,4 @@ node_modules/
 tsconfig.tsbuildinfo
 .DS_Store
 .vercel
+test-zh-report.pdf

@@ -4,7 +4,7 @@ import { analyzeContract } from "@/lib/analyze";
 import { getDemoResult } from "@/lib/demo";
 import type { ExtractedText } from "@/lib/types";
 
-export const maxDuration = 60; // Pro 深度分析需要两轮 GPT-4o 调用
+export const maxDuration = 90;
 
 const FREE_MAX_CHARS = 12000;
 const PRO_MAX_CHARS = 80000;
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
     // ⚠️ 此行请勿改动：apiKey 从你本地 .env.local 的 OPENAI_API_KEY 读取
     const apiKey = process.env["OPENAI_API_KEY"];
     if (!apiKey) {
-      return NextResponse.json(getDemoResult());
+      return NextResponse.json(getDemoResult(locale));
     }
 
     const deep = tier === "pro" || tier === "pay_per_use";

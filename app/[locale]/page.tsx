@@ -1,15 +1,16 @@
 "use client";
 
 import { useState, useEffect, useRef, type FormEvent, type ChangeEvent } from "react";
-import { useTranslations } from "next-intl";
-import { usePathname, useRouter } from "@/i18n/routing";
+import { useTranslations, useLocale } from "next-intl";
+import { checkQuota, recordScan, setPro, isPro } from "@/lib/quota";
 import type { ScanResult, ScanError } from "@/lib/types";
+import ResultsSection from "./components/results-section";
+import PricingSection from "./components/pricing-section";
+import LangSwitch from "./components/lang-switch";
 
 export default function Home() {
   const t = useTranslations();
-  const pathname = usePathname();
-  const router = useRouter();
-  const locale = pathname.split("/")[1] || "en";
+  const locale = useLocale();
 
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -17,32 +18,47 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [scanCount, setScanCount] = useState<number | null>(null);
-  const [scanStage, setScanStage] = useState(0); // 0=idle, 1=extracting, 2=analyzing, 3=generating
+  const [scanStage, setScanStage] = useState(0);
+  const [pro, setProState] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
   const resultsRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    setProState(isPro());
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("checkout") === "success") {
+        setPro();
+        setProState(true);
+        setToast(t("quota.checkoutSuccess"));
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    }
+  }, [t]);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
   useEffect(() => {
     if (result) {
-    setScanStage(0);
-    setTimeout(() => {
-      resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 100);
-  }
-}, [result]);
+      setScanStage(0);
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  }, [result]);
+
   useEffect(() => {
     fetch("/api/scan-count")
-      .then(r => r.json())
+      .then((r) => r.json())
       .then((d) => setScanCount(d.count))
       .catch(() => setScanCount(331));
   }, []);
 
-  // ---- Language switching ----
-  function switchLang() {
-    const newLocale = locale === "zh" ? "en" : "zh";
-    document.cookie = `NEXT_LOCALE=${newLocale};path=/;max-age=31536000`;
-    router.replace(pathname, { locale: newLocale });  
-
-  }
-
-  // ---- File handling ----
   function handleFile(f: File) {
     const valid = [
       "application/pdf",
@@ -67,55 +83,101 @@ export default function Home() {
     e.preventDefault();
     if (!file) return;
 
+    const quota = checkQuota();
+    if (!quota.allowed) {
+      setError(t("quota.limitReached"));
+      return;
+    }
+
     setLoading(true);
     setError(null);
-    setScanStage(1); // Extracting text
+    setScanStage(1);
+
+    const stageTimer = setTimeout(() => setScanStage(2), 800);
+    const stageTimer2 = setTimeout(() => setScanStage(3), 2500);
 
     try {
       const form = new FormData();
       form.append("file", file);
       form.append("locale", locale);
 
-      // Simulate stage transitions
-      const stageTimer = setTimeout(() => setScanStage(2), 800); // AI analyzing
-      const stageTimer2 = setTimeout(() => setScanStage(3), 2500); // Generating report
-
-      const res = await fetch("/api/scan", { method: "POST", body: form });
+      const res = await fetch("/api/scan", {
+        method: "POST",
+        body: form,
+        headers: { "x-user-tier": quota.tier },
+      });
       const data = (await res.json()) as ScanResult | ScanError;
 
-      clearTimeout(stageTimer);
-      clearTimeout(stageTimer2);
-
       if (!res.ok) throw new Error((data as ScanError).error || "Scan failed");
+
       setResult(data as ScanResult);
-
-      // Increment global scan counter
+      recordScan();
       fetch("/api/scan-count", { method: "POST" }).catch(() => {});
-
-      setScanStage(3); // Ensure we show "generating" briefly
-
-      useEffect(() => {
-        if (result) {
-          setTimeout(() => {
-            resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 100);
-    }
-  }, [result]);
-         
-    } catch (err: any) {
-      setError(err.message || "Scan failed, please retry");
+      setScanStage(3);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Scan failed, please retry";
+      setError(message);
       setScanStage(0);
     } finally {
+      clearTimeout(stageTimer);
+      clearTimeout(stageTimer2);
       setLoading(false);
     }
   }
 
-  // ---- Navigation ----
+  async function handleDownloadPdf() {
+    if (!result) return;
+    try {
+      const res = await fetch("/api/export/pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ result, locale }),
+      });
+      if (!res.ok) throw new Error("Export failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download =
+        locale === "zh" ? "ClauseCheck-合同风险报告.pdf" : "ClauseCheck-Risk-Report.pdf";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Export failed";
+      setError(message);
+    }
+  }
+
+  async function handleCheckout(
+    priceId: "pro_monthly" | "pay_per_use",
+    currency: "cny" | "usd" | "sgd"
+  ) {
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          priceId,
+          currency,
+          successUrl: `${window.location.origin}${window.location.pathname}?checkout=success`,
+          cancelUrl: window.location.href,
+        }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setError(data.error || t("quota.checkoutError"));
+      }
+    } catch {
+      setError(t("quota.checkoutError"));
+    }
+  }
+
   function scrollTo(id: string) {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   }
 
-  // ---- Helpers ----
   const scoreCls = (scoreText: string) => {
     if (scoreText === t("results.scoreHigh") || scoreText === "高风险") return "high";
     if (scoreText === t("results.scoreLow") || scoreText === "低风险") return "low";
@@ -124,16 +186,29 @@ export default function Home() {
 
   const riskCls = result ? scoreCls(result.scoreText) : "";
 
-  const stripeLink =
-    process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK || "https://stripe.com";
-
   return (
-    <main>
-      {/* ====== NAV ====== */}
+    <>
       <nav className="border-b border-border bg-paper/80 backdrop-blur sticky top-0 z-40">
         <div className="nav-inner">
           <a href="#" className="font-sans font-semibold text-lg tracking-tight">
             {t("nav.brand")}
+            {pro && (
+              <span className="ml-2.5 inline-flex items-center gap-1 text-xs bg-accent/15 text-[#8B3A0E] px-2 py-0.5 rounded-full font-sans font-semibold align-middle">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                {t("nav.proBadge")}
+              </span>
+            )}
           </a>
           <div className="flex items-center gap-6 text-sm font-sans text-ink-light">
             <button onClick={() => scrollTo("how")} className="hover:text-ink transition-colors">
@@ -145,13 +220,7 @@ export default function Home() {
             <button onClick={() => scrollTo("faq")} className="hover:text-ink transition-colors">
               {t("nav.faq")}
             </button>
-            <button
-              onClick={switchLang}
-              className="hover:text-ink transition-colors text-xs border border-border rounded px-2 py-1"
-              title={t("langSwitch.to")}
-            >
-              {locale === "zh" ? "EN" : "中文"}
-            </button>
+            <LangSwitch />
             <button onClick={() => scrollTo("upload")} className="btn btn-primary text-xs">
               {t("nav.startScan")}
             </button>
@@ -159,7 +228,6 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* ====== HERO ====== */}
       <section className="py-24 md:py-32 text-center px-6">
         <div className="max-w-3xl mx-auto">
           <div className="hero-badge mx-auto w-fit mb-6">
@@ -181,7 +249,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ====== HOW ====== */}
       <section id="how" className="py-20 bg-paper-dark">
         <div className="max-w-6xl mx-auto px-6">
           <div className="section-label">{t("how.label")}</div>
@@ -198,7 +265,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ====== UPLOAD ====== */}
       <section id="upload" className="py-20">
         <div className="max-w-2xl mx-auto px-6">
           <div className="section-label">{t("upload.label")}</div>
@@ -208,7 +274,10 @@ export default function Home() {
           <form onSubmit={handleSubmit}>
             <label
               className={`upload-zone ${file ? "has-file" : ""} ${dragOver ? "border-accent" : ""}`}
-              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOver(true);
+              }}
               onDragLeave={() => setDragOver(false)}
               onDrop={(e) => {
                 e.preventDefault();
@@ -229,11 +298,20 @@ export default function Home() {
               {file ? (
                 <div>
                   <div className="upload-icon">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                      <polyline points="14 2 14 8 20 8"/>
-                      <line x1="16" y1="13" x2="8" y2="13"/>
-                      <line x1="16" y1="17" x2="8" y2="17"/>
+                    <svg
+                      width="28"
+                      height="28"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" />
                     </svg>
                   </div>
                   <p className="font-sans text-ink font-semibold">{file.name}</p>
@@ -244,10 +322,19 @@ export default function Home() {
               ) : (
                 <div>
                   <div className="upload-icon">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                      <polyline points="17 8 12 3 7 8"/>
-                      <line x1="12" y1="3" x2="12" y2="15"/>
+                    <svg
+                      width="28"
+                      height="28"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="17 8 12 3 7 8" />
+                      <line x1="12" y1="3" x2="12" y2="15" />
                     </svg>
                   </div>
                   <p className="font-sans text-ink-light font-medium">{t("upload.dropzone")}</p>
@@ -270,7 +357,6 @@ export default function Home() {
             )}
           </form>
 
-          {/* Staged progress bar */}
           {loading && (
             <div className="mt-8">
               <div className="progress-stages">
@@ -294,12 +380,15 @@ export default function Home() {
             </div>
           )}
 
-          {/* Re-scan button */}
           {result && (
             <div className="text-center mt-6">
               <button
                 className="btn btn-outline text-sm"
-                onClick={() => { setFile(null); setResult(null); setError(null); }}
+                onClick={() => {
+                  setFile(null);
+                  setResult(null);
+                  setError(null);
+                }}
               >
                 {t("upload.rescan")}
               </button>
@@ -308,93 +397,52 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ====== RESULTS ====== */}
       {result && (
-        <section ref={resultsRef} id="results" className="py-20 bg-paper-dark">
-          <div className="max-w-5xl mx-auto px-6">
-            <div className="section-label">{t("results.label")}</div>
-            <h2 className="mb-10">{t("results.title")}</h2>
-            <div className="results-grid">
-              {/* Risk Score */}
-              <div className="result-card">
-                <div className="risk-score">
-                  <div className={`risk-ring ${riskCls}`}>
-                    <span>{result.scoreNum}</span>
-                  </div>
-                  <div>
-                    <h4 className="mb-0.5">{t("results.riskScore")}</h4>
-                    <span className="risk-label">{result.scoreText}</span>
-                  </div>
-                </div>
-                <p className="text-sm text-ink-light">{t("results.scoreDesc")}</p>
-              </div>
-
-              {/* Flags */}
-              <div className="result-card">
-                <h4 className="mb-4">
-                  {t("results.flagsFound", { count: result.flags.length })}
-                </h4>
-                {result.flags.map((f, i) => (
-                  <div key={i} className="flag-item">
-                    <span className="flag-icon">{f.icon}</span>
-                    <span className="flag-text">{f.text}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Summary */}
-              <div className="summary-card">
-                <h4 className="mb-3">{t("results.overallAssessment")}</h4>
-                <p className="text-ink-light leading-relaxed">{result.summary}</p>
-              </div>
-            </div>
-
-            {/* CTA */}
-            <div className="text-center mt-12">
-              <a
-                href={stripeLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-primary btn-lg"
-              >
-                {t("results.upgradeCta")}
-              </a>
-              <p className="text-xs text-ink-muted mt-3 font-sans">
-                {t("results.upgradeHint")}
-              </p>
-            </div>
-          </div>
-        </section>
+        <ResultsSection
+          result={result}
+          riskCls={riskCls}
+          isPro={pro}
+          onDownload={handleDownloadPdf}
+          scrollTo={scrollTo}
+          sectionRef={resultsRef}
+        />
       )}
 
-      {/* ====== PRICING ====== */}
-      <PricingSection t={t} locale={locale} scrollTo={scrollTo} stripeLink={stripeLink} />
+      <PricingSection
+        locale={locale}
+        isPro={pro}
+        scrollTo={scrollTo}
+        onCheckout={handleCheckout}
+      />
 
-      {/* ====== FAQ ====== */}
       <section id="faq" className="py-20 bg-paper-dark">
         <div className="max-w-2xl mx-auto px-6">
           <div className="section-label text-center">{t("faq.label")}</div>
           <h2 className="text-center mb-10">{t("faq.title")}</h2>
-          {(t as any).raw("faq.items").map((item: { q: string; a: string }, i: number) => (
+          {(t.raw("faq.items") as { q: string; a: string }[]).map((item, i) => (
             <FAQItem key={i} q={item.q} a={item.a} />
           ))}
         </div>
       </section>
 
-      {/* ====== FOOTER ====== */}
-      <footer>
-        <div className="max-w-6xl mx-auto px-6">
-          <p>
-            {t("footer.text", { year: new Date().getFullYear() })}
-          </p>
+      {toast && (
+        <div className="toast">
+          <span>{toast}</span>
         </div>
-      </footer>
-    </main>
+      )}
+    </>
   );
 }
 
-/* ––––– Progress stage indicator ––––– */
-function ProgressStage({ label, active, done }: { label: string; active: boolean; done: boolean }) {
+function ProgressStage({
+  label,
+  active,
+  done,
+}: {
+  label: string;
+  active: boolean;
+  done: boolean;
+}) {
   return (
     <div className={`progress-stage ${active ? "active" : ""} ${done ? "done" : ""}`}>
       <span className="stage-dot">{done ? "✓" : active ? "●" : "○"}</span>
@@ -403,7 +451,6 @@ function ProgressStage({ label, active, done }: { label: string; active: boolean
   );
 }
 
-/* ––––– FAQ client component ––––– */
 function FAQItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
@@ -416,110 +463,5 @@ function FAQItem({ q, a }: { q: string; a: string }) {
         <p className="text-sm text-ink-light leading-relaxed">{a}</p>
       </div>
     </div>
-  );
-}
-
-/* ––––– Pricing section (locale-aware currency) ––––– */
-function PricingSection({
-  t,
-  locale,
-  scrollTo,
-  stripeLink,
-}: {
-  t: any;
-  locale: string;
-  scrollTo: (id: string) => void;
-  stripeLink: string;
-}) {
-  const [cur, setCur] = useState<"usd" | "sgd">("usd");
-
-  const freePrice =
-    locale === "zh"
-      ? t("pricing.free.price")
-      : t(`pricing.currencies.${cur}.free.price`);
-  const freePeriod =
-    locale === "zh"
-      ? t("pricing.free.period")
-      : t(`pricing.currencies.${cur}.free.period`);
-  const proPrice =
-    locale === "zh"
-      ? t("pricing.pro.price")
-      : t(`pricing.currencies.${cur}.pro.price`);
-  const proPeriod =
-    locale === "zh"
-      ? t("pricing.pro.period")
-      : t(`pricing.currencies.${cur}.pro.period`);
-
-  return (
-    <section id="pricing" className="py-20">
-      <div className="max-w-4xl mx-auto px-6">
-        <div className="section-label text-center">{t("pricing.label")}</div>
-        <h2 className="text-center mb-4">{t("pricing.title")}</h2>
-        <p className="text-center text-ink-light mb-6">{t("pricing.subtitle")}</p>
-
-        {/* Currency switcher (English only) */}
-        {locale === "en" && (
-          <div className="flex items-center justify-center gap-2 mb-8">
-            <span className="text-xs text-ink-muted font-sans">{t("pricing.currencyLabel")}:</span>
-            {(["usd", "sgd"] as const).map((c) => (
-              <button
-                key={c}
-                onClick={() => setCur(c)}
-                className={`text-xs font-sans px-3 py-1 rounded-full border transition-colors ${
-                  cur === c
-                    ? "bg-accent text-white border-accent"
-                    : "border-border text-ink-light hover:border-accent"
-                }`}
-              >
-                {t(`pricing.currencies.${c}.label`)}
-              </button>
-            ))}
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Free */}
-          <div className="pricing-card">
-            <h3 className="text-xl mb-1">{t("pricing.free.name")}</h3>
-            <div className="text-4xl font-light font-sans mb-4">
-              {freePrice}<span className="text-lg text-ink-muted">{freePeriod}</span>
-            </div>
-            <ul className="space-y-3 mb-6 text-sm text-ink-light">
-              {(t as any).raw("pricing.free.features").map((feat: string, i: number) => (
-                <li key={i}>{feat}</li>
-              ))}
-            </ul>
-            <button onClick={() => scrollTo("upload")} className="btn btn-outline w-full">
-              {t("pricing.free.cta")}
-            </button>
-          </div>
-          {/* Pro */}
-          <div className="pricing-card featured">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="text-xl">{t("pricing.pro.name")}</h3>
-              <span className="text-xs bg-accent/20 text-accent-dark px-2 py-0.5 rounded-full font-sans">
-                {t("pricing.pro.badge")}
-              </span>
-            </div>
-            <div className="text-4xl font-light font-sans mb-4">
-              {proPrice}<span className="text-lg text-ink-muted">{proPeriod}</span>
-            </div>
-            <ul className="space-y-3 mb-6 text-sm text-ink-light">
-              {(t as any).raw("pricing.pro.features").map((feat: string, i: number) => (
-                <li key={i}>{feat}</li>
-              ))}
-            </ul>
-            <a
-              href={stripeLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-primary w-full"
-            >
-              {t("pricing.pro.cta")}
-            </a>
-          </div>
-        </div>
-      </div>
-    </section>
   );
 }

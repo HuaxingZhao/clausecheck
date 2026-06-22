@@ -92,6 +92,8 @@ export function generateReportHtml(result: ScanResult): string {
 <body>
 <div class="report">
 ${renderHeader(result)}
+${result.executiveSummary ? renderExecutive(result) : ""}
+${result.signingRecommendation ? renderSigningRec(result) : ""}
 ${renderScore(result)}
 ${renderDimensions(result)}
 ${renderFlags(result.flags)}
@@ -111,6 +113,27 @@ function renderHeader(r: ScanResult): string {
     <h1>ClauseCheck</h1>
     <div class="sub">AI 合同风险报告</div>
     <div class="date">生成时间：${ds}</div>
+  </div>`;
+}
+
+function renderExecutive(r: ScanResult): string {
+  return `<div class="section">
+    <div class="section-title">Executive Summary</div>
+    <p style="font-size:14px;line-height:1.8;color:#4b5563">${r.executiveSummary}</p>
+  </div>`;
+}
+
+function renderSigningRec(r: ScanResult): string {
+  const labels: Record<string, string> = {
+    sign: "可以签署 / Ready to Sign",
+    sign_with_changes: "修改后签署 / Sign After Negotiation",
+    do_not_sign: "不建议签署 / Do Not Sign As-Is",
+  };
+  const rec = r.signingRecommendation || "sign_with_changes";
+  return `<div class="section" style="background:#fafafa;padding:16px 20px;border-radius:8px">
+    <div class="section-title" style="margin-bottom:8px">签署建议 / Signing Recommendation</div>
+    <p style="font-weight:600;margin-bottom:6px">${labels[rec] || rec}</p>
+    ${r.signingRationale ? `<p style="font-size:13px;color:#6b7280">${r.signingRationale}</p>` : ""}
   </div>`;
 }
 

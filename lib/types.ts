@@ -12,6 +12,15 @@ export interface ScanResult {
   /** 时间敏感条款 */
   timeTerms?: TimeTerm[];
 
+  /** 高管摘要（2-4 句，决策层可读） */
+  executiveSummary?: string;
+  /** 签署建议 */
+  signingRecommendation?: SigningRecommendation;
+  /** 签署建议理由 */
+  signingRationale?: string;
+  /** 结构化行动项（5 条） */
+  actionItems?: string[];
+
   /* ––––– 深度分析专属字段（Pro / 按次付费） ––––– */
 
   /** 合同类型，如"软件外包服务合同""劳动合同""NDA 保密协议" */
@@ -26,6 +35,8 @@ export interface ScanResult {
   refineNotes?: string;
 }
 
+export type SigningRecommendation = "sign" | "sign_with_changes" | "do_not_sign";
+
 /** 分维度风险评分 (0-100) */
 export interface DimensionScores {
   fairness: number;
@@ -36,7 +47,7 @@ export interface DimensionScores {
 export interface RiskFlag {
   icon: string;
   text: string;
-  /** 修改建议 */
+  /** 修改建议 / 红线修订语言 */
   suggestion: string;
   /** 风险等级 */
   level?: "high" | "medium" | "low";
@@ -44,6 +55,10 @@ export interface RiskFlag {
   category?: string;
   /** 相关原文引用（深度模式） */
   quote?: string;
+  /** 法律依据或商业影响（深度模式） */
+  legalBasis?: string;
+  /** 若不修改的潜在后果 */
+  impact?: string;
 }
 
 /** 谈判要点 */
