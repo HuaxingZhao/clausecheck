@@ -22,7 +22,7 @@ export default function Home() {
 
   useEffect(() => {
     fetch("/api/scan-count")
-      .then((r) => r.json())
+      .then(r => r.json())
       .then((d) => setScanCount(d.count))
       .catch(() => setScanCount(331));
   }, []);
@@ -30,6 +30,7 @@ export default function Home() {
   // ---- Language switching ----
   function switchLang() {
     const newLocale = locale === "zh" ? "en" : "zh";
+    document.cookie = `NEXT_LOCALE=${newLocale};path=/;max-age=31536000`;
     router.replace(pathname.replace(`/${locale}`, `/${newLocale}`));
   }
 
