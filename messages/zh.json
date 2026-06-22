@@ -46,6 +46,12 @@
     "errorFormat": "仅支持 PDF / DOCX / TXT 文件",
     "errorSize": "文件不能超过 10MB"
   },
+  "progress": {
+    "title": "正在处理…",
+    "stage1": "📄 提取文字",
+    "stage2": "🧠 AI 逐条分析",
+    "stage3": "📊 生成风险报告"
+  },
   "results": {
     "label": "扫描结果",
     "title": "风险报告",
