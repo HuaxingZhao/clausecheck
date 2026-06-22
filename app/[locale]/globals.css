@@ -409,3 +409,51 @@ footer {
   0%   { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
+/* ── Staged Progress Bar ── */
+.progress-stages {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.progress-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  opacity: 0.35;
+  transition: opacity 0.3s ease;
+}
+
+.progress-stage.active {
+  opacity: 1;
+}
+
+.progress-stage.done {
+  opacity: 0.6;
+}
+
+.stage-dot {
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.progress-stage.active .stage-dot {
+  color: var(--color-accent, #2563eb);
+}
+
+.progress-stage.done .stage-dot {
+  color: var(--color-success, #16a34a);
+}
+
+.stage-label {
+  font-size: 0.8rem;
+  font-family: var(--font-sans, system-ui, sans-serif);
+  color: var(--color-ink-light, #6b7280);
+  white-space: nowrap;
+}
+
+.progress-stage.active .stage-label {
+  color: var(--color-ink, #111827);
+  font-weight: 500;
+}

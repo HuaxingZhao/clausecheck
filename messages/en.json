@@ -46,6 +46,11 @@
     "errorFormat": "Only PDF / DOCX / TXT files supported",
     "errorSize": "File must be under 10MB"
   },
+  "progress": {
+    "extracting": "Extracting text…",
+    "analyzing": "AI analyzing clauses…",
+    "generating": "Generating report…"
+  },
   "results": {
     "label": "Scan Results",
     "title": "Risk Report",
@@ -68,12 +73,12 @@
       "usd": {
         "label": "USD",
         "free": { "price": "$0", "period": "/month" },
-        "pro": { "price": "$8.9", "period": "/month" }
+        "pro": { "price": "$49", "period": "/month" }
       },
       "sgd": {
         "label": "SGD",
         "free": { "price": "S$0", "period": "/month" },
-        "pro": { "price": "S$9.9", "period": "/month" }
+        "pro": { "price": "S$66", "period": "/month" }
       }
     },
     "free": {
@@ -120,7 +125,7 @@
     "pro": {
       "name": "专业版",
       "badge": "推荐",
-      "price": "¥59",
+      "price": "¥49",
       "period": "/月",
       "features": [
         "✅ 不限次数",
@@ -151,6 +156,22 @@
       {
         "q": "What are the Free tier limits?",
         "a": "5 free scans per month, up to 12,000 characters each. Includes risk scoring and clause flagging, but no PDF export. Perfect for everyday contracts."
+      },
+      {
+        "q": "How long does a scan take?",
+        "a": "Most scans complete within 10-30 seconds, depending on contract length. You'll see real-time progress as the AI reviews your document clause by clause."
+      },
+      {
+        "q": "Will my data be used to train AI models?",
+        "a": "No. We use OpenAI's API under their business data protection terms. Your contract content is never used to train or improve AI models — not by us, not by OpenAI."
+      },
+      {
+        "q": "Can I cancel my Pro subscription anytime?",
+        "a": "Yes, absolutely. Cancel anytime from your account page — no questions asked, no cancellation fees. You'll retain Pro access until the end of your billing period."
+      },
+      {
+        "q": "What types of contracts work best?",
+        "a": "Employment agreements, lease contracts, service agreements, NDAs, freelance contracts, and partnership agreements all work great. The AI is trained on a wide range of commercial and consumer contract types."
       }
     ]
   },

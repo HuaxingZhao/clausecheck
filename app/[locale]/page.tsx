@@ -17,6 +17,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [scanCount, setScanCount] = useState<number | null>(null);
+  const [scanStage, setScanStage] = useState(0); // 0=idle, 1=extracting, 2=analyzing, 3=generating
   const resultsRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -59,14 +60,22 @@ export default function Home() {
 
     setLoading(true);
     setError(null);
+    setScanStage(1); // Extracting text
 
     try {
       const form = new FormData();
       form.append("file", file);
       form.append("locale", locale);
 
+      // Simulate stage transitions
+      const stageTimer = setTimeout(() => setScanStage(2), 800); // AI analyzing
+      const stageTimer2 = setTimeout(() => setScanStage(3), 2500); // Generating report
+
       const res = await fetch("/api/scan", { method: "POST", body: form });
       const data = (await res.json()) as ScanResult | ScanError;
+
+      clearTimeout(stageTimer);
+      clearTimeout(stageTimer2);
 
       if (!res.ok) throw new Error((data as ScanError).error || "Scan failed");
       setResult(data as ScanResult);
@@ -74,11 +83,14 @@ export default function Home() {
       // Increment global scan counter
       fetch("/api/scan-count", { method: "POST" }).catch(() => {});
 
+      setScanStage(3); // Ensure we show "generating" briefly
       setTimeout(() => {
+        setScanStage(0);
         resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 200);
+      }, 500);
     } catch (err: any) {
       setError(err.message || "Scan failed, please retry");
+      setScanStage(0);
     } finally {
       setLoading(false);
     }
@@ -244,13 +256,27 @@ export default function Home() {
             )}
           </form>
 
-          {/* Loading indicator */}
+          {/* Staged progress bar */}
           {loading && (
-            <div className="mt-6 text-center">
-              <div className="loading-bar">
-                <div className="loading-bar-fill" />
+            <div className="mt-8">
+              <div className="progress-stages">
+                <ProgressStage
+                  label={t("progress.extracting")}
+                  active={scanStage >= 1}
+                  done={scanStage > 1}
+                />
+                <ProgressStage
+                  label={t("progress.analyzing")}
+                  active={scanStage >= 2}
+                  done={scanStage > 2}
+                />
+                <ProgressStage
+                  label={t("progress.generating")}
+                  active={scanStage >= 3}
+                  done={false}
+                />
               </div>
-              <div className="scanning-text">{t("upload.scanningText")}</div>
+              <div className="scanning-text mt-4">{t("upload.scanningText")}</div>
             </div>
           )}
 
@@ -350,6 +376,16 @@ export default function Home() {
         </div>
       </footer>
     </main>
+  );
+}
+
+/* ––––– Progress stage indicator ––––– */
+function ProgressStage({ label, active, done }: { label: string; active: boolean; done: boolean }) {
+  return (
+    <div className={`progress-stage ${active ? "active" : ""} ${done ? "done" : ""}`}>
+      <span className="stage-dot">{done ? "✓" : active ? "●" : "○"}</span>
+      <span className="stage-label">{label}</span>
+    </div>
   );
 }
 
