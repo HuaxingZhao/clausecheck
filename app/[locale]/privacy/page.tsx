@@ -17,7 +17,7 @@ export async function generateMetadata({
 
 type Section = { heading: string; body: string | string[] };
 
-const content: Record<"en" | "zh", { back: string; title: string; updated: string; sections: Section[] }> = {
+const content: Record<"en" | "zh", { back: string; title: string; updated: string; metaTitle: string; metaDesc: string; sections: Section[] }> = {
   zh: {
     back: "← 返回首页",
     title: "隐私政策",
@@ -87,6 +87,8 @@ const content: Record<"en" | "zh", { back: string; title: string; updated: strin
     back: "← Back to Home",
     title: "Privacy Policy",
     updated: "Last updated: June 2026",
+    metaTitle: "Privacy Policy — ClauseCheck",
+    metaDesc: "ClauseCheck privacy policy — learn how we collect, use, and protect your personal information.",
     sections: [
       {
         heading: "1. What Information We Collect",

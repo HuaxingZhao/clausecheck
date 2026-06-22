@@ -35,7 +35,7 @@ const content: Record<"en" | "zh", {
     sections: [
       {
         heading: "1. 接受条款",
-        body: "使用 ClauseCheck（下称"本服务"），即表示你同意本用户协议的所有条款。如果你不同意任何条款，请停止使用本服务。",
+        body: `使用 ClauseCheck（下称「本服务」），即表示你同意本用户协议的所有条款。如果你不同意任何条款，请停止使用本服务。`,
       },
       {
         heading: "2. 服务说明",
