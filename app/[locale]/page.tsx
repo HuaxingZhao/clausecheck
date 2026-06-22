@@ -1,15 +1,15 @@
 "use client";
 
 import { useState, useRef, type FormEvent, type ChangeEvent } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/routing";
 import type { ScanResult, ScanError } from "@/lib/types";
 
 export default function Home() {
   const t = useTranslations();
+  const locale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
-  const locale = pathname.split("/")[1] || "en";
 
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -21,7 +21,7 @@ export default function Home() {
   // ---- Language switching ----
   function switchLang() {
     const newLocale = locale === "zh" ? "en" : "zh";
-    router.replace(pathname.replace(`/${locale}`, `/${newLocale}`));
+    router.replace(pathname, { locale: newLocale });
   }
 
   // ---- File handling ----

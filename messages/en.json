@@ -68,12 +68,12 @@
       "usd": {
         "label": "USD",
         "free": { "price": "$0", "period": "/month" },
-        "pro": { "price": "$49", "period": "/month" }
+        "pro": { "price": "$8.9", "period": "/month" }
       },
       "sgd": {
         "label": "SGD",
         "free": { "price": "S$0", "period": "/month" },
-        "pro": { "price": "S$66", "period": "/month" }
+        "pro": { "price": "S$9.9", "period": "/month" }
       }
     },
     "free": {
@@ -120,7 +120,7 @@
     "pro": {
       "name": "专业版",
       "badge": "推荐",
-      "price": "¥49",
+      "price": "¥59",
       "period": "/月",
       "features": [
         "✅ 不限次数",

@@ -4,6 +4,46 @@ const config: Config = {
   content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
   theme: {
     extend: {
+      fontFamily: {
+        sans: [
+          'Inter',
+          'system-ui',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          '"Segoe UI"',
+          'Roboto',
+          '"Noto Sans SC"',
+          '"Microsoft YaHei"',
+          '"PingFang SC"',
+          '"Hiragino Sans GB"',
+          'sans-serif',
+        ],
+        display: [
+          'Inter',
+          '"Noto Sans SC"',
+          'system-ui',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          '"Microsoft YaHei"',
+          '"PingFang SC"',
+          '"Hiragino Sans GB"',
+          'sans-serif',
+        ],
+        mono: [
+          '"JetBrains Mono"',
+          '"Fira Code"',
+          'Menlo',
+          'Monaco',
+          'Consolas',
+          'monospace',
+        ],
+      },
+      fontSize: {
+        'hero': ['3.5rem', { lineHeight: '1.1', letterSpacing: '-0.03em', fontWeight: '800' }],
+        'hero-sm': ['1.125rem', { lineHeight: '1.7', letterSpacing: '0' }],
+        'display': ['2.25rem', { lineHeight: '1.2', letterSpacing: '-0.02em', fontWeight: '700' }],
+        'section': ['1.75rem', { lineHeight: '1.3', letterSpacing: '-0.01em', fontWeight: '700' }],
+      },
       colors: {
         paper: {
           DEFAULT: 'rgb(250 249 246 / <alpha-value>)',

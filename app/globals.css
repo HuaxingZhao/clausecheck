@@ -257,61 +257,72 @@
     max-height: 300px;
     @apply pb-5;
   }
-
-  /* ── Upload Zone ── */
-  .upload-zone {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 220px;
-    padding: 3rem 2rem;
-    cursor: pointer;
-    transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-    border: 2px dashed #c4b5a0;
-    border-radius: 14px;
-    background: #fafaf5;
-  }
-
-  .upload-zone:hover {
-    border-color: #d4a574;
-    background: #fffdf7;
-    box-shadow: 0 0 0 4px rgba(212, 165, 116, 0.1);
-  }
-
-  .upload-zone.border-accent {
-    border-color: #d97706;
-    border-style: solid;
-    background: #fef5e7;
-    box-shadow: 0 0 0 6px rgba(217, 119, 6, 0.12);
-  }
-
-  .upload-zone.has-file {
-    border-style: solid;
-    border-color: #22c55e;
-    background: #f0fdf4;
-  }
-
-  .upload-icon {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 1rem;
-  }
-
-  .upload-icon svg {
-    width: 48px;
-    height: 48px;
-    color: #c4b5a0;
-  }
-
-  .upload-zone.has-file .upload-icon svg {
-    color: #22c55e;
-  }
 }
 
 /* ================================================================
-   上传区域 — 额外样式
+   上传区域 — 虚线边框（新）
    ================================================================ */
+.upload-section {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.upload-dialog {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  padding: 3rem 2rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+
+  /* 🔲 虚线边框 */
+  border: 2px dashed #c4b5a0;
+  border-radius: 14px;
+  background: #fafaf5;
+}
+
+.upload-dialog:hover {
+  border-color: #d4a574;
+  background: #fffdf7;
+  box-shadow: 0 0 0 4px rgba(212, 165, 116, 0.1);
+}
+
+/* 拖拽悬停 */
+.upload-dialog.drag-over {
+  border-color: #d97706;
+  border-style: solid;
+  background: #fef5e7;
+  box-shadow: 0 0 0 6px rgba(217, 119, 6, 0.12);
+}
+
+/* 文件已选中 */
+.upload-dialog.has-file {
+  border-style: solid;
+  border-color: #22c55e;
+  background: #f0fdf4;
+}
+
+.upload-cloud-icon {
+  @apply flex justify-center mb-4;
+}
+.upload-cloud-icon svg {
+  width: 48px;
+  height: 48px;
+  color: #c4b5a0;
+}
+.upload-dialog.has-file .upload-cloud-icon svg {
+  color: #22c55e;
+}
+
+.upload-file-name {
+  @apply text-ink font-sans font-medium text-sm break-all;
+}
+.upload-file-hint {
+  @apply text-xs text-ink-muted font-sans mt-1;
+}
 
 .upload-submit-btn {
   width: 100%;
