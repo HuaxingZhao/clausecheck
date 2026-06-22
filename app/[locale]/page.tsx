@@ -1,46 +1,35 @@
 "use client";
 
-import { useState, useRef, useEffect, type FormEvent, type ChangeEvent } from "react";
-import { useTranslations, useLocale } from "next-intl";
+import { useState, useEffect, useRef, type FormEvent, type ChangeEvent } from "react";
+import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/routing";
 import type { ScanResult, ScanError } from "@/lib/types";
 
-type ProgressStage = 0 | 1 | 2 | 3;
-
-const PROGRESS_STAGES: ProgressStage[] = [1, 2, 3];
-
 export default function Home() {
   const t = useTranslations();
-  const locale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
+  const locale = pathname.split("/")[1] || "en";
 
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState<ProgressStage>(0);
   const [result, setResult] = useState<ScanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [scanCount, setScanCount] = useState<number | null>(null);
   const resultsRef = useRef<HTMLElement>(null);
 
-  // ---- Progress simulation ----
   useEffect(() => {
-    if (!loading) return;
-    const timers: ReturnType<typeof setTimeout>[] = [];
-
-    PROGRESS_STAGES.forEach((stage, i) => {
-      timers.push(
-        setTimeout(() => setProgress(stage), (i + 1) * 1200)
-      );
-    });
-
-    return () => timers.forEach(clearTimeout);
-  }, [loading]);
+    fetch("/api/scan-count")
+      .then((r) => r.json())
+      .then((d) => setScanCount(d.count))
+      .catch(() => setScanCount(331));
+  }, []);
 
   // ---- Language switching ----
   function switchLang() {
     const newLocale = locale === "zh" ? "en" : "zh";
-    router.replace(pathname, { locale: newLocale });
+    router.replace(pathname.replace(`/${locale}`, `/${newLocale}`));
   }
 
   // ---- File handling ----
@@ -69,7 +58,6 @@ export default function Home() {
     if (!file) return;
 
     setLoading(true);
-    setProgress(0);
     setError(null);
 
     try {
@@ -82,6 +70,9 @@ export default function Home() {
 
       if (!res.ok) throw new Error((data as ScanError).error || "Scan failed");
       setResult(data as ScanResult);
+
+      // Increment global scan counter
+      fetch("/api/scan-count", { method: "POST" }).catch(() => {});
 
       setTimeout(() => {
         resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -147,7 +138,7 @@ export default function Home() {
         <div className="max-w-3xl mx-auto">
           <div className="hero-badge mx-auto w-fit mb-6">
             <span className="dot-pulse" />
-            {t("hero.badge", { count: "12,847" })}
+            {t("hero.badge", { count: scanCount != null ? scanCount.toLocaleString() : "..." })}
           </div>
           <h1 className="mb-6">
             {t("hero.title1")}
@@ -253,53 +244,13 @@ export default function Home() {
             )}
           </form>
 
-          {/* ====== STAGED PROGRESS ====== */}
+          {/* Loading indicator */}
           {loading && (
-            <div className="mt-8 max-w-md mx-auto">
-              <p className="text-center font-sans text-sm text-ink-light mb-4">
-                {t("progress.title")}
-              </p>
-              <div className="space-y-3">
-                {([1, 2, 3] as ProgressStage[]).map((stage) => {
-                  const isActive = progress >= stage;
-                  const isCurrent = progress === stage;
-                  return (
-                    <div
-                      key={stage}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-500 ${
-                        isCurrent
-                          ? "bg-accent/10 border border-accent/30"
-                          : isActive
-                          ? "bg-paper-dark border border-border"
-                          : "bg-paper-dark/50 border border-border/50 opacity-40"
-                      }`}
-                    >
-                      {/* stage indicator */}
-                      <div
-                        className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-sans font-bold shrink-0 transition-all duration-500 ${
-                          isActive
-                            ? "bg-accent text-white"
-                            : "bg-ink-muted/20 text-ink-muted"
-                        }`}
-                      >
-                        {isActive ? "✓" : stage}
-                      </div>
-                      {/* label */}
-                      <span
-                        className={`text-sm font-sans transition-colors duration-500 ${
-                          isCurrent ? "text-accent font-semibold" : "text-ink-light"
-                        }`}
-                      >
-                        {t(`progress.stage${stage}`)}
-                      </span>
-                      {/* spinner — current stage only */}
-                      {isCurrent && (
-                        <span className="ml-auto w-4 h-4 border-2 border-accent/30 border-t-accent rounded-full animate-spin" />
-                      )}
-                    </div>
-                  );
-                })}
+            <div className="mt-6 text-center">
+              <div className="loading-bar">
+                <div className="loading-bar-fill" />
               </div>
+              <div className="scanning-text">{t("upload.scanningText")}</div>
             </div>
           )}
 
