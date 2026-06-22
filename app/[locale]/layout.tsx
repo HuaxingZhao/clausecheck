@@ -1,7 +1,8 @@
-import { NextIntlClientProvider } from "next-intl";
+import { NextIntlClientProvider, useTranslations } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
+import Link from "next/link";
 import type { Metadata } from "next";
 import "./globals.css";
 
@@ -16,6 +17,28 @@ export async function generateMetadata({
     title: messages.meta.title,
     description: messages.meta.description,
   };
+}
+
+function Footer({ locale }: { locale: string }) {
+  return (
+    <footer className="border-t border-gray-200 mt-20 py-8 text-center text-sm text-gray-500">
+      <nav className="flex justify-center gap-6 mb-4">
+        <Link href={`/${locale}/privacy`} className="hover:text-gray-700 transition-colors">
+          {locale === "zh" ? "隐私政策" : "Privacy"}
+        </Link>
+        <Link href={`/${locale}/terms`} className="hover:text-gray-700 transition-colors">
+          {locale === "zh" ? "用户协议" : "Terms"}
+        </Link>
+        <Link href={`/${locale}/about`} className="hover:text-gray-700 transition-colors">
+          {locale === "zh" ? "关于" : "About"}
+        </Link>
+      </nav>
+      <p>
+        &copy; {new Date().getFullYear()} ClauseCheck.{" "}
+        {locale === "zh" ? "保留所有权利。" : "All rights reserved."}
+      </p>
+    </footer>
+  );
 }
 
 export default async function LocaleLayout({
@@ -34,7 +57,10 @@ export default async function LocaleLayout({
     <html lang={locale === "zh" ? "zh-CN" : "en"}>
       <body>
         <NextIntlClientProvider messages={messages}>
-          {children}
+          <div className="flex flex-col min-h-screen">
+            <main className="flex-1">{children}</main>
+            <Footer locale={locale} />
+          </div>
         </NextIntlClientProvider>
       </body>
     </html>
