@@ -73,12 +73,12 @@
       "usd": {
         "label": "USD",
         "free": { "price": "$0", "period": "/month" },
-        "pro": { "price": "$49", "period": "/month" }
+        "pro": { "price": "$6.9", "period": "/month" }
       },
       "sgd": {
         "label": "SGD",
         "free": { "price": "S$0", "period": "/month" },
-        "pro": { "price": "S$66", "period": "/month" }
+        "pro": { "price": "S$8.9", "period": "/month" }
       }
     },
     "free": {

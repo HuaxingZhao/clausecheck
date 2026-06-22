@@ -31,7 +31,8 @@ export default function Home() {
   function switchLang() {
     const newLocale = locale === "zh" ? "en" : "zh";
     document.cookie = `NEXT_LOCALE=${newLocale};path=/;max-age=31536000`;
-    router.replace(pathname.replace(`/${locale}`, `/${newLocale}`));
+    router.replace(pathname, { locale: newLocale });  
+
   }
 
   // ---- File handling ----
@@ -85,10 +86,14 @@ export default function Home() {
       fetch("/api/scan-count", { method: "POST" }).catch(() => {});
 
       setScanStage(3); // Ensure we show "generating" briefly
-      setTimeout(() => {
-        setScanStage(0);
-        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 500);
+      useEffect(() => {
+        if (result) {
+          setTimeout(() => {
+            resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  }, [result]);
+         
     } catch (err: any) {
       setError(err.message || "Scan failed, please retry");
       setScanStage(0);
