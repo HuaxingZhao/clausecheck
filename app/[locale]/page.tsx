@@ -19,7 +19,14 @@ export default function Home() {
   const [scanCount, setScanCount] = useState<number | null>(null);
   const [scanStage, setScanStage] = useState(0); // 0=idle, 1=extracting, 2=analyzing, 3=generating
   const resultsRef = useRef<HTMLElement>(null);
-
+  useEffect(() => {
+    if (result) {
+    setScanStage(0);
+    setTimeout(() => {
+      resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  }
+}, [result]);
   useEffect(() => {
     fetch("/api/scan-count")
       .then(r => r.json())
@@ -86,6 +93,7 @@ export default function Home() {
       fetch("/api/scan-count", { method: "POST" }).catch(() => {});
 
       setScanStage(3); // Ensure we show "generating" briefly
+
       useEffect(() => {
         if (result) {
           setTimeout(() => {
