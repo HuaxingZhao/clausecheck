@@ -143,6 +143,11 @@ export function setPro(token?: string): void {
   saveQuota(q);
 }
 
+/** 从服务端 entitlements 同步 Pro 状态 */
+export function syncProFromServer(serverPro: boolean): void {
+  if (serverPro) setPro();
+}
+
 /** 「按次使用」模式 — 单次不改变持久状态 */
 export function usePayPerUse(): void {
   // 不做任何持久化 — 每次扫描由 Stripe checkout 控制

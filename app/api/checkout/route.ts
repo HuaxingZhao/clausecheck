@@ -72,6 +72,10 @@ export async function POST(req: NextRequest) {
 
     const cur = CURRENCIES[currencyKey];
     const base = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
+    const successPath = successUrl || `${base}?checkout=success`;
+    const successWithSession = successPath.includes("?")
+      ? `${successPath}&session_id={CHECKOUT_SESSION_ID}`
+      : `${successPath}?checkout=success&session_id={CHECKOUT_SESSION_ID}`;
 
     const session = await stripe.checkout.sessions.create({
       mode: price.mode,
@@ -88,7 +92,7 @@ export async function POST(req: NextRequest) {
           quantity: 1,
         },
       ],
-      success_url: successUrl || `${base}?checkout=success`,
+      success_url: successWithSession,
       cancel_url: cancelUrl || `${base}?checkout=cancelled`,
       metadata: { priceId: compositeKey },
     });

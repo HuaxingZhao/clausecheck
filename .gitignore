@@ -10,3 +10,4 @@ tsconfig.tsbuildinfo
 .DS_Store
 .vercel
 test-zh-report.pdf
+data/app-db.json

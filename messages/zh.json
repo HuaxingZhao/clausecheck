@@ -5,7 +5,8 @@
     "pricing": "定价",
     "faq": "FAQ",
     "startScan": "开始扫描",
-    "proBadge": "专业版"
+    "proBadge": "专业版",
+    "reports": "报告历史"
   },
   "hero": {
     "badge": "已扫描 {count} 份合同",
@@ -104,6 +105,35 @@
     "limitReached": "本月免费额度已用完，升级专业版或按次使用",
     "checkoutSuccess": "🎉 支付成功！已解锁专业版，无限次扫描 + 报告导出",
     "checkoutError": "支付跳转失败，请稍后再试"
+  },
+  "auth": {
+    "signIn": "登录",
+    "logout": "退出",
+    "title": "恢复专业版访问",
+    "subtitle": "输入购买时使用的邮箱，我们将发送一次性登录链接，无需密码。",
+    "emailLabel": "邮箱",
+    "emailPlaceholder": "you@company.com",
+    "sendLink": "发送登录链接",
+    "sending": "发送中…",
+    "sentTitle": "请查收邮件",
+    "sentBody": "登录链接已发送至 {email}，30 分钟内有效。",
+    "close": "关闭",
+    "expired": "登录链接已过期，请重新获取。",
+    "invalid": "登录链接无效。",
+    "loggedOut": "已退出登录。"
+  },
+  "reports": {
+    "label": "专业版",
+    "title": "报告历史",
+    "subtitle": "已保存的合同风险报告，随时查看或重新下载。",
+    "loading": "加载报告中…",
+    "empty": "暂无保存的报告。登录专业版并完成扫描后，报告会自动保存在此。",
+    "scanFirst": "去扫描合同",
+    "proRequired": "请使用专业版账号登录以查看报告历史。",
+    "upgradePro": "升级专业版",
+    "backScan": "返回扫描",
+    "view": "查看",
+    "download": "下载 PDF"
   },
   "pricing": {
     "label": "定价",

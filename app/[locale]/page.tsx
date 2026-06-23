@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useEffect, useRef, type FormEvent, type ChangeEvent } from "react";
+import { useState, useEffect, useRef, useCallback, type FormEvent, type ChangeEvent } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { checkQuota, recordScan, setPro, isPro } from "@/lib/quota";
+import Link from "next/link";
+import { checkQuota, recordScan, setPro, isPro, syncProFromServer } from "@/lib/quota";
 import type { ScanResult, ScanError } from "@/lib/types";
 import ResultsSection from "./components/results-section";
 import PricingSection from "./components/pricing-section";
 import LangSwitch from "./components/lang-switch";
+import AuthPanel from "./components/auth-panel";
 
 export default function Home() {
   const t = useTranslations();
@@ -21,20 +23,113 @@ export default function Home() {
   const [scanStage, setScanStage] = useState(0);
   const [pro, setProState] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [authUser, setAuthUser] = useState<{ email: string; pro: boolean } | null>(null);
+  const [authOpen, setAuthOpen] = useState(false);
   const resultsRef = useRef<HTMLElement>(null);
+
+  const refreshAuth = useCallback(async () => {
+    try {
+      const res = await fetch("/api/auth/me");
+      const data = await res.json();
+      if (data.authenticated) {
+        setAuthUser({ email: data.email, pro: data.pro });
+        if (data.pro) {
+          syncProFromServer(true);
+          setProState(true);
+        }
+      } else {
+        setAuthUser(null);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const saveReportToHistory = useCallback(
+    async (scanResult: ScanResult, sourceFileName?: string | null) => {
+      if (!pro && !authUser?.pro) return;
+      try {
+        await fetch("/api/reports", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            result: scanResult,
+            locale,
+            fileName: sourceFileName ?? file?.name ?? null,
+          }),
+        });
+      } catch {
+        /* non-blocking */
+      }
+    },
+    [authUser?.pro, locale, file?.name, pro]
+  );
 
   useEffect(() => {
     setProState(isPro());
+    refreshAuth();
+
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
+      const reportId = params.get("reportId");
+
+      if (reportId) {
+        fetch(`/api/reports/${reportId}`)
+          .then((r) => r.json())
+          .then((data) => {
+            if (data.result) {
+              setResult(data.result as ScanResult);
+              window.history.replaceState({}, "", window.location.pathname);
+            }
+          })
+          .catch(() => {});
+      }
+
       if (params.get("checkout") === "success") {
-        setPro();
-        setProState(true);
-        setToast(t("quota.checkoutSuccess"));
+        const sessionId = params.get("session_id");
+        const finishCheckout = async () => {
+          if (sessionId) {
+            try {
+              const res = await fetch("/api/checkout/complete", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ sessionId }),
+              });
+              const data = await res.json();
+              if (data.pro) {
+                setPro();
+                setProState(true);
+                setToast(t("quota.checkoutSuccess"));
+                if (data.email) {
+                  setAuthUser({ email: data.email, pro: true });
+                }
+              }
+            } catch {
+              setPro();
+              setProState(true);
+              setToast(t("quota.checkoutSuccess"));
+            }
+          } else {
+            setPro();
+            setProState(true);
+            setToast(t("quota.checkoutSuccess"));
+          }
+          await refreshAuth();
+          window.history.replaceState({}, "", window.location.pathname);
+        };
+        finishCheckout();
+      }
+
+      const authParam = params.get("auth");
+      if (authParam === "expired") {
+        setToast(t("auth.expired"));
+        window.history.replaceState({}, "", window.location.pathname);
+      } else if (authParam === "invalid") {
+        setToast(t("auth.invalid"));
         window.history.replaceState({}, "", window.location.pathname);
       }
     }
-  }, [t]);
+  }, [t, refreshAuth]);
 
   useEffect(() => {
     if (toast) {
@@ -114,6 +209,7 @@ export default function Home() {
       recordScan();
       fetch("/api/scan-count", { method: "POST" }).catch(() => {});
       setScanStage(3);
+      saveReportToHistory(data as ScanResult, file.name);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Scan failed, please retry";
       setError(message);
@@ -142,10 +238,17 @@ export default function Home() {
         locale === "zh" ? "ClauseCheck-合同风险报告.pdf" : "ClauseCheck-Risk-Report.pdf";
       a.click();
       URL.revokeObjectURL(url);
+      saveReportToHistory(result, file?.name ?? null);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Export failed";
       setError(message);
     }
+  }
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    setAuthUser(null);
+    setToast(t("auth.loggedOut"));
   }
 
   async function handleCheckout(
@@ -220,7 +323,34 @@ export default function Home() {
             <button onClick={() => scrollTo("faq")} className="hover:text-ink transition-colors">
               {t("nav.faq")}
             </button>
+            {authUser?.pro && (
+              <Link href={`/${locale}/reports`} className="hover:text-ink transition-colors">
+                {t("nav.reports")}
+              </Link>
+            )}
             <LangSwitch />
+            {authUser ? (
+              <div className="flex items-center gap-2">
+                <span className="hidden md:inline text-xs text-ink-muted max-w-[120px] truncate">
+                  {authUser.email}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="text-xs hover:text-ink transition-colors"
+                >
+                  {t("auth.logout")}
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setAuthOpen(true)}
+                className="text-xs hover:text-ink transition-colors"
+              >
+                {t("auth.signIn")}
+              </button>
+            )}
             <button onClick={() => scrollTo("upload")} className="btn btn-primary text-xs">
               {t("nav.startScan")}
             </button>
@@ -401,7 +531,7 @@ export default function Home() {
         <ResultsSection
           result={result}
           riskCls={riskCls}
-          isPro={pro}
+          isPro={pro || !!authUser?.pro}
           onDownload={handleDownloadPdf}
           scrollTo={scrollTo}
           sectionRef={resultsRef}
@@ -410,7 +540,7 @@ export default function Home() {
 
       <PricingSection
         locale={locale}
-        isPro={pro}
+        isPro={pro || !!authUser?.pro}
         scrollTo={scrollTo}
         onCheckout={handleCheckout}
       />
@@ -430,6 +560,13 @@ export default function Home() {
           <span>{toast}</span>
         </div>
       )}
+
+      <AuthPanel
+        open={authOpen}
+        onClose={() => setAuthOpen(false)}
+        locale={locale}
+        initialEmail={authUser?.email || ""}
+      />
     </>
   );
 }

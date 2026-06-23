@@ -503,3 +503,52 @@ footer {
   color: var(--color-ink, #111827);
   font-weight: 500;
 }
+
+/* ── Auth modal ── */
+.auth-overlay {
+  @apply fixed inset-0 z-50 flex items-center justify-center p-4;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.auth-modal {
+  @apply bg-white rounded-2xl p-8 w-full max-w-md relative shadow-xl border border-border/50;
+}
+
+.auth-close {
+  @apply absolute top-4 right-4 text-2xl text-ink-muted hover:text-ink leading-none;
+}
+
+.auth-input {
+  @apply w-full px-4 py-3 rounded-xl border border-border font-sans text-sm
+         focus:outline-none focus:ring-2 focus:ring-accent/30;
+}
+
+/* ── Reports page ── */
+.report-list {
+  @apply space-y-4;
+}
+
+.report-item {
+  @apply bg-white rounded-2xl p-5 border border-border/50 shadow-sm
+         flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4;
+}
+
+.report-item-meta {
+  @apply flex flex-col sm:items-end gap-3;
+}
+
+.report-actions {
+  @apply flex gap-2;
+}
+
+.score-pill {
+  @apply inline-block text-xs font-sans font-semibold px-3 py-1 rounded-full;
+}
+
+.score-pill.high { @apply bg-red-50 text-red-700; }
+.score-pill.medium { @apply bg-amber-50 text-amber-800; }
+.score-pill.low { @apply bg-green-50 text-green-700; }
+
+.report-empty {
+  @apply bg-paper-dark rounded-2xl p-10 text-center border border-border/40;
+}

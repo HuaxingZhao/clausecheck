@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { extractTextFromBuffer } from "@/lib/extract-text";
 import { analyzeContract } from "@/lib/analyze";
 import { getDemoResult } from "@/lib/demo";
+import { getSessionFromRequest } from "@/lib/auth/session";
+import { resolveTierForRequest } from "@/lib/billing/entitlements";
 import type { ExtractedText } from "@/lib/types";
 
 export const maxDuration = 90;
@@ -17,8 +19,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "请上传文件" }, { status: 400 });
     }
 
-    // 读取用户 tier（由前端 localStorage 传入）
-    const tier = (req.headers.get("x-user-tier") as string) || "free";
+    // Resolve tier — server session overrides client header when logged in
+    const session = await getSessionFromRequest(req);
+    const headerTier = req.headers.get("x-user-tier");
+    const tier = await resolveTierForRequest(session?.sub ?? null, headerTier);
 
     // 读取 locale（由前端 FormData 传入）
     const locale = (form.get("locale") as string) === "en" ? "en" : "zh";

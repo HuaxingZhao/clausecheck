@@ -5,7 +5,8 @@
     "pricing": "Pricing",
     "faq": "FAQ",
     "startScan": "Start Scan",
-    "proBadge": "Pro"
+    "proBadge": "Pro",
+    "reports": "My Reports"
   },
   "hero": {
     "badge": "{count} contracts scanned",
@@ -104,6 +105,35 @@
     "limitReached": "Monthly free limit reached. Upgrade to Pro or pay per scan.",
     "checkoutSuccess": "🎉 Payment successful! Pro unlocked — unlimited scans + report export",
     "checkoutError": "Payment redirect failed. Please try again."
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "logout": "Log out",
+    "title": "Restore Pro access",
+    "subtitle": "Enter the email you used at checkout. We'll send a one-time sign-in link — no password needed.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@company.com",
+    "sendLink": "Send magic link",
+    "sending": "Sending…",
+    "sentTitle": "Check your inbox",
+    "sentBody": "We sent a sign-in link to {email}. It expires in 30 minutes.",
+    "close": "Close",
+    "expired": "Sign-in link expired. Please request a new one.",
+    "invalid": "Invalid sign-in link.",
+    "loggedOut": "Signed out."
+  },
+  "reports": {
+    "label": "Pro",
+    "title": "Report history",
+    "subtitle": "Your saved contract risk reports — view or re-download anytime.",
+    "loading": "Loading reports…",
+    "empty": "No saved reports yet. Run a scan while signed in as Pro to save reports here.",
+    "scanFirst": "Scan a contract",
+    "proRequired": "Sign in with your Pro account to view report history.",
+    "upgradePro": "Upgrade to Pro",
+    "backScan": "Back to scanner",
+    "view": "View",
+    "download": "Download PDF"
   },
   "pricing": {
     "label": "Pricing",
