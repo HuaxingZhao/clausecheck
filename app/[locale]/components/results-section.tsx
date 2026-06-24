@@ -1,7 +1,11 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+import Link from "next/link";
 import type { ScanResult, RiskFlag, SigningRecommendation } from "@/lib/types";
+
+import UpgradeBanner from "./upgrade-banner";
+import EmailReportForm from "./email-report-form";
 
 interface ResultsSectionProps {
   result: ScanResult;
@@ -9,6 +13,8 @@ interface ResultsSectionProps {
   isPro: boolean;
   onDownload: () => void;
   scrollTo: (id: string) => void;
+  onUpgradePro?: () => void;
+  onPayPerUse?: () => void;
   sectionRef?: React.RefObject<HTMLElement>;
 }
 
@@ -18,9 +24,12 @@ export default function ResultsSection({
   isPro,
   onDownload,
   scrollTo,
+  onUpgradePro,
+  onPayPerUse,
   sectionRef,
 }: ResultsSectionProps) {
   const t = useTranslations();
+  const locale = useLocale();
 
   function levelLabel(level: string) {
     if (level === "high") return t("results.riskLevelHigh");
@@ -40,6 +49,14 @@ export default function ResultsSection({
       <div className="max-w-6xl mx-auto px-6">
         <div className="section-label">{t("results.label")}</div>
         <h2 className="mb-6">{t("results.title")}</h2>
+
+        {!isPro && onUpgradePro && (
+          <UpgradeBanner
+            result={result}
+            onUpgrade={onUpgradePro}
+            onPayPerUse={onPayPerUse}
+          />
+        )}
 
         {result.contractType && (
           <span className="contract-type-badge">
@@ -147,6 +164,11 @@ export default function ResultsSection({
                 </div>
               </div>
             ))}
+            {result.flags.length === 0 && (
+              <p className="text-sm text-ink-light font-sans py-4">
+                {t("results.noFlags")}
+              </p>
+            )}
           </div>
 
           {result.timeTerms && result.timeTerms.length > 0 && (
@@ -264,11 +286,20 @@ export default function ResultsSection({
           </div>
         )}
 
+        <div className="summary-card mb-6 mt-8">
+          <EmailReportForm result={result} locale={locale} />
+        </div>
+
         <div className="text-center mt-12">
-          <div className="flex items-center justify-center gap-4 mb-4">
+          <div className="flex items-center justify-center gap-4 mb-4 flex-wrap">
             <button onClick={onDownload} className="btn btn-primary btn-lg">
               {t("results.downloadReport")}
             </button>
+            {isPro && (
+              <Link href={`/${locale}/reports`} className="btn btn-outline btn-lg">
+                {t("results.viewHistory")}
+              </Link>
+            )}
           </div>
           {!isPro && (
             <>

@@ -155,7 +155,7 @@ ${REVIEW_CHECKLIST_ZH}
 综合分 = round(fairness×0.35 + compliance×0.25 + financial×0.40)
 
 质量要求：
-- 至少识别 6 个 flags（含全部 high 风险）
+- 至少识别 6 个 flags（含全部 high 风险）；少于 6 条视为不合格
 - 每条 high/medium flag 必须含 quote、legalBasis、impact、suggestion
 - negotiations 至少 3 条，按 priority 排序
 - actionItems 恰好 5 条，按优先级排列
@@ -180,7 +180,7 @@ Scoring (0=no risk, 100=extreme danger):
 Composite = round(fairness×0.35 + compliance×0.25 + financial×0.40)
 
 Quality bar:
-- Minimum 6 flags (cover all high-severity issues)
+- Minimum 6 flags (cover all high-severity issues); fewer than 6 is unacceptable
 - Every high/medium flag must include quote, legalBasis, impact, suggestion
 - Minimum 3 negotiations, priority-sorted
 - Exactly 5 actionItems in priority order
@@ -312,7 +312,41 @@ export async function analyzeContract(
 
   let parsed = normalize(JSON.parse(raw) as ScanResult, locale);
 
-  if (!deep) return parsed;
+  const minFlags = deep ? 8 : 6;
+  if (parsed.flags.length < minFlags) {
+    const retry = await openai.chat.completions.create({
+      model: deep ? "gpt-4o" : "gpt-4o-mini",
+      temperature: 0.25,
+      max_tokens: deep ? 8000 : 5000,
+      messages: [
+        { role: "system", content: systemPrompt },
+        {
+          role: "user",
+          content:
+            locale === "en"
+              ? `Your previous analysis had only ${parsed.flags.length} flags. Re-analyze and return at least ${minFlags} distinct flags with quotes. Contract:\n\n---\n${truncated}\n---`
+              : `上次分析仅 ${parsed.flags.length} 条 flags。请重新分析，至少返回 ${minFlags} 条不同风险条款并含原文引用。合同：\n\n---\n${truncated}\n---`,
+        },
+      ],
+      response_format: { type: "json_object" },
+    });
+    const retryRaw = retry.choices[0]?.message?.content;
+    if (retryRaw) {
+      const retried = normalize(JSON.parse(retryRaw) as ScanResult, locale);
+      if (retried.flags.length > parsed.flags.length) parsed = retried;
+    }
+  }
+
+  if (!deep) {
+    if (parsed.flags.length === 0) {
+      throw new Error(
+        locale === "en"
+          ? "Analysis returned no risk flags. Please retry."
+          : "分析未识别到风险条款，请重试。"
+      );
+    }
+    return parsed;
+  }
 
   const refinePayload = JSON.stringify({ original: truncated, firstPass: parsed });
   const refinePrompt = locale === "en" ? REFINE_PROMPT_EN : REFINE_PROMPT_ZH;
@@ -331,10 +365,32 @@ export async function analyzeContract(
   const refinedRaw = secondPass.choices[0]?.message?.content;
   if (refinedRaw) {
     try {
-      parsed = normalize(JSON.parse(refinedRaw) as ScanResult, locale);
+      const refined = normalize(JSON.parse(refinedRaw) as ScanResult, locale);
+      // Keep first pass if refinement dropped flags or key sections
+      if (
+        refined.flags.length >= parsed.flags.length &&
+        refined.flags.length > 0
+      ) {
+        parsed = refined;
+      } else {
+        console.warn("Deep refinement incomplete — keeping first pass");
+        parsed.refineNotes =
+          refined.refineNotes ||
+          (locale === "en"
+            ? "Refinement pass was incomplete; showing first-pass analysis."
+            : "交叉验证结果不完整，已展示初版分析。");
+      }
     } catch {
       console.warn("Deep analysis refinement parse failed, falling back to first pass");
     }
+  }
+
+  if (parsed.flags.length === 0) {
+    throw new Error(
+      locale === "en"
+        ? "Deep analysis returned no risk flags. Please retry."
+        : "深度分析未识别到风险条款，请重试。"
+    );
   }
 
   return parsed;
@@ -345,7 +401,7 @@ export async function analyzeContract(
 /* ================================================================== */
 
 function normalize(parsed: ScanResult, locale: "zh" | "en"): ScanResult {
-  parsed.flags = (parsed.flags || []).map(normalizeFlag);
+  parsed.flags = ensureFlagsArray(parsed.flags).map(normalizeFlag).filter((f) => f.text.trim());
   parsed.timeTerms = normalizeTimeTerms(parsed.timeTerms);
   parsed.negotiations = (parsed.negotiations || []).sort(
     (a, b) => a.priority - b.priority
@@ -372,6 +428,15 @@ function normalize(parsed: ScanResult, locale: "zh" | "en"): ScanResult {
 
   parsed.signingRecommendation = normalizeSigningRec(parsed.signingRecommendation);
 
+  parsed.executiveSummary = toTextField(parsed.executiveSummary) || undefined;
+  parsed.signingRationale = toTextField(parsed.signingRationale) || undefined;
+  parsed.summary = toTextField(parsed.summary) || parsed.summary || "";
+  parsed.worstCase = toTextField(parsed.worstCase) || undefined;
+  parsed.refineNotes = toTextField(parsed.refineNotes) || undefined;
+  parsed.contractType = toTextField(parsed.contractType) || undefined;
+  parsed.actionItems = (parsed.actionItems || []).map(toTextField).filter(Boolean);
+  parsed.strengths = (parsed.strengths || []).map(toTextField).filter(Boolean);
+
   if (!parsed.executiveSummary && parsed.summary) {
     parsed.executiveSummary = parsed.summary.split("\n")[0]?.slice(0, 500);
   }
@@ -386,13 +451,13 @@ function normalize(parsed: ScanResult, locale: "zh" | "en"): ScanResult {
 function normalizeFlag(f: RiskFlag): RiskFlag {
   return {
     icon: f.icon || "⚠️",
-    text: f.text || "",
-    suggestion: f.suggestion || "",
+    text: toTextField(f.text),
+    suggestion: toTextField(f.suggestion),
     level: f.level || "medium",
-    category: f.category,
-    quote: f.quote,
-    legalBasis: f.legalBasis,
-    impact: f.impact,
+    category: f.category ? toTextField(f.category) : undefined,
+    quote: f.quote ? toTextField(f.quote) : undefined,
+    legalBasis: f.legalBasis ? toTextField(f.legalBasis) : undefined,
+    impact: f.impact ? toTextField(f.impact) : undefined,
   };
 }
 
@@ -459,4 +524,29 @@ function extractActionItems(summary: string): string[] {
 
 function clamp(n: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, n));
+}
+
+function ensureFlagsArray(flags: unknown): RiskFlag[] {
+  if (Array.isArray(flags)) return flags as RiskFlag[];
+  if (flags && typeof flags === "object") {
+    return Object.values(flags as Record<string, RiskFlag>);
+  }
+  return [];
+}
+
+function toTextField(value: unknown): string {
+  if (value == null) return "";
+  if (typeof value === "string") return value.trim();
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (Array.isArray(value)) return value.map(toTextField).filter(Boolean).join("\n");
+  if (typeof value === "object") {
+    return Object.entries(value as Record<string, unknown>)
+      .map(([k, v]) => {
+        const inner = toTextField(v);
+        return inner ? `${k}: ${inner}` : "";
+      })
+      .filter(Boolean)
+      .join("\n");
+  }
+  return String(value);
 }

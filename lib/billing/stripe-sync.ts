@@ -1,5 +1,11 @@
 import Stripe from "stripe";
 import { activateProSubscription, deactivateProSubscription } from "./entitlements";
+import {
+  createTeam,
+  findUserByEmail,
+  upsertTeamSubscription,
+  upsertUser,
+} from "../db/store";
 
 export function getStripe(): Stripe {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -7,8 +13,15 @@ export function getStripe(): Stripe {
   return new Stripe(key, { apiVersion: "2025-02-24.acacia" as any });
 }
 
-function isProPriceId(priceId: string | undefined | null): boolean {
-  return !!priceId && priceId.startsWith("pro_monthly:");
+function isSubscriptionPriceId(priceId: string | undefined | null): boolean {
+  return (
+    !!priceId &&
+    (priceId.startsWith("pro_monthly:") || priceId.startsWith("team_monthly:"))
+  );
+}
+
+function isTeamPriceId(priceId: string | undefined | null): boolean {
+  return !!priceId && priceId.startsWith("team_monthly:");
 }
 
 export async function syncCheckoutSession(session: Stripe.Checkout.Session) {
@@ -28,7 +41,7 @@ export async function syncCheckoutSession(session: Stripe.Checkout.Session) {
   const stripeCustomerId =
     typeof session.customer === "string" ? session.customer : session.customer?.id ?? null;
 
-  if (session.mode === "subscription" && isProPriceId(priceId)) {
+  if (session.mode === "subscription" && isSubscriptionPriceId(priceId)) {
     let proUntil: string | null = null;
     if (session.subscription) {
       const stripe = getStripe();
@@ -40,6 +53,24 @@ export async function syncCheckoutSession(session: Stripe.Checkout.Session) {
         current_period_end: number;
       };
       proUntil = new Date(sub.current_period_end * 1000).toISOString();
+    }
+
+    if (isTeamPriceId(priceId)) {
+      let user = await findUserByEmail(email);
+      if (!user) {
+        user = await upsertUser(email, { stripeCustomerId });
+      }
+      let teamId = user.teamId;
+      if (!teamId) {
+        const team = await createTeam(`${email.split("@")[0]}'s Team`, user.id);
+        teamId = team.id;
+      }
+      await upsertTeamSubscription(teamId, {
+        stripeCustomerId,
+        proUntil,
+        subscriptionStatus: "active",
+      });
+      return user;
     }
 
     return activateProSubscription({
@@ -122,7 +153,7 @@ export async function getCheckoutSessionEmail(
   if (!email) return null;
 
   const priceId = session.metadata?.priceId;
-  const pro = session.mode === "subscription" && isProPriceId(priceId);
+  const pro = session.mode === "subscription" && isSubscriptionPriceId(priceId);
 
   return { email, pro };
 }

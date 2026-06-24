@@ -1,145 +1,158 @@
+/**
+ * Data store — Postgres when DATABASE_URL is set, else JSON file (local dev).
+ */
+import { usePostgres } from "./pg";
+import * as pg from "./pg-store";
+import type { MagicToken, SavedReport, Team, TeamInvite, TeamRole, User } from "./types";
 import { readFile, writeFile, mkdir } from "fs/promises";
 import path from "path";
-import type { DbSnapshot, MagicToken, SavedReport, User } from "./types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DB_FILE = path.join(DATA_DIR, "app-db.json");
 
-const EMPTY_DB: DbSnapshot = { users: [], reports: [], magicTokens: [] };
+type JsonDb = {
+  users: User[];
+  reports: SavedReport[];
+  magicTokens: MagicToken[];
+  teams: Team[];
+  teamInvites: TeamInvite[];
+};
 
-async function ensureDataDir() {
+const EMPTY: JsonDb = { users: [], reports: [], magicTokens: [], teams: [], teamInvites: [] };
+
+async function readJson(): Promise<JsonDb> {
   await mkdir(DATA_DIR, { recursive: true });
-}
-
-async function readDb(): Promise<DbSnapshot> {
-  await ensureDataDir();
   try {
     const raw = await readFile(DB_FILE, "utf8");
-    const parsed = JSON.parse(raw) as DbSnapshot;
+    const p = JSON.parse(raw) as JsonDb;
     return {
-      users: parsed.users ?? [],
-      reports: parsed.reports ?? [],
-      magicTokens: parsed.magicTokens ?? [],
+      users: (p.users ?? []).map(normalizeJsonUser),
+      reports: (p.reports ?? []).map((r) => ({ ...r, teamId: r.teamId ?? null })),
+      magicTokens: p.magicTokens ?? [],
+      teams: p.teams ?? [],
+      teamInvites: p.teamInvites ?? [],
     };
   } catch {
-    return { ...EMPTY_DB };
+    return { ...EMPTY };
   }
 }
 
-async function writeDb(db: DbSnapshot): Promise<void> {
-  await ensureDataDir();
+async function writeJson(db: JsonDb) {
+  await mkdir(DATA_DIR, { recursive: true });
   await writeFile(DB_FILE, JSON.stringify(db, null, 2), "utf8");
 }
 
-function normalizeEmail(email: string): string {
+function normalizeJsonUser(u: User): User {
+  return {
+    ...u,
+    teamId: u.teamId ?? null,
+    teamRole: u.teamRole ?? null,
+  };
+}
+
+function norm(email: string) {
   return email.trim().toLowerCase();
 }
 
-/* ------------------------------------------------------------------ */
-/*  Users                                                              */
-/* ------------------------------------------------------------------ */
+/* ── Re-export router ── */
 
-export async function findUserByEmail(email: string): Promise<User | null> {
-  const db = await readDb();
-  const key = normalizeEmail(email);
-  return db.users.find((u) => u.email === key) ?? null;
+export async function findUserByEmail(email: string) {
+  if (usePostgres()) return pg.findUserByEmail(email);
+  const db = await readJson();
+  return db.users.find((u) => u.email === norm(email)) ?? null;
 }
 
-export async function findUserById(id: string): Promise<User | null> {
-  const db = await readDb();
+export async function findUserById(id: string) {
+  if (usePostgres()) return pg.findUserById(id);
+  const db = await readJson();
   return db.users.find((u) => u.id === id) ?? null;
 }
 
-export async function findUserByStripeCustomerId(customerId: string): Promise<User | null> {
-  const db = await readDb();
+export async function findUserByStripeCustomerId(customerId: string) {
+  if (usePostgres()) return null; // rarely needed
+  const db = await readJson();
   return db.users.find((u) => u.stripeCustomerId === customerId) ?? null;
 }
 
 export async function upsertUser(
   email: string,
-  patch: Partial<Pick<User, "stripeCustomerId" | "subscriptionStatus" | "proUntil">>
-): Promise<User> {
-  const db = await readDb();
-  const key = normalizeEmail(email);
+  patch: Partial<
+    Pick<User, "stripeCustomerId" | "subscriptionStatus" | "proUntil" | "teamId" | "teamRole">
+  >
+) {
+  if (usePostgres()) return pg.upsertUser(email, patch);
+  const db = await readJson();
+  const key = norm(email);
   const now = new Date().toISOString();
   let user = db.users.find((u) => u.email === key);
-
   if (user) {
-    user = {
-      ...user,
-      ...patch,
-      updatedAt: now,
-    };
+    user = normalizeJsonUser({ ...user, ...patch, updatedAt: now });
     db.users = db.users.map((u) => (u.id === user!.id ? user! : u));
   } else {
-    user = {
+    user = normalizeJsonUser({
       id: crypto.randomUUID(),
       email: key,
       stripeCustomerId: patch.stripeCustomerId ?? null,
       subscriptionStatus: patch.subscriptionStatus ?? "none",
       proUntil: patch.proUntil ?? null,
+      teamId: patch.teamId ?? null,
+      teamRole: patch.teamRole ?? null,
       createdAt: now,
       updatedAt: now,
-    };
+    });
     db.users.push(user);
   }
-
-  await writeDb(db);
+  await writeJson(db);
   return user;
 }
 
-/* ------------------------------------------------------------------ */
-/*  Magic tokens                                                       */
-/* ------------------------------------------------------------------ */
-
-export async function createMagicToken(email: string, ttlMinutes = 30): Promise<MagicToken> {
-  const db = await readDb();
-  const key = normalizeEmail(email);
-  const now = Date.now();
+export async function createMagicToken(email: string, ttlMinutes = 30) {
+  if (usePostgres()) return pg.createMagicToken(email, ttlMinutes);
+  const db = await readJson();
+  const key = norm(email);
   const token: MagicToken = {
     token: crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, ""),
     email: key,
-    expiresAt: new Date(now + ttlMinutes * 60_000).toISOString(),
+    expiresAt: new Date(Date.now() + ttlMinutes * 60_000).toISOString(),
   };
-
   db.magicTokens = db.magicTokens.filter(
-    (t) => t.email !== key || new Date(t.expiresAt).getTime() > now
+    (t) => t.email !== key || new Date(t.expiresAt).getTime() > Date.now()
   );
   db.magicTokens.push(token);
-  await writeDb(db);
+  await writeJson(db);
   return token;
 }
 
-export async function consumeMagicToken(token: string): Promise<string | null> {
-  const db = await readDb();
-  const now = Date.now();
+export async function consumeMagicToken(token: string) {
+  if (usePostgres()) return pg.consumeMagicToken(token);
+  const db = await readJson();
   const match = db.magicTokens.find(
-    (t) => t.token === token && new Date(t.expiresAt).getTime() > now
+    (t) => t.token === token && new Date(t.expiresAt).getTime() > Date.now()
   );
   if (!match) return null;
-
   db.magicTokens = db.magicTokens.filter((t) => t.token !== token);
-  await writeDb(db);
+  await writeJson(db);
   return match.email;
 }
 
-/* ------------------------------------------------------------------ */
-/*  Reports                                                            */
-/* ------------------------------------------------------------------ */
-
-export async function listReportsForUser(userId: string): Promise<SavedReport[]> {
-  const db = await readDb();
+export async function listReportsForUser(userId: string) {
+  if (usePostgres()) return pg.listReportsForUser(userId);
+  const db = await readJson();
+  const user = db.users.find((u) => u.id === userId);
   return db.reports
-    .filter((r) => r.userId === userId)
+    .filter((r) => r.userId === userId || (user?.teamId && r.teamId === user.teamId))
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
-export async function getReportForUser(
-  userId: string,
-  reportId: string
-): Promise<SavedReport | null> {
-  const db = await readDb();
-  const report = db.reports.find((r) => r.id === reportId && r.userId === userId);
+export async function getReportForUser(userId: string, reportId: string) {
+  if (usePostgres()) return pg.getReportForUser(userId, reportId);
+  const db = await readJson();
+  const user = db.users.find((u) => u.id === userId);
+  const report = db.reports.find(
+    (r) =>
+      r.id === reportId &&
+      (r.userId === userId || (user?.teamId && r.teamId === user.teamId))
+  );
   return report ?? null;
 }
 
@@ -149,11 +162,14 @@ export async function saveReport(input: {
   fileName?: string | null;
   locale: "zh" | "en";
   result: SavedReport["result"];
-}): Promise<SavedReport> {
-  const db = await readDb();
+}) {
+  if (usePostgres()) return pg.saveReport(input);
+  const db = await readJson();
+  const user = db.users.find((u) => u.id === input.userId);
   const report: SavedReport = {
     id: crypto.randomUUID(),
     userId: input.userId,
+    teamId: user?.teamId ?? null,
     title: input.title,
     fileName: input.fileName ?? null,
     locale: input.locale,
@@ -163,12 +179,73 @@ export async function saveReport(input: {
     createdAt: new Date().toISOString(),
   };
   db.reports.unshift(report);
-  // Keep last 100 reports per user
-  const byUser = db.reports.filter((r) => r.userId === input.userId);
-  if (byUser.length > 100) {
-    const drop = new Set(byUser.slice(100).map((r) => r.id));
-    db.reports = db.reports.filter((r) => !drop.has(r.id));
-  }
-  await writeDb(db);
+  await writeJson(db);
   return report;
+}
+
+export async function createTeam(name: string, ownerId: string) {
+  if (usePostgres()) return pg.createTeam(name, ownerId);
+  const db = await readJson();
+  const team: Team = {
+    id: crypto.randomUUID(),
+    name,
+    ownerId,
+    stripeCustomerId: null,
+    subscriptionStatus: "none",
+    proUntil: null,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  db.teams.push(team);
+  const owner = db.users.find((u) => u.id === ownerId);
+  if (owner) {
+    owner.teamId = team.id;
+    owner.teamRole = "owner";
+  }
+  await writeJson(db);
+  return team;
+}
+
+export async function findTeamById(id: string) {
+  if (usePostgres()) return pg.findTeamById(id);
+  const db = await readJson();
+  return db.teams.find((t) => t.id === id) ?? null;
+}
+
+export async function upsertTeamSubscription(
+  teamId: string,
+  patch: Partial<Pick<Team, "stripeCustomerId" | "subscriptionStatus" | "proUntil">>
+) {
+  if (usePostgres()) return pg.upsertTeamSubscription(teamId, patch);
+  const db = await readJson();
+  const team = db.teams.find((t) => t.id === teamId);
+  if (!team) throw new Error("Team not found");
+  Object.assign(team, patch, { updatedAt: new Date().toISOString() });
+  await writeJson(db);
+  return team;
+}
+
+export async function addTeamMember(teamId: string, email: string, role: TeamRole = "member") {
+  if (usePostgres()) return pg.addTeamMember(teamId, email, role);
+  return upsertUser(email, { teamId, teamRole: role });
+}
+
+export async function createTeamInvite(teamId: string, email: string) {
+  if (usePostgres()) return pg.createTeamInvite(teamId, email);
+  const db = await readJson();
+  const invite: TeamInvite = {
+    id: crypto.randomUUID(),
+    teamId,
+    email: norm(email),
+    expiresAt: new Date(Date.now() + 7 * 86400_000).toISOString(),
+  };
+  db.teamInvites.push(invite);
+  await writeJson(db);
+  return invite;
+}
+
+export async function listTeamMembers(teamId: string) {
+  if (usePostgres()) return pg.listTeamMembers(teamId);
+  const db = await readJson();
+  return db.users.filter((u) => u.teamId === teamId);
 }

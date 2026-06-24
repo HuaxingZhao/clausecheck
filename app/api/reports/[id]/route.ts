@@ -13,7 +13,7 @@ export async function GET(
   }
 
   const { user } = await getUserEntitlements(session.sub);
-  if (!user || !isProUser(user)) {
+  if (!user || !(await isProUser(user))) {
     return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
   }
 

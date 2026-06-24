@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   }
 
   const { user } = await getUserEntitlements(session.sub);
-  if (!user || !isProUser(user)) {
+  if (!user || !(await isProUser(user))) {
     return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
   }
 
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   }
 
   const { user } = await getUserEntitlements(session.sub);
-  if (!user || !isProUser(user)) {
+  if (!user || !(await isProUser(user))) {
     return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
   }
 

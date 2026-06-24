@@ -6,7 +6,8 @@
     "faq": "FAQ",
     "startScan": "Start Scan",
     "proBadge": "Pro",
-    "reports": "My Reports"
+    "reports": "My Reports",
+    "reportsSignIn": "Sign in for history"
   },
   "hero": {
     "badge": "{count} contracts scanned",
@@ -14,7 +15,9 @@
     "title2": "Let AI Review It",
     "subtitle": "Upload your contract. AI flags every risky clause clause by clause. Report in 3 minutes — no surprises.",
     "cta": "Scan Your Contract Free →",
-    "trust": "No signup · Encrypted · Auto-deleted after scan"
+    "trust": "No signup · Encrypted · Auto-deleted after scan",
+    "sampleReport": "View sample report",
+    "zhNote": ""
   },
   "how": {
     "label": "3 Simple Steps",
@@ -75,6 +78,8 @@
     "negoCurrent": "Current wording",
     "negoSuggested": "Suggested change",
     "downloadReport": "Download PDF Report",
+    "viewHistory": "View report history",
+    "noFlags": "No specific clauses were flagged. Try re-scanning — Pro uses deep two-pass analysis.",
     "trialHint": "This is a free trial scan. Upgrade to Pro for unlimited scans & report export.",
     "viewPricing": "View Pricing →",
     "riskLevelHigh": "High",
@@ -108,6 +113,7 @@
   },
   "auth": {
     "signIn": "Sign in",
+    "restoreAccess": "Restore access",
     "logout": "Log out",
     "title": "Restore Pro access",
     "subtitle": "Enter the email you used at checkout. We'll send a one-time sign-in link — no password needed.",
@@ -120,7 +126,8 @@
     "close": "Close",
     "expired": "Sign-in link expired. Please request a new one.",
     "invalid": "Invalid sign-in link.",
-    "loggedOut": "Signed out."
+    "loggedOut": "Signed out.",
+    "signInToSave": "Sign in to save this report to your history."
   },
   "reports": {
     "label": "Pro",
@@ -133,7 +140,42 @@
     "upgradePro": "Upgrade to Pro",
     "backScan": "Back to scanner",
     "view": "View",
-    "download": "Download PDF"
+    "download": "Download PDF",
+    "saved": "Report saved to history."
+  },
+  "upgrade": {
+    "title": "High-risk clauses detected",
+    "bodyHigh": "We found {count} high-risk clause(s). Upgrade for deep two-pass analysis, full quotes, and PDF export.",
+    "bodyMedium": "Score {score}/100 — upgrade for unlimited deep scans and professional PDF reports.",
+    "benefits": [
+      "Deep two-pass GPT-4o analysis",
+      "Unlimited scans & PDF export",
+      "Report history & email delivery"
+    ],
+    "ctaPro": "Upgrade to Pro",
+    "ctaOnce": "Pay once for this scan"
+  },
+  "sample": {
+    "label": "Trust",
+    "title": "Sample risk report",
+    "subtitle": "See exactly what ClauseCheck delivers — a full professional PDF with risk scores, flagged clauses, and negotiation priorities. Demo data; your scan will be tailored to your contract.",
+    "viewPdf": "View sample PDF",
+    "downloadPdf": "Download sample",
+    "scanYours": "Scan your contract",
+    "scanCta": "Start free scan",
+    "trust": [
+      "Real PDF layout used for Pro exports",
+      "Bilingual EN / 中文 reports",
+      "Not legal advice — decision support only"
+    ],
+    "disclaimer": "Sample uses demo contract data for illustration."
+  },
+  "emailReport": {
+    "hint": "Email this report to yourself or your lawyer (PDF attached).",
+    "placeholder": "you@company.com",
+    "send": "Email PDF",
+    "sending": "Sending…",
+    "sent": "Report sent to {email}. Check your inbox."
   },
   "pricing": {
     "label": "Pricing",
@@ -202,6 +244,23 @@
         "⏤ No batch scanning"
       ],
       "cta": "Scan once"
+    },
+    "team": {
+      "name": "Team",
+      "note": "Up to 5 seats · Shared report history",
+      "priceCny": "¥199",
+      "priceUsd": "$29",
+      "priceSgd": "S$39",
+      "period": "/month",
+      "features": [
+        "✅ Everything in Pro",
+        "✅ 5 team members",
+        "✅ Shared report library",
+        "✅ Invite by email",
+        "✅ Team owner billing",
+        "✅ Priority support"
+      ],
+      "cta": "Start Team plan"
     },
     "subscribed": {
       "title": "You're on Pro",

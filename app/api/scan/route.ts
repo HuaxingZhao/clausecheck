@@ -19,10 +19,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "请上传文件" }, { status: 400 });
     }
 
-    // Resolve tier — server session overrides client header when logged in
+    // Resolve tier — prefer server session, then entitlements header sync
     const session = await getSessionFromRequest(req);
     const headerTier = req.headers.get("x-user-tier");
-    const tier = await resolveTierForRequest(session?.sub ?? null, headerTier);
+    let tier = await resolveTierForRequest(session?.sub ?? null, headerTier);
+
+    // Also accept explicit tier from form (set after /api/entitlements check)
+    const formTier = form.get("tier") as string | null;
+    if (formTier === "pro" || formTier === "pay_per_use") {
+      tier = formTier;
+    }
 
     // 读取 locale（由前端 FormData 传入）
     const locale = (form.get("locale") as string) === "en" ? "en" : "zh";

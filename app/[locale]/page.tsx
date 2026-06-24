@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback, type FormEvent, type ChangeEvent } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
-import { checkQuota, recordScan, setPro, isPro, syncProFromServer } from "@/lib/quota";
+import { checkQuota, recordScan, setPro, isPro, syncProFromServer, saveProEmail, getProEmail } from "@/lib/quota";
 import type { ScanResult, ScanError } from "@/lib/types";
 import ResultsSection from "./components/results-section";
 import PricingSection from "./components/pricing-section";
@@ -29,27 +29,32 @@ export default function Home() {
 
   const refreshAuth = useCallback(async () => {
     try {
-      const res = await fetch("/api/auth/me");
+      const res = await fetch("/api/auth/me", { credentials: "include" });
       const data = await res.json();
       if (data.authenticated) {
         setAuthUser({ email: data.email, pro: data.pro });
-        if (data.pro) {
-          syncProFromServer(true);
-          setProState(true);
-        }
+        saveProEmail(data.email);
+        syncProFromServer(!!data.pro);
+        setProState(!!data.pro);
       } else {
         setAuthUser(null);
+        // Pro badge from localStorage may still allow scans; user must sign in for history
+        setProState(isPro());
       }
     } catch {
-      /* ignore */
+      setProState(isPro());
     }
   }, []);
 
   const saveReportToHistory = useCallback(
     async (scanResult: ScanResult, sourceFileName?: string | null) => {
       if (!pro && !authUser?.pro) return;
+      if (!authUser) {
+        setToast(t("auth.signInToSave"));
+        return;
+      }
       try {
-        await fetch("/api/reports", {
+        const res = await fetch("/api/reports", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -58,12 +63,26 @@ export default function Home() {
             fileName: sourceFileName ?? file?.name ?? null,
           }),
         });
+        if (res.ok) {
+          setToast(t("reports.saved"));
+        }
       } catch {
         /* non-blocking */
       }
     },
-    [authUser?.pro, locale, file?.name, pro]
+    [authUser, locale, file?.name, pro, t]
   );
+
+  async function resolveScanTier(): Promise<string> {
+    try {
+      const res = await fetch("/api/entitlements");
+      const data = await res.json();
+      if (data.pro) return "pro";
+    } catch {
+      /* ignore */
+    }
+    return checkQuota().tier;
+  }
 
   useEffect(() => {
     setProState(isPro());
@@ -102,6 +121,7 @@ export default function Home() {
                 setToast(t("quota.checkoutSuccess"));
                 if (data.email) {
                   setAuthUser({ email: data.email, pro: true });
+                  saveProEmail(data.email);
                 }
               }
             } catch {
@@ -184,6 +204,8 @@ export default function Home() {
       return;
     }
 
+    const scanTier = await resolveScanTier();
+
     setLoading(true);
     setError(null);
     setScanStage(1);
@@ -195,11 +217,12 @@ export default function Home() {
       const form = new FormData();
       form.append("file", file);
       form.append("locale", locale);
+      form.append("tier", scanTier);
 
       const res = await fetch("/api/scan", {
         method: "POST",
         body: form,
-        headers: { "x-user-tier": quota.tier },
+        headers: { "x-user-tier": scanTier },
       });
       const data = (await res.json()) as ScanResult | ScanError;
 
@@ -252,7 +275,7 @@ export default function Home() {
   }
 
   async function handleCheckout(
-    priceId: "pro_monthly" | "pay_per_use",
+    priceId: "pro_monthly" | "pay_per_use" | "team_monthly",
     currency: "cny" | "usd" | "sgd"
   ) {
     try {
@@ -288,6 +311,9 @@ export default function Home() {
   };
 
   const riskCls = result ? scoreCls(result.scoreText) : "";
+  const isProUser = !!(authUser?.pro || (pro && !authUser) || pro);
+  const showProBadge = authUser?.pro || pro;
+  const needsRestoreAccess = pro && !authUser;
 
   return (
     <>
@@ -295,7 +321,7 @@ export default function Home() {
         <div className="nav-inner">
           <a href="#" className="font-sans font-semibold text-lg tracking-tight">
             {t("nav.brand")}
-            {pro && (
+            {showProBadge && (
               <span className="ml-2.5 inline-flex items-center gap-1 text-xs bg-accent/15 text-[#8B3A0E] px-2 py-0.5 rounded-full font-sans font-semibold align-middle">
                 <svg
                   width="12"
@@ -334,6 +360,14 @@ export default function Home() {
                 <span className="hidden md:inline text-xs text-ink-muted max-w-[120px] truncate">
                   {authUser.email}
                 </span>
+                {authUser.pro && (
+                  <Link
+                    href={`/${locale}/reports`}
+                    className="md:hidden text-xs hover:text-ink transition-colors"
+                  >
+                    {t("nav.reports")}
+                  </Link>
+                )}
                 <button
                   type="button"
                   onClick={handleLogout}
@@ -342,6 +376,14 @@ export default function Home() {
                   {t("auth.logout")}
                 </button>
               </div>
+            ) : needsRestoreAccess ? (
+              <button
+                type="button"
+                onClick={() => setAuthOpen(true)}
+                className="text-xs text-accent hover:text-accent-dark transition-colors font-medium"
+              >
+                {t("auth.restoreAccess")}
+              </button>
             ) : (
               <button
                 type="button"
@@ -376,6 +418,15 @@ export default function Home() {
             {t("hero.cta")}
           </button>
           <p className="text-xs text-ink-muted mt-4 font-sans">{t("hero.trust")}</p>
+          <Link
+            href={`/${locale}/sample-report`}
+            className="inline-block mt-3 text-sm text-accent hover:underline font-sans"
+          >
+            {t("hero.sampleReport")} →
+          </Link>
+          {locale === "zh" && (
+            <p className="text-xs text-ink-muted mt-2 font-sans">{t("hero.zhNote")}</p>
+          )}
         </div>
       </section>
 
@@ -531,16 +582,18 @@ export default function Home() {
         <ResultsSection
           result={result}
           riskCls={riskCls}
-          isPro={pro || !!authUser?.pro}
+          isPro={isProUser}
           onDownload={handleDownloadPdf}
           scrollTo={scrollTo}
+          onUpgradePro={() => handleCheckout("pro_monthly", locale === "zh" ? "cny" : "usd")}
+          onPayPerUse={() => handleCheckout("pay_per_use", locale === "zh" ? "cny" : "usd")}
           sectionRef={resultsRef}
         />
       )}
 
       <PricingSection
         locale={locale}
-        isPro={pro || !!authUser?.pro}
+        isPro={isProUser}
         scrollTo={scrollTo}
         onCheckout={handleCheckout}
       />
@@ -565,7 +618,7 @@ export default function Home() {
         open={authOpen}
         onClose={() => setAuthOpen(false)}
         locale={locale}
-        initialEmail={authUser?.email || ""}
+        initialEmail={authUser?.email || getProEmail() || ""}
       />
     </>
   );

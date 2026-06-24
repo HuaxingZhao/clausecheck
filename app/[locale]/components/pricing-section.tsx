@@ -9,7 +9,10 @@ interface PricingSectionProps {
   locale: string;
   isPro: boolean;
   scrollTo: (id: string) => void;
-  onCheckout: (priceId: "pro_monthly" | "pay_per_use", currency: CurrencyKey) => void;
+  onCheckout: (
+    priceId: "pro_monthly" | "pay_per_use" | "team_monthly",
+    currency: CurrencyKey
+  ) => void;
 }
 
 export default function PricingSection({
@@ -35,6 +38,13 @@ export default function PricingSection({
   const freeFeatures = t.raw("pricing.free.features") as string[];
   const proFeatures = t.raw("pricing.pro.features") as string[];
   const payFeatures = t.raw("pricing.payPerUse.features") as string[];
+  const teamFeatures = t.raw("pricing.team.features") as string[];
+  const teamPrice = isZh
+    ? t("pricing.team.priceCny")
+    : enCurrency === "sgd"
+      ? t("pricing.team.priceSgd")
+      : t("pricing.team.priceUsd");
+  const teamPeriod = t("pricing.team.period");
 
   return (
     <section id="pricing" className="py-20">
@@ -97,7 +107,7 @@ export default function PricingSection({
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
             <div className="pricing-card">
               <h3 className="text-xl mb-1">{t("pricing.free.name")}</h3>
               <p className="text-xs text-ink-muted mb-4 font-sans">{t("pricing.free.note")}</p>
@@ -159,6 +169,26 @@ export default function PricingSection({
                 className="btn btn-outline w-full"
               >
                 {cur.payPerUse.price} {t("pricing.payPerUse.cta")}
+              </button>
+            </div>
+
+            <div className="pricing-card">
+              <h3 className="text-xl mb-1">{t("pricing.team.name")}</h3>
+              <p className="text-xs text-ink-muted mb-4 font-sans">{t("pricing.team.note")}</p>
+              <div className="text-4xl font-light font-sans mb-5">
+                {teamPrice}
+                <span className="text-lg text-ink-muted">{teamPeriod}</span>
+              </div>
+              <ul className="space-y-3 mb-6 text-sm text-ink-light">
+                {teamFeatures.map((feat, i) => (
+                  <li key={i}>{feat}</li>
+                ))}
+              </ul>
+              <button
+                onClick={() => onCheckout("team_monthly", currency)}
+                className="btn btn-outline w-full"
+              >
+                {t("pricing.team.cta")}
               </button>
             </div>
           </div>

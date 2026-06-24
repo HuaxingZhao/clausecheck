@@ -146,6 +146,27 @@ export function setPro(token?: string): void {
 /** 从服务端 entitlements 同步 Pro 状态 */
 export function syncProFromServer(serverPro: boolean): void {
   if (serverPro) setPro();
+  else clearPro();
+}
+
+/** 清除本地 Pro 状态（订阅已过期或未登录验证） */
+export function clearPro(): void {
+  const q = getQuotaState();
+  q.tier = "free";
+  q.proToken = null;
+  saveQuota(q);
+}
+
+export const PRO_EMAIL_KEY = "clausecheck_pro_email";
+
+export function saveProEmail(email: string): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(PRO_EMAIL_KEY, email.trim().toLowerCase());
+}
+
+export function getProEmail(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(PRO_EMAIL_KEY);
 }
 
 /** 「按次使用」模式 — 单次不改变持久状态 */

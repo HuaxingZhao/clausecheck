@@ -552,3 +552,19 @@ footer {
 .report-empty {
   @apply bg-paper-dark rounded-2xl p-10 text-center border border-border/40;
 }
+
+.upgrade-banner {
+  @apply rounded-2xl border border-accent/30 bg-gradient-to-br from-amber-50 to-orange-50/80 p-5;
+}
+
+.upgrade-banner-inner {
+  @apply flex flex-col md:flex-row md:items-center md:justify-between gap-5;
+}
+
+.sample-trust-item {
+  @apply bg-white rounded-xl p-4 text-sm text-ink-light border border-border/50 text-center font-sans;
+}
+
+.email-report-form {
+  @apply max-w-lg mx-auto;
+}

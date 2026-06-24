@@ -139,6 +139,26 @@ function isBasicLatin(ch: string): boolean {
   return code >= 0x20 && code <= 0x7e;
 }
 
+/** Coerce AI fields that may arrive as objects/arrays into plain text */
+function toText(value: unknown): string {
+  if (value == null) return "";
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (Array.isArray(value)) {
+    return value.map(toText).filter(Boolean).join("\n");
+  }
+  if (typeof value === "object") {
+    return Object.entries(value as Record<string, unknown>)
+      .map(([k, v]) => {
+        const inner = toText(v);
+        return inner ? `${k}: ${inner}` : k;
+      })
+      .filter(Boolean)
+      .join("\n");
+  }
+  return String(value);
+}
+
 function clean(text: string, locale: ReportLocale): string {
   let s = (text || "")
     .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, "")
@@ -282,8 +302,8 @@ class PdfWriter {
     return lines.length ? lines : [""];
   }
 
-  private wrap(text: string, size: number, maxWidth: number, bold = false): string[] {
-    const normalized = clean(text, this.locale);
+  private wrap(text: unknown, size: number, maxWidth: number, bold = false): string[] {
+    const normalized = clean(toText(text), this.locale);
     const lines: string[] = [];
     const paragraphs = normalized.split(/\n+/);
     for (const paragraph of paragraphs) {
@@ -324,7 +344,7 @@ class PdfWriter {
   }
 
   drawText(
-    text: string,
+    text: unknown,
     opts: {
       size?: number;
       color?: RGB;
@@ -369,10 +389,14 @@ class PdfWriter {
 
   /** Bordered prose block for executive summary / overall assessment */
   drawProseBlock(
-    title: string,
-    body: string,
+    title: unknown,
+    body?: unknown,
     opts: { bg?: RGB; titleColor?: RGB; size?: number; padding?: number } = {}
   ) {
+    const safeTitle = toText(title);
+    const safeBody = toText(body);
+    if (!safeTitle && !safeBody.trim()) return;
+
     const {
       bg = COLORS.cardBg,
       titleColor = COLORS.primary,
@@ -380,8 +404,8 @@ class PdfWriter {
       padding = 14,
     } = opts;
     const innerW = this.contentW - padding * 2;
-    const titleLines = title ? this.wrap(title, 11, innerW, true) : [];
-    const bodyParagraphs = body.split(/\n+/).filter(Boolean);
+    const titleLines = safeTitle ? this.wrap(safeTitle, 11, innerW, true) : [];
+    const bodyParagraphs = safeBody.split(/\n+/).filter(Boolean);
     const bodyLines = bodyParagraphs.flatMap((p, i) => {
       const wrapped = this.wrap(p, size, innerW);
       return i > 0 ? ["", ...wrapped] : wrapped;
@@ -424,11 +448,11 @@ class PdfWriter {
 
   /** Overview panel: signing recommendation + executive summary in one bordered section */
   drawOverviewPanel(
-    signingTitle: string,
-    signingBody: string,
+    signingTitle: unknown,
+    signingBody: unknown,
     signingBg: RGB,
-    executiveTitle: string,
-    executiveBody: string
+    executiveTitle: unknown,
+    executiveBody: unknown
   ) {
     const padding = 16;
     const innerW = this.contentW - padding * 2;
@@ -508,7 +532,7 @@ class PdfWriter {
     this.y = boxBottom - 14;
   }
 
-  drawHighlightBox(title: string, body: string, bg: RGB) {
+  drawHighlightBox(title: unknown, body: unknown, bg: RGB) {
     const innerW = this.contentW - 28;
     const titleLines = this.wrap(title, 11, innerW, true);
     const bodyLines = this.wrap(body, 10, innerW);
@@ -750,11 +774,35 @@ class PdfWriter {
   }
 }
 
+function normalizeForPdf(result: ScanResult): ScanResult {
+  return {
+    ...result,
+    contractType: toText(result.contractType) || undefined,
+    executiveSummary: toText(result.executiveSummary) || undefined,
+    signingRationale: toText(result.signingRationale) || undefined,
+    summary: toText(result.summary),
+    worstCase: toText(result.worstCase) || undefined,
+    refineNotes: toText(result.refineNotes) || undefined,
+    strengths: (result.strengths ?? []).map(toText).filter(Boolean),
+    actionItems: (result.actionItems ?? []).map(toText).filter(Boolean),
+    flags: (result.flags ?? []).map((f) => ({
+      ...f,
+      text: toText(f.text),
+      suggestion: toText(f.suggestion),
+      category: f.category ? toText(f.category) : undefined,
+      quote: f.quote ? toText(f.quote) : undefined,
+      legalBasis: f.legalBasis ? toText(f.legalBasis) : undefined,
+      impact: f.impact ? toText(f.impact) : undefined,
+    })),
+  };
+}
+
 export async function generateReportPdf(
   result: ScanResult,
   locale: ReportLocale = "zh"
 ): Promise<Uint8Array> {
   const L = LABELS[locale];
+  const normalized = normalizeForPdf(result);
   const pdf = await PDFDocument.create();
   pdf.registerFontkit(fontkit);
 
@@ -775,114 +823,115 @@ export async function generateReportPdf(
   w.drawText(L.subtitle, { size: 14, bold: true, gap: 6 });
   w.drawText(`${L.generated}: ${formatDate(locale)}`, { size: 9, color: COLORS.muted, gap: 10 });
 
-  if (result.contractType) {
-    w.drawText(`${L.contractType}: ${result.contractType}`, { size: 10, color: COLORS.accentDark, gap: 10 });
+  if (normalized.contractType) {
+    w.drawText(`${L.contractType}: ${normalized.contractType}`, { size: 10, color: COLORS.accentDark, gap: 10 });
   }
 
   // ── Overview section (signing + executive summary) ──
   w.drawSectionTitle(L.overview);
 
-  if (result.signingRecommendation && result.executiveSummary) {
-    const rec = result.signingRecommendation;
+  if (normalized.signingRecommendation && normalized.executiveSummary) {
+    const rec = normalized.signingRecommendation;
     const bg =
       rec === "do_not_sign" ? COLORS.redBg : rec === "sign" ? COLORS.greenBg : COLORS.amberBg;
     w.drawOverviewPanel(
       `${L.signing}: ${L.signingRec[rec]}`,
-      result.signingRationale || "",
+      normalized.signingRationale || "",
       bg,
       L.executive,
-      result.executiveSummary
+      normalized.executiveSummary
     );
-  } else if (result.signingRecommendation) {
-    const rec = result.signingRecommendation;
+  } else if (normalized.signingRecommendation) {
+    const rec = normalized.signingRecommendation;
     const bg =
       rec === "do_not_sign" ? COLORS.redBg : rec === "sign" ? COLORS.greenBg : COLORS.amberBg;
     w.drawHighlightBox(
       `${L.signing}: ${L.signingRec[rec]}`,
-      result.signingRationale || "",
+      normalized.signingRationale || "",
       bg
     );
-  } else if (result.executiveSummary) {
-    w.drawProseBlock(L.executive, result.executiveSummary);
+  } else if (normalized.executiveSummary) {
+    w.drawProseBlock(L.executive, normalized.executiveSummary);
   }
 
   // ── Score ──
   w.drawSectionTitle(L.riskScore);
-  const sk = scoreKey(result.scoreText, result.scoreNum);
+  const sk = scoreKey(normalized.scoreText, normalized.scoreNum);
   const sc = riskColor(sk);
-  w.drawScoreCard(result.scoreNum, L.riskLevel[sk], sc, L.formula);
+  w.drawScoreCard(normalized.scoreNum, L.riskLevel[sk], sc, L.formula);
 
-  if (result.dimensions) {
+  if (normalized.dimensions) {
     w.drawSectionTitle(L.dimensions);
-    w.drawDimensionBar(L.fairness, result.dimensions.fairness, COLORS.medium);
-    w.drawDimensionBar(L.compliance, result.dimensions.compliance, rgb(0.2, 0.4, 0.75));
-    w.drawDimensionBar(L.financial, result.dimensions.financial, COLORS.accent);
+    w.drawDimensionBar(L.fairness, normalized.dimensions.fairness, COLORS.medium);
+    w.drawDimensionBar(L.compliance, normalized.dimensions.compliance, rgb(0.2, 0.4, 0.75));
+    w.drawDimensionBar(L.financial, normalized.dimensions.financial, COLORS.accent);
     w.drawText(L.dimHint, { size: 8, color: COLORS.muted, gap: 10 });
   }
 
-  w.drawSectionTitle(L.flags(result.flags.length));
-  for (const flag of result.flags) {
+  w.drawSectionTitle(L.flags((normalized.flags ?? []).length));
+  for (const flag of normalized.flags ?? []) {
     w.drawFlagCard(flag, L, flag.level || "medium");
   }
 
-  if (result.timeTerms?.length) {
+  if (normalized.timeTerms?.length) {
     w.drawSectionTitle(L.timeTerms);
-    for (const term of result.timeTerms) {
+    for (const term of normalized.timeTerms) {
       const label = L.timeType[term.type as keyof typeof L.timeType] || term.type;
       w.drawText(label, { size: 10, bold: true, color: riskColor(term.risk), gap: 4 });
-      const desc = term.description + (term.date && term.date !== "N/A" ? ` (${term.date})` : "");
+      const desc = toText(term.description) + (term.date && term.date !== "N/A" ? ` (${term.date})` : "");
       w.drawText(desc, { size: 9, gap: 10 });
     }
   }
 
-  if (result.negotiations?.length) {
+  if (normalized.negotiations?.length) {
     w.drawSectionTitle(L.negotiations);
-    for (const n of result.negotiations) {
+    for (const n of normalized.negotiations) {
       w.drawNegotiationItem(n, L);
     }
   }
 
-  if (result.worstCase) {
-    w.drawProseBlock(L.worstCase, result.worstCase, {
+  if (normalized.worstCase) {
+    w.drawProseBlock(L.worstCase, normalized.worstCase, {
       bg: COLORS.redBg,
       titleColor: COLORS.accent,
     });
   }
 
-  if (result.strengths?.length) {
+  if (normalized.strengths?.length) {
     w.drawSectionTitle(L.strengths);
-    for (const s of result.strengths) {
+    for (const s of normalized.strengths) {
       w.drawText(`- ${s}`, { size: 9, gap: 6 });
     }
   }
 
-  if (result.missingClauses?.length) {
+  if (normalized.missingClauses?.length) {
     w.drawSectionTitle(L.missing);
-    for (const c of result.missingClauses) {
-      w.drawProseBlock(c.name, `${c.importance}\n\n${c.suggestion}`, {
+    for (const c of normalized.missingClauses) {
+      w.drawProseBlock(c.name, `${toText(c.importance)}\n\n${toText(c.suggestion)}`, {
         bg: COLORS.amberBg,
         size: 9,
       });
     }
   }
 
-  if (result.actionItems?.length) {
+  if (normalized.actionItems?.length) {
     w.drawSectionTitle(L.actionItems);
-    result.actionItems.forEach((item, i) => {
+    normalized.actionItems.forEach((item, i) => {
       w.drawText(`${i + 1}. ${item}`, { size: 9, gap: 6, indent: 4 });
     });
   }
 
-  // Overall assessment — prominent section near end
-  w.drawSectionTitle(L.summary);
-  w.drawProseBlock("", result.summary, {
-    bg: COLORS.cardBg,
-    size: 10,
-    padding: 16,
-  });
+  if (normalized.summary) {
+    w.drawSectionTitle(L.summary);
+    w.drawProseBlock("", normalized.summary, {
+      bg: COLORS.cardBg,
+      size: 10,
+      padding: 16,
+    });
+  }
 
-  if (result.refineNotes) {
-    w.drawProseBlock(L.refineNotes, result.refineNotes, { size: 9 });
+  if (normalized.refineNotes) {
+    w.drawProseBlock(L.refineNotes, normalized.refineNotes, { size: 9 });
   }
 
   w.drawSectionTitle(L.disclaimer);

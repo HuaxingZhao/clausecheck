@@ -11,3 +11,4 @@ tsconfig.tsbuildinfo
 .vercel
 test-zh-report.pdf
 data/app-db.json
+data/*.rtf

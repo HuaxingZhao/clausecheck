@@ -6,7 +6,8 @@
     "faq": "FAQ",
     "startScan": "开始扫描",
     "proBadge": "专业版",
-    "reports": "报告历史"
+    "reports": "报告历史",
+    "reportsSignIn": "登录查看历史"
   },
   "hero": {
     "badge": "已扫描 {count} 份合同",
@@ -14,7 +15,9 @@
     "title2": "用 AI 扫一遍",
     "subtitle": "上传你的合同，AI 逐条分析风险条款。3 分钟出报告，拒绝踩坑。",
     "cta": "免费扫描你的合同 →",
-    "trust": "无需注册 · 文件加密 · 扫完即删"
+    "trust": "无需注册 · 文件加密 · 扫完即删 · 人民币结算",
+    "sampleReport": "查看合同样本报告",
+    "zhNote": "专为中国用户优化 · 支持民法典 / 个人信息保护法审查 · 仅支持人民币付款"
   },
   "how": {
     "label": "三步完成",
@@ -75,6 +78,8 @@
     "negoCurrent": "当前表述",
     "negoSuggested": "建议改为",
     "downloadReport": "下载 PDF 报告",
+    "viewHistory": "查看报告历史",
+    "noFlags": "未识别到具体风险条款。请重试扫描——专业版使用深度双轮分析。",
     "trialHint": "这是试用期的免费扫描。开通专业版解锁无限使用 & 报告导出。",
     "viewPricing": "查看定价 →",
     "riskLevelHigh": "高风险",
@@ -108,6 +113,7 @@
   },
   "auth": {
     "signIn": "登录",
+    "restoreAccess": "恢复登录",
     "logout": "退出",
     "title": "恢复专业版访问",
     "subtitle": "输入购买时使用的邮箱，我们将发送一次性登录链接，无需密码。",
@@ -120,7 +126,8 @@
     "close": "关闭",
     "expired": "登录链接已过期，请重新获取。",
     "invalid": "登录链接无效。",
-    "loggedOut": "已退出登录。"
+    "loggedOut": "已退出登录。",
+    "signInToSave": "登录后可将报告保存到历史记录。"
   },
   "reports": {
     "label": "专业版",
@@ -133,7 +140,42 @@
     "upgradePro": "升级专业版",
     "backScan": "返回扫描",
     "view": "查看",
-    "download": "下载 PDF"
+    "download": "下载 PDF",
+    "saved": "报告已保存到历史记录。"
+  },
+  "upgrade": {
+    "title": "发现高风险条款",
+    "bodyHigh": "检测到 {count} 条高风险条款。升级专业版获取深度双轮分析、原文引用与 PDF 导出。",
+    "bodyMedium": "评分 {score}/100 — 升级后可无限深度扫描并导出专业 PDF 报告。",
+    "benefits": [
+      "GPT-4o 深度双轮分析",
+      "无限扫描与 PDF 导出",
+      "报告历史与邮件发送"
+    ],
+    "ctaPro": "升级专业版",
+    "ctaOnce": "按次付费扫描"
+  },
+  "sample": {
+    "label": "信任与透明",
+    "title": "合同样本报告",
+    "subtitle": "了解 ClauseCheck 的专业输出 — 完整 PDF 含风险评分、条款标注与谈判建议。演示数据；您的扫描将针对真实合同定制。",
+    "viewPdf": "在线查看样本",
+    "downloadPdf": "下载样本 PDF",
+    "scanYours": "扫描您的合同",
+    "scanCta": "免费开始扫描",
+    "trust": [
+      "与专业版导出相同版式",
+      "中英文双语报告",
+      "仅供参考，不构成法律意见"
+    ],
+    "disclaimer": "样本使用演示合同数据。"
+  },
+  "emailReport": {
+    "hint": "将报告发送到您的邮箱或律师邮箱（PDF 附件）。",
+    "placeholder": "you@company.com",
+    "send": "发送 PDF",
+    "sending": "发送中…",
+    "sent": "报告已发送至 {email}，请查收邮件。"
   },
   "pricing": {
     "label": "定价",
@@ -202,6 +244,23 @@
         "⏤ 不含批量扫描"
       ],
       "cta": "扫一次"
+    },
+    "team": {
+      "name": "团队版",
+      "note": "最多 5 人 · 共享报告库",
+      "priceCny": "¥199",
+      "priceUsd": "$29",
+      "priceSgd": "S$39",
+      "period": "/月",
+      "features": [
+        "✅ 专业版全部功能",
+        "✅ 5 个团队成员",
+        "✅ 共享报告历史",
+        "✅ 邮件邀请成员",
+        "✅ 统一账单管理",
+        "✅ 优先支持"
+      ],
+      "cta": "开通团队版"
     },
     "subscribed": {
       "title": "您已订阅专业版",
