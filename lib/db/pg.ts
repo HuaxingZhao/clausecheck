@@ -73,6 +73,22 @@ export async function ensureSchema() {
           email TEXT NOT NULL,
           expires_at TIMESTAMPTZ NOT NULL
         )`;
+      await db`
+        CREATE TABLE IF NOT EXISTS revisions (
+          id TEXT PRIMARY KEY,
+          user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          team_id TEXT REFERENCES teams(id) ON DELETE SET NULL,
+          title TEXT NOT NULL,
+          locale TEXT NOT NULL DEFAULT 'zh',
+          original_text TEXT NOT NULL DEFAULT '',
+          revised_contract TEXT NOT NULL DEFAULT '',
+          changes JSONB NOT NULL DEFAULT '[]'::jsonb,
+          original_file TEXT,
+          original_file_type TEXT,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )`;
+      await db`ALTER TABLE revisions ADD COLUMN IF NOT EXISTS original_file TEXT`;
+      await db`ALTER TABLE revisions ADD COLUMN IF NOT EXISTS original_file_type TEXT`;
     })();
   }
   await schemaReady;

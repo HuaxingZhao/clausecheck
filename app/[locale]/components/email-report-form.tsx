@@ -14,12 +14,14 @@ export default function EmailReportForm({ result, locale }: EmailReportFormProps
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [devWarning, setDevWarning] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setDevWarning(null);
     try {
       const res = await fetch("/api/reports/email", {
         method: "POST",
@@ -28,6 +30,9 @@ export default function EmailReportForm({ result, locale }: EmailReportFormProps
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
+      if (data.delivered === false) {
+        setDevWarning(data.message || t("notConfigured"));
+      }
       setSent(true);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed");
@@ -38,7 +43,17 @@ export default function EmailReportForm({ result, locale }: EmailReportFormProps
 
   if (sent) {
     return (
-      <p className="text-sm text-ink-light font-sans text-center">{t("sent", { email })}</p>
+      <div>
+        {devWarning ? (
+          <p className="text-sm text-amber-800 bg-amber-50/80 rounded-lg p-3 font-sans mb-2">
+            {devWarning}
+          </p>
+        ) : (
+          <p className="text-sm text-green-800 bg-green-50/80 rounded-lg p-3 font-sans">
+            {t("sent", { email })}
+          </p>
+        )}
+      </div>
     );
   }
 

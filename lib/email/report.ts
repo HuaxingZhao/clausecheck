@@ -6,7 +6,7 @@ export async function sendReportEmail(input: {
   pdfBytes: Uint8Array;
   reportsLink: string;
   scoreNum: number;
-}) {
+}): Promise<{ delivered: boolean }> {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.EMAIL_FROM || "ClauseCheck <onboarding@resend.dev>";
   const { to, locale, pdfBytes, reportsLink, scoreNum } = input;
@@ -35,7 +35,7 @@ export async function sendReportEmail(input: {
     console.log(`Subject: ${subject}`);
     console.log(`Reports: ${reportsLink}`);
     console.log(`PDF size: ${pdfBytes.length} bytes\n`);
-    return;
+    return { delivered: false };
   }
 
   const res = await fetch("https://api.resend.com/emails", {
@@ -57,6 +57,8 @@ export async function sendReportEmail(input: {
     const err = await res.text();
     throw new Error(`Email send failed: ${err}`);
   }
+
+  return { delivered: true };
 }
 
 /** Re-export for magic link — keeps email module cohesive */

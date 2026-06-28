@@ -3,7 +3,8 @@
  */
 import { usePostgres } from "./pg";
 import * as pg from "./pg-store";
-import type { MagicToken, SavedReport, Team, TeamInvite, TeamRole, User } from "./types";
+import type { MagicToken, SavedReport, SavedRevision, Team, TeamInvite, TeamRole, User } from "./types";
+import type { ContractChange } from "../types";
 import { readFile, writeFile, mkdir } from "fs/promises";
 import path from "path";
 
@@ -13,12 +14,13 @@ const DB_FILE = path.join(DATA_DIR, "app-db.json");
 type JsonDb = {
   users: User[];
   reports: SavedReport[];
+  revisions: SavedRevision[];
   magicTokens: MagicToken[];
   teams: Team[];
   teamInvites: TeamInvite[];
 };
 
-const EMPTY: JsonDb = { users: [], reports: [], magicTokens: [], teams: [], teamInvites: [] };
+const EMPTY: JsonDb = { users: [], reports: [], revisions: [], magicTokens: [], teams: [], teamInvites: [] };
 
 async function readJson(): Promise<JsonDb> {
   await mkdir(DATA_DIR, { recursive: true });
@@ -28,6 +30,12 @@ async function readJson(): Promise<JsonDb> {
     return {
       users: (p.users ?? []).map(normalizeJsonUser),
       reports: (p.reports ?? []).map((r) => ({ ...r, teamId: r.teamId ?? null })),
+      revisions: (p.revisions ?? []).map((r) => ({
+        ...r,
+        teamId: r.teamId ?? null,
+        originalFile: r.originalFile ?? null,
+        originalFileType: r.originalFileType ?? null,
+      })),
       magicTokens: p.magicTokens ?? [],
       teams: p.teams ?? [],
       teamInvites: p.teamInvites ?? [],
@@ -181,6 +189,58 @@ export async function saveReport(input: {
   db.reports.unshift(report);
   await writeJson(db);
   return report;
+}
+
+export async function listRevisionsForUser(userId: string) {
+  if (usePostgres()) return pg.listRevisionsForUser(userId);
+  const db = await readJson();
+  const user = db.users.find((u) => u.id === userId);
+  return db.revisions
+    .filter((r) => r.userId === userId || (user?.teamId && r.teamId === user.teamId))
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+export async function getRevisionForUser(userId: string, revisionId: string) {
+  if (usePostgres()) return pg.getRevisionForUser(userId, revisionId);
+  const db = await readJson();
+  const user = db.users.find((u) => u.id === userId);
+  const rev = db.revisions.find(
+    (r) =>
+      r.id === revisionId &&
+      (r.userId === userId || (user?.teamId && r.teamId === user.teamId))
+  );
+  return rev ?? null;
+}
+
+export async function saveRevision(input: {
+  userId: string;
+  title: string;
+  locale: "zh" | "en";
+  originalText: string;
+  revisedContract: string;
+  changes: ContractChange[];
+  originalFile?: string | null;
+  originalFileType?: "pdf" | "docx" | null;
+}) {
+  if (usePostgres()) return pg.saveRevision(input);
+  const db = await readJson();
+  const user = db.users.find((u) => u.id === input.userId);
+  const revision: SavedRevision = {
+    id: crypto.randomUUID(),
+    userId: input.userId,
+    teamId: user?.teamId ?? null,
+    title: input.title,
+    locale: input.locale,
+    originalText: input.originalText,
+    revisedContract: input.revisedContract,
+    changes: input.changes,
+    originalFile: input.originalFile ?? null,
+    originalFileType: input.originalFileType ?? null,
+    createdAt: new Date().toISOString(),
+  };
+  db.revisions.unshift(revision);
+  await writeJson(db);
+  return revision;
 }
 
 export async function createTeam(name: string, ownerId: string) {

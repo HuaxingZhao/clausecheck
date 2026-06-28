@@ -1,4 +1,4 @@
-import type { ScanResult } from "../types";
+import type { ScanResult, ContractChange } from "../types";
 
 export type SubscriptionStatus = "active" | "canceled" | "past_due" | "none";
 export type TeamRole = "owner" | "member";
@@ -39,6 +39,21 @@ export interface SavedReport {
   createdAt: string;
 }
 
+export interface SavedRevision {
+  id: string;
+  userId: string;
+  teamId: string | null;
+  title: string;
+  locale: "zh" | "en";
+  originalText: string;
+  revisedContract: string;
+  changes: ContractChange[];
+  /** base64 of the user's original upload — enables pixel-exact history downloads. */
+  originalFile: string | null;
+  originalFileType: "pdf" | "docx" | null;
+  createdAt: string;
+}
+
 export interface MagicToken {
   token: string;
   email: string;
@@ -55,6 +70,7 @@ export interface TeamInvite {
 export interface DbSnapshot {
   users: User[];
   reports: SavedReport[];
+  revisions: SavedRevision[];
   magicTokens: MagicToken[];
   teams: Team[];
   teamInvites: TeamInvite[];

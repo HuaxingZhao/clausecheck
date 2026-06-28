@@ -1,16 +1,18 @@
 "use client";
 
-import { useTranslations, useLocale } from "next-intl";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
 import type { ScanResult, RiskFlag, SigningRecommendation } from "@/lib/types";
 
 import UpgradeBanner from "./upgrade-banner";
-import EmailReportForm from "./email-report-form";
+import ReportDeliverySection from "./report-delivery-section";
+import ReviseSection from "./revise-section";
 
 interface ResultsSectionProps {
   result: ScanResult;
+  contractText?: string | null;
   riskCls: string;
   isPro: boolean;
+  locale: string;
   onDownload: () => void;
   scrollTo: (id: string) => void;
   onUpgradePro?: () => void;
@@ -20,8 +22,10 @@ interface ResultsSectionProps {
 
 export default function ResultsSection({
   result,
+  contractText,
   riskCls,
   isPro,
+  locale,
   onDownload,
   scrollTo,
   onUpgradePro,
@@ -29,7 +33,6 @@ export default function ResultsSection({
   sectionRef,
 }: ResultsSectionProps) {
   const t = useTranslations();
-  const locale = useLocale();
 
   function levelLabel(level: string) {
     if (level === "high") return t("results.riskLevelHigh");
@@ -286,35 +289,35 @@ export default function ResultsSection({
           </div>
         )}
 
-        <div className="summary-card mb-6 mt-8">
-          <EmailReportForm result={result} locale={locale} />
-        </div>
+        <ReportDeliverySection
+          result={result}
+          locale={locale}
+          isPro={isPro}
+          onDownload={onDownload}
+        />
 
-        <div className="text-center mt-12">
-          <div className="flex items-center justify-center gap-4 mb-4 flex-wrap">
-            <button onClick={onDownload} className="btn btn-primary btn-lg">
-              {t("results.downloadReport")}
+        <ReviseSection
+          result={result}
+          contractText={contractText ?? null}
+          isPro={isPro}
+          locale={locale}
+          onUpgradePro={onUpgradePro}
+          onPayPerUse={onPayPerUse}
+        />
+
+        {!isPro && (
+          <div className="text-center mt-12">
+            <p className="text-sm text-ink-light mb-4 font-sans">
+              {t("results.trialHint")}
+            </p>
+            <button
+              onClick={() => scrollTo("pricing")}
+              className="btn btn-primary btn-lg"
+            >
+              {t("results.viewPricing")}
             </button>
-            {isPro && (
-              <Link href={`/${locale}/reports`} className="btn btn-outline btn-lg">
-                {t("results.viewHistory")}
-              </Link>
-            )}
           </div>
-          {!isPro && (
-            <>
-              <p className="text-sm text-ink-light mb-4 font-sans">
-                {t("results.trialHint")}
-              </p>
-              <button
-                onClick={() => scrollTo("pricing")}
-                className="btn btn-primary btn-lg"
-              >
-                {t("results.viewPricing")}
-              </button>
-            </>
-          )}
-        </div>
+        )}
       </div>
     </section>
   );

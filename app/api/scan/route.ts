@@ -88,7 +88,10 @@ export async function POST(req: NextRequest) {
       locale,
     });
 
-    return NextResponse.json(result);
+    return NextResponse.json({
+      ...result,
+      contractText: extracted.text.slice(0, maxChars),
+    });
   } catch (err: any) {
     console.error("scan error:", err);
     return NextResponse.json(

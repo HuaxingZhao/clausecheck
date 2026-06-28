@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       ? `${base}/${loc}/reports`
       : `${base}/${loc}/sample-report`;
 
-    await sendReportEmail({
+    const { delivered } = await sendReportEmail({
       to: email,
       locale: loc,
       pdfBytes,
@@ -43,7 +43,18 @@ export async function POST(req: NextRequest) {
       scoreNum: scanResult.scoreNum,
     });
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({
+      ok: true,
+      delivered,
+      ...(delivered
+        ? {}
+        : {
+            message:
+              loc === "zh"
+                ? "邮件服务未配置（RESEND_API_KEY）。请下载 PDF 或联系管理员。"
+                : "Email service not configured (RESEND_API_KEY). Download the PDF instead.",
+          }),
+    });
   } catch (err: unknown) {
     console.error("email report error:", err);
     const message = err instanceof Error ? err.message : "Failed to send email";

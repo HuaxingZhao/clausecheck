@@ -10,8 +10,12 @@
   "dependencies": {
     "@pdf-lib/fontkit": "^1.1.1",
     "@stripe/stripe-js": "^9.8.0",
+    "caniuse-lite": "^1.0.30001799",
+    "docx": "^9.7.1",
     "jose": "^6.2.3",
+    "jszip": "^3.10.1",
     "mammoth": "^1.8.0",
+    "negotiator": "^1.0.0",
     "next": "^14.2.0",
     "next-intl": "^3.26.0",
     "openai": "^4.67.0",
@@ -21,6 +25,7 @@
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "stripe": "^22.2.2",
+    "sucrase": "^3.35.1",
     "unpdf": "^1.6.2"
   },
   "devDependencies": {

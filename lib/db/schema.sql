@@ -51,6 +51,22 @@ CREATE TABLE IF NOT EXISTS magic_tokens (
   expires_at TIMESTAMPTZ NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS revisions (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  team_id TEXT REFERENCES teams(id) ON DELETE SET NULL,
+  title TEXT NOT NULL,
+  locale TEXT NOT NULL DEFAULT 'zh',
+  original_text TEXT NOT NULL DEFAULT '',
+  revised_contract TEXT NOT NULL DEFAULT '',
+  changes JSONB NOT NULL DEFAULT '[]'::jsonb,
+  original_file TEXT,
+  original_file_type TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE INDEX IF NOT EXISTS idx_reports_user ON reports(user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_reports_team ON reports(team_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_users_team ON users(team_id);
+CREATE INDEX IF NOT EXISTS idx_revisions_user ON revisions(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_revisions_team ON revisions(team_id, created_at DESC);

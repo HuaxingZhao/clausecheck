@@ -17,6 +17,7 @@ export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ScanResult | null>(null);
+  const [contractText, setContractText] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [scanCount, setScanCount] = useState<number | null>(null);
@@ -192,6 +193,7 @@ export default function Home() {
     setFile(f);
     setError(null);
     setResult(null);
+    setContractText(null);
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -224,15 +226,21 @@ export default function Home() {
         body: form,
         headers: { "x-user-tier": scanTier },
       });
-      const data = (await res.json()) as ScanResult | ScanError;
+      const data = (await res.json()) as
+        | (ScanResult & { contractText?: string })
+        | ScanError;
 
       if (!res.ok) throw new Error((data as ScanError).error || "Scan failed");
 
-      setResult(data as ScanResult);
+      const { contractText: extractedText, ...scanResult } = data as ScanResult & {
+        contractText?: string;
+      };
+      if (extractedText) setContractText(extractedText);
+      setResult(scanResult as ScanResult);
       recordScan();
       fetch("/api/scan-count", { method: "POST" }).catch(() => {});
       setScanStage(3);
-      saveReportToHistory(data as ScanResult, file.name);
+      saveReportToHistory(scanResult, file.name);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Scan failed, please retry";
       setError(message);
@@ -581,8 +589,10 @@ export default function Home() {
       {result && (
         <ResultsSection
           result={result}
+          contractText={contractText}
           riskCls={riskCls}
           isPro={isProUser}
+          locale={locale}
           onDownload={handleDownloadPdf}
           scrollTo={scrollTo}
           onUpgradePro={() => handleCheckout("pro_monthly", locale === "zh" ? "cny" : "usd")}

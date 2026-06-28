@@ -10,7 +10,9 @@ import {
   type PDFFont,
   type RGB,
 } from "pdf-lib";
-import type { ScanResult, SigningRecommendation } from "./types";
+import type { ScanResult, SigningRecommendation, ContractChange } from "./types";
+import { buildRedlinedDocument, type RedlineSpan } from "./redline";
+import { toContractLines } from "./contract-format";
 
 export type ReportLocale = "zh" | "en";
 
@@ -127,7 +129,7 @@ const LABELS = {
 
 let fontCache: Uint8Array | null = null;
 
-async function loadCjkFontBytes(): Promise<Uint8Array> {
+export async function loadCjkFontBytes(): Promise<Uint8Array> {
   if (fontCache) return fontCache;
   const fontPath = path.join(process.cwd(), "assets/fonts/NotoSansSC-Regular.otf");
   fontCache = await readFile(fontPath);
@@ -446,6 +448,58 @@ class PdfWriter {
     this.y = boxBottom - 14;
   }
 
+  /**
+   * Redline pair for a suggestion: the removed sentence in red with a
+   * strikethrough, then the added sentence in green.
+   */
+  drawRedlinePair(
+    removedLabel: string,
+    original: string,
+    addedLabel: string,
+    revised: string
+  ) {
+    const RED = rgb(0.72, 0.11, 0.11);
+    const GREEN = rgb(0.11, 0.5, 0.27);
+    const size = 9.5;
+    const orig = toText(original).trim();
+    const rev = toText(revised).trim();
+
+    if (orig) {
+      this.drawText(removedLabel, { size: 8, color: RED, bold: true, gap: 2 });
+      for (const line of this.wrap(orig, size, this.contentW)) {
+        if (!line) {
+          this.y -= this.lineGap;
+          continue;
+        }
+        this.ensureSpace(size + this.lineGap + 2);
+        this.drawLine(line, this.margin, this.y, size, RED);
+        const w = this.measure(line, size);
+        this.page.drawLine({
+          start: { x: this.margin, y: this.y + size * 0.32 },
+          end: { x: this.margin + w, y: this.y + size * 0.32 },
+          thickness: 0.7,
+          color: RED,
+        });
+        this.y -= size + this.lineGap;
+      }
+      this.y -= 2;
+    }
+
+    if (rev) {
+      this.drawText(addedLabel, { size: 8, color: GREEN, bold: true, gap: 2 });
+      for (const line of this.wrap(rev, size, this.contentW)) {
+        if (!line) {
+          this.y -= this.lineGap;
+          continue;
+        }
+        this.ensureSpace(size + this.lineGap + 2);
+        this.drawLine(line, this.margin, this.y, size, GREEN);
+        this.y -= size + this.lineGap;
+      }
+    }
+    this.y -= 6;
+  }
+
   /** Overview panel: signing recommendation + executive summary in one bordered section */
   drawOverviewPanel(
     signingTitle: unknown,
@@ -761,6 +815,75 @@ class PdfWriter {
     this.page.drawRectangle({ x: 0, y: this.height - 5, width: this.width, height: 5, color });
   }
 
+  spacer(n: number) {
+    this.y -= n;
+  }
+
+  /** Center-aligned text (used for contract titles). */
+  drawCentered(
+    text: unknown,
+    opts: { size?: number; color?: RGB; bold?: boolean; gap?: number } = {}
+  ) {
+    const { size = 14, color = COLORS.primary, bold = true, gap = this.lineGap } = opts;
+    for (const line of this.wrap(text, size, this.contentW, bold)) {
+      if (!line) {
+        this.y -= gap;
+        continue;
+      }
+      this.ensureSpace(size + gap + 2);
+      const lineW = this.measure(line, size, bold);
+      const x = this.margin + Math.max(0, (this.contentW - lineW) / 2);
+      this.drawLine(line, x, this.y, size, color, bold);
+      this.y -= size + gap;
+    }
+  }
+
+  /** Inline redline: deleted = red strikethrough, inserted = green */
+  drawRedlineParagraphs(
+    paragraphs: { text: string; kind: "normal" | "deleted" | "inserted" }[][],
+    size = 10
+  ) {
+    const deletedColor = rgb(0.72, 0.14, 0.14);
+    const insertedColor = rgb(0.1, 0.42, 0.22);
+
+    for (const para of paragraphs) {
+      if (!para.length) continue;
+      this.ensureSpace(size + this.lineGap + 4);
+      let x = this.margin;
+      const lineY = this.y;
+
+      for (const span of para) {
+        const color =
+          span.kind === "deleted"
+            ? deletedColor
+            : span.kind === "inserted"
+              ? insertedColor
+              : COLORS.primary;
+
+        for (const ch of span.text) {
+          const cw = this.charWidth(ch, size);
+          if (x + cw > this.margin + this.contentW && x > this.margin) {
+            this.y -= size + this.lineGap;
+            this.ensureSpace(size + this.lineGap + 4);
+            x = this.margin;
+          }
+          const yPos = this.y;
+          this.drawLine(ch, x, yPos, size, color);
+          if (span.kind === "deleted") {
+            this.page.drawLine({
+              start: { x, y: yPos - size * 0.35 },
+              end: { x: x + cw, y: yPos - size * 0.35 },
+              thickness: 0.6,
+              color: deletedColor,
+            });
+          }
+          x += cw;
+        }
+      }
+      this.y -= size + this.lineGap * 2;
+    }
+  }
+
   drawFooters(labelFn: (n: number, total: number) => string) {
     const total = this.pages.length;
     const dateStr = new Date().toISOString().slice(0, 10);
@@ -938,6 +1061,178 @@ export async function generateReportPdf(
   w.drawText(L.disclaimerText, { size: 8, color: COLORS.muted, gap: 5 });
 
   w.drawFooters(L.footer);
+
+  return pdf.save();
+}
+
+const CONTRACT_LABELS = {
+  zh: {
+    footer: (n: number, total: number) => `ClauseCheck · 第 ${n} / ${total} 页`,
+    disclaimer:
+      "AI 修订仅供参考，不构成法律意见。删除线为原文，绿色为建议修订文本。",
+  },
+  en: {
+    footer: (n: number, total: number) => `ClauseCheck · Page ${n} of ${total}`,
+    disclaimer:
+      "AI redline for reference only — not legal advice. Strikethrough = original; green = suggested text.",
+  },
+};
+
+/** Redlined contract PDF — preserves original layout with inline track-changes */
+export async function generateRedlinedContractPdf(
+  originalText: string,
+  changes: ContractChange[],
+  locale: ReportLocale = "zh"
+): Promise<Uint8Array> {
+  const L = CONTRACT_LABELS[locale];
+  const { paragraphs } = buildRedlinedDocument(originalText, changes);
+
+  const pdf = await PDFDocument.create();
+  pdf.registerFontkit(fontkit);
+
+  const latin = await pdf.embedFont(StandardFonts.Helvetica);
+  const latinBold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const cjkBytes = await loadCjkFontBytes();
+  const cjk = await pdf.embedFont(cjkBytes);
+
+  const [width, height] = PageSizes.A4;
+  const margin = 52;
+  const contentW = width - margin * 2;
+
+  const w = new PdfWriter(pdf, latin, latinBold, cjk, width, height, margin, contentW, locale);
+
+  w.drawRedlineParagraphs(paragraphs as RedlineSpan[][], 10);
+
+  w.drawText(L.disclaimer, { size: 7, color: COLORS.muted, gap: 8 });
+  w.drawFooters(L.footer);
+
+  return pdf.save();
+}
+
+/** @deprecated Use generateRedlinedContractPdf with original text + changes */
+export async function generateRevisedContractPdf(
+  contractText: string,
+  locale: ReportLocale = "zh"
+): Promise<Uint8Array> {
+  return generateRedlinedContractPdf(contractText, [], locale);
+}
+
+const SUGGESTION_LABELS = {
+  zh: {
+    title: "合同修订建议清单",
+    generated: "生成时间",
+    item: (n: number) => `建议 ${n}`,
+    removed: "删除原文",
+    added: "建议新增",
+    reason: "理由",
+    empty: "暂无可应用的建议。",
+    disclaimer: "AI 生成，仅供参考，不构成法律意见。请在签署前自行审阅。",
+    notice: "说明",
+    footer: (n: number, total: number) => `ClauseCheck · 第 ${n} / ${total} 页`,
+  },
+  en: {
+    title: "Contract Revision Suggestions",
+    generated: "Generated",
+    item: (n: number) => `Suggestion ${n}`,
+    removed: "Removed",
+    added: "Added",
+    reason: "Rationale",
+    empty: "No applicable suggestions.",
+    disclaimer: "AI-generated for reference only — not legal advice. Review before signing.",
+    notice: "Notice",
+    footer: (n: number, total: number) => `ClauseCheck · Page ${n} of ${total}`,
+  },
+};
+
+/**
+ * Suggestions report PDF — each accepted edit shown as a redline:
+ * the removed sentence in red strikethrough, the added sentence in green.
+ */
+export async function generateSuggestionsPdf(
+  changes: ContractChange[],
+  locale: ReportLocale = "zh"
+): Promise<Uint8Array> {
+  const L = SUGGESTION_LABELS[locale];
+  const pdf = await PDFDocument.create();
+  pdf.registerFontkit(fontkit);
+
+  const latin = await pdf.embedFont(StandardFonts.Helvetica);
+  const latinBold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const cjkBytes = await loadCjkFontBytes();
+  const cjk = await pdf.embedFont(cjkBytes);
+
+  const [width, height] = PageSizes.A4;
+  const margin = 52;
+  const contentW = width - margin * 2;
+
+  const w = new PdfWriter(pdf, latin, latinBold, cjk, width, height, margin, contentW, locale);
+
+  w.drawHeaderBar(COLORS.accent);
+  w.drawText("ClauseCheck", { size: 20, color: COLORS.accent, bold: true, gap: 2 });
+  w.drawText(L.title, { size: 14, bold: true, gap: 6 });
+  w.drawText(`${L.generated}: ${formatDate(locale)}`, { size: 9, color: COLORS.muted, gap: 12 });
+
+  if (!changes.length) {
+    w.drawText(L.empty, { size: 10, color: COLORS.muted, gap: 6 });
+  }
+
+  changes.forEach((c, i) => {
+    w.drawSectionTitle(`${L.item(i + 1)}${c.section ? ` · ${c.section}` : ""}`);
+    w.drawRedlinePair(L.removed, c.original, L.added, c.revised);
+    if (c.reason) {
+      w.drawText(`${L.reason}: ${c.reason}`, { size: 8, color: COLORS.muted, gap: 8 });
+    }
+  });
+
+  w.drawSectionTitle(L.notice);
+  w.drawText(L.disclaimer, { size: 8, color: COLORS.muted, gap: 5 });
+  w.drawFooters(L.footer);
+
+  return pdf.save();
+}
+
+/**
+ * @deprecated Final-contract generation removed. Kept as a thin shim only so
+ * older imports don't break; not used by the product.
+ */
+export async function generateCleanContractPdf(
+  finalText: string,
+  locale: ReportLocale = "zh"
+): Promise<Uint8Array> {
+  const lines = toContractLines(finalText);
+
+  const pdf = await PDFDocument.create();
+  pdf.registerFontkit(fontkit);
+
+  const latin = await pdf.embedFont(StandardFonts.Helvetica);
+  const latinBold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const cjkBytes = await loadCjkFontBytes();
+  const cjk = await pdf.embedFont(cjkBytes);
+
+  const [width, height] = PageSizes.A4;
+  const margin = 56;
+  const contentW = width - margin * 2;
+
+  const w = new PdfWriter(pdf, latin, latinBold, cjk, width, height, margin, contentW, locale);
+
+  w.spacer(8);
+  for (const line of lines) {
+    if (line.kind === "title") {
+      w.drawCentered(line.text, { size: 16, bold: true, gap: 10 });
+      w.spacer(6);
+    } else if (line.kind === "heading") {
+      w.spacer(4);
+      w.drawText(line.text, { size: 11.5, bold: true, gap: 6 });
+    } else {
+      w.drawText(line.text, { size: 10, gap: 5 });
+    }
+  }
+
+  w.drawFooters(
+    locale === "zh"
+      ? (n, total) => `ClauseCheck · 第 ${n} / ${total} 页`
+      : (n, total) => `ClauseCheck · Page ${n} of ${total}`
+  );
 
   return pdf.save();
 }

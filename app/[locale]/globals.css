@@ -268,6 +268,85 @@
     @apply text-xs text-ink-muted font-sans leading-relaxed italic;
   }
 
+  /* ── Contract revision ── */
+  .revision-item {
+    @apply flex items-start gap-3 p-3 rounded-xl bg-paper-dark/40 border border-border/30
+           cursor-pointer hover:bg-paper-dark/60 transition-colors;
+  }
+  .revision-checkbox {
+    @apply mt-1 w-4 h-4 rounded border-border text-accent focus:ring-accent/30 flex-shrink-0;
+  }
+  .diff-block {
+    @apply rounded-xl border border-border/40 overflow-hidden;
+  }
+  .diff-section-label {
+    @apply text-xs font-sans font-semibold text-ink bg-paper-dark/60 px-4 py-2 border-b border-border/30;
+  }
+  .diff-old {
+    @apply text-sm font-sans px-4 py-3 bg-red-50/70 line-through text-red-800/80 leading-relaxed;
+  }
+  .diff-new {
+    @apply text-sm font-sans px-4 py-3 bg-green-50/80 text-green-900 leading-relaxed;
+  }
+  .diff-label {
+    @apply block text-[0.65rem] font-semibold uppercase tracking-wide mb-1 opacity-70;
+  }
+  .revised-contract-box {
+    @apply rounded-xl border border-border/50 overflow-hidden bg-paper-dark/30;
+  }
+  .revised-contract-header {
+    @apply text-xs font-sans font-semibold text-ink-muted px-4 py-2 bg-paper-dark/60 border-b border-border/30;
+  }
+  .revised-contract-text {
+    @apply text-sm font-sans text-ink-light p-4 leading-relaxed max-h-[480px] overflow-y-auto;
+  }
+
+  .redline-contract-body {
+    @apply max-h-[640px];
+  }
+  .redline-paragraph {
+    @apply mb-3 last:mb-0 leading-relaxed;
+  }
+  .redline-deleted {
+    @apply text-red-800/90 line-through bg-red-50/80 px-0.5 rounded-sm;
+  }
+  .redline-inserted {
+    @apply text-green-900 bg-green-50/90 px-0.5 rounded-sm font-medium;
+  }
+  .redline-legend {
+    @apply inline-flex items-center gap-2 text-[0.65rem] font-normal normal-case tracking-normal;
+  }
+  .redline-legend .redline-deleted,
+  .redline-legend .redline-inserted {
+    @apply px-1.5 py-0.5;
+  }
+
+  /* ── Clean revised contract (mirrors original layout) ── */
+  .clean-contract-body {
+    @apply max-h-[640px] text-ink;
+  }
+  .clean-contract-title {
+    @apply text-center font-semibold text-base text-ink mb-4 leading-snug;
+  }
+  .clean-contract-heading {
+    @apply font-semibold text-sm text-ink mt-4 mb-1.5;
+  }
+  .clean-contract-para {
+    @apply text-sm text-ink-light leading-relaxed mb-2;
+  }
+
+  /* ── Step 3 delivery rows ── */
+  .delivery-row {
+    @apply flex flex-col gap-2 py-3 border-b border-border/30
+           sm:flex-row sm:items-center sm:justify-between;
+  }
+  .delivery-row-label {
+    @apply text-sm font-sans font-semibold text-ink;
+  }
+  .link-accent {
+    @apply text-accent-dark font-medium hover:underline;
+  }
+
   /* ── Pricing ── */
   .pricing-card {
     @apply bg-white rounded-2xl p-7 border border-border/50 shadow-sm

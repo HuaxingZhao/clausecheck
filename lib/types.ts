@@ -97,6 +97,20 @@ export interface ScanError {
   error: string;
 }
 
+/** Single tracked change from contract revision */
+export interface ContractChange {
+  section?: string;
+  original: string;
+  revised: string;
+  reason?: string;
+}
+
+/** Result of applying accepted suggestions to a contract */
+export interface ReviseResult {
+  revisedContract: string;
+  changes: ContractChange[];
+}
+
 /** 从文件提取的原始文本 */
 export interface ExtractedText {
   text: string;

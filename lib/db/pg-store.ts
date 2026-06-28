@@ -1,7 +1,7 @@
 import postgres from "postgres";
-import type { ScanResult } from "../types";
+import type { ScanResult, ContractChange } from "../types";
 import { ensureSchema, getSql } from "./pg";
-import type { MagicToken, SavedReport, Team, TeamInvite, TeamRole, User } from "./types";
+import type { MagicToken, SavedReport, SavedRevision, Team, TeamInvite, TeamRole, User } from "./types";
 
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
@@ -170,6 +170,77 @@ export async function saveReport(input: {
       ${sql.json(input.result as any)}
     )`;
   return (await getReportForUser(input.userId, id))!;
+}
+
+function rowToRevision(r: Record<string, unknown>): SavedRevision {
+  return {
+    id: r.id as string,
+    userId: r.user_id as string,
+    teamId: (r.team_id as string) ?? null,
+    title: r.title as string,
+    locale: r.locale as "zh" | "en",
+    originalText: (r.original_text as string) ?? "",
+    revisedContract: (r.revised_contract as string) ?? "",
+    changes: (r.changes as ContractChange[]) ?? [],
+    originalFile: (r.original_file as string) ?? null,
+    originalFileType: (r.original_file_type as "pdf" | "docx") ?? null,
+    createdAt: new Date(r.created_at as string).toISOString(),
+  };
+}
+
+export async function listRevisionsForUser(userId: string): Promise<SavedRevision[]> {
+  await ensureSchema();
+  const user = await findUserById(userId);
+  if (!user) return [];
+  const rows = user.teamId
+    ? await getSql()`
+        SELECT * FROM revisions
+        WHERE user_id = ${userId} OR team_id = ${user.teamId}
+        ORDER BY created_at DESC LIMIT 100`
+    : await getSql()`
+        SELECT * FROM revisions WHERE user_id = ${userId}
+        ORDER BY created_at DESC LIMIT 100`;
+  return rows.map(rowToRevision);
+}
+
+export async function getRevisionForUser(
+  userId: string,
+  revisionId: string
+): Promise<SavedRevision | null> {
+  await ensureSchema();
+  const user = await findUserById(userId);
+  if (!user) return null;
+  const rows = user.teamId
+    ? await getSql()`
+        SELECT * FROM revisions WHERE id = ${revisionId}
+        AND (user_id = ${userId} OR team_id = ${user.teamId}) LIMIT 1`
+    : await getSql()`
+        SELECT * FROM revisions WHERE id = ${revisionId} AND user_id = ${userId} LIMIT 1`;
+  return rows[0] ? rowToRevision(rows[0]) : null;
+}
+
+export async function saveRevision(input: {
+  userId: string;
+  title: string;
+  locale: "zh" | "en";
+  originalText: string;
+  revisedContract: string;
+  changes: ContractChange[];
+  originalFile?: string | null;
+  originalFileType?: "pdf" | "docx" | null;
+}): Promise<SavedRevision> {
+  await ensureSchema();
+  const user = await findUserById(input.userId);
+  const id = crypto.randomUUID();
+  const sql = getSql();
+  await sql`
+    INSERT INTO revisions (id, user_id, team_id, title, locale, original_text, revised_contract, changes, original_file, original_file_type)
+    VALUES (
+      ${id}, ${input.userId}, ${user?.teamId ?? null},
+      ${input.title}, ${input.locale}, ${input.originalText}, ${input.revisedContract},
+      ${sql.json(input.changes as any)}, ${input.originalFile ?? null}, ${input.originalFileType ?? null}
+    )`;
+  return (await getRevisionForUser(input.userId, id))!;
 }
 
 export async function createTeam(name: string, ownerId: string): Promise<Team> {
