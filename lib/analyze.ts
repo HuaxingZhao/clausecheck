@@ -1,10 +1,28 @@
 import OpenAI from "openai";
+import { buildContractIndex, formatClauseIndexForPrompt } from "./contract-index";
+import {
+  type ContractScenarioId,
+  DEFAULT_SCENARIO_ID,
+  getScenario,
+  getScenarioPromptOverlay,
+  isValidScenarioId,
+} from "./contract-scenarios";
+import { formatScenarioKnowledgeForPrompt } from "./scenario-rag";
+import {
+  runAnalysisPipeline,
+  pipelineRefineNeeded,
+  type PipelineOptions,
+} from "./analysis-pipeline";
+import { annotateScanConfidence, computeQualityStats } from "./confidence";
+import { snapScanResultToSource } from "./snap-scan-quotes";
+import { buildContractReview } from "./lock-suggestions";
 import type {
   ScanResult,
   RiskFlag,
   TimeTerm,
   MissingClause,
   SigningRecommendation,
+  NegotiationPoint,
 } from "./types";
 
 /* ================================================================== */
@@ -41,6 +59,22 @@ Mandatory 12-category review (scan each; do not skip):
 11. Amendments & entire agreement (oral changes, conflicting clauses)
 12. Missing clauses (SLA, acceptance criteria, escalation, business continuity)`;
 
+const CLAUSE_INDEX_RULES_ZH = `
+⸻
+四步审阅流程（必须遵守）：
+1. 下方 CLAUSE INDEX 是从合同原文自动解析的条款索引（含 id 与 excerpt）。
+2. 每条 flag / negotiation 必须填写 clauseId（与 INDEX 中 id 完全一致）。
+3. quote 必须从该 clauseId 对应条款原文逐字复制（20–60 字），不可改写或概括。
+4. 若无法对应任何 clauseId，则不要输出该条。`;
+
+const CLAUSE_INDEX_RULES_EN = `
+---
+Four-step review (mandatory):
+1. CLAUSE INDEX below is auto-parsed from the contract (id + excerpt).
+2. Every flag / negotiation MUST include clauseId matching an INDEX id exactly.
+3. quote MUST be copy-pasted verbatim from that clause (20–60 words/chars). No paraphrase.
+4. If no clause applies, omit that item.`;
+
 const OUTPUT_SCHEMA_ZH = `{
   "contractType": "合同类型 + 行业/场景，如：SaaS 服务协议（B2B 软件订阅）",
   "executiveSummary": "4 句高管摘要：合同性质、核心风险、财务敞口、签署建议（面向非法律背景的决策者）",
@@ -53,8 +87,9 @@ const OUTPUT_SCHEMA_ZH = `{
     {
       "icon": "单个 emoji",
       "category": "风险类别",
+      "clauseId": "条款索引 id（必填，来自 CLAUSE INDEX）",
       "text": "条款位置 + 风险说明（含条款编号）",
-      "quote": "原文引用 20-60 字（深度模式必填；基础模式 high/medium 必填）",
+      "quote": "原文逐字引用 20-60 字（必须从 clauseId 对应条款复制）",
       "legalBasis": "法律依据或商业惯例（1 句）",
       "impact": "不修改的潜在后果（1 句，尽量量化）",
       "suggestion": "可直接粘贴的红线修订建议（2-4 句，含建议措辞）",
@@ -73,7 +108,9 @@ const OUTPUT_SCHEMA_ZH = `{
     {
       "priority": 1,
       "clause": "条款名/编号",
-      "current": "当前表述摘要",
+      "clauseId": "条款索引 id（必填，来自 CLAUSE INDEX）",
+      "quote": "原文逐字引用 20-60 字（必填，从 clauseId 条款复制）",
+      "current": "可选：quote 的简短说明",
       "suggested": "建议修订措辞（可直接用于谈判）",
       "reason": "商业与法律理由（2 句）"
     }
@@ -103,8 +140,9 @@ const OUTPUT_SCHEMA_EN = `{
     {
       "icon": "single emoji",
       "category": "Risk category",
+      "clauseId": "Clause index id (required — from CLAUSE INDEX)",
       "text": "Clause reference + risk explanation",
-      "quote": "Original text quote 20-60 words (required for high/medium; all flags in deep mode)",
+      "quote": "Verbatim quote 20-60 words (copy from clauseId clause only)",
       "legalBasis": "Legal or commercial basis (1 sentence)",
       "impact": "Consequence if unchanged (1 sentence; quantify if possible)",
       "suggestion": "Redline-ready revision language (2-4 sentences)",
@@ -123,7 +161,9 @@ const OUTPUT_SCHEMA_EN = `{
     {
       "priority": 1,
       "clause": "Clause name/section",
-      "current": "Current language summary",
+      "clauseId": "Clause index id (required — from CLAUSE INDEX)",
+      "quote": "Verbatim quote 20-60 words (required — from clauseId clause)",
+      "current": "Optional brief summary",
       "suggested": "Proposed revision (negotiation-ready)",
       "reason": "Business and legal rationale (2 sentences)"
     }
@@ -156,8 +196,8 @@ ${REVIEW_CHECKLIST_ZH}
 
 质量要求：
 - 至少识别 6 个 flags（含全部 high 风险）；少于 6 条视为不合格
-- 每条 high/medium flag 必须含 quote、legalBasis、impact、suggestion
-- negotiations 至少 3 条，按 priority 排序
+- 每条 high/medium flag 必须含 clauseId、quote、legalBasis、impact、suggestion
+- negotiations 至少 3 条，按 priority 排序；每条必须含 clauseId 与 quote
 - actionItems 恰好 5 条，按优先级排列
 - 语言专业、客观，避免模糊表述如「可能有问题」
 
@@ -181,8 +221,8 @@ Composite = round(fairness×0.35 + compliance×0.25 + financial×0.40)
 
 Quality bar:
 - Minimum 6 flags (cover all high-severity issues); fewer than 6 is unacceptable
-- Every high/medium flag must include quote, legalBasis, impact, suggestion
-- Minimum 3 negotiations, priority-sorted
+- Every high/medium flag must include clauseId, quote, legalBasis, impact, suggestion
+- Minimum 3 negotiations, priority-sorted; each must include clauseId and quote
 - Exactly 5 actionItems in priority order
 - Professional, precise tone — no vague phrases like "might be problematic"
 
@@ -269,6 +309,7 @@ export interface AnalyzeOptions {
   deep?: boolean;
   maxChars?: number;
   locale?: "zh" | "en";
+  scenarioId?: ContractScenarioId;
 }
 
 export async function analyzeContract(
@@ -276,12 +317,25 @@ export async function analyzeContract(
   apiKey: string,
   options: AnalyzeOptions = {}
 ): Promise<ScanResult> {
-  const { deep = false, maxChars = 12000, locale = "zh" } = options;
+  const {
+    deep = false,
+    maxChars = 12000,
+    locale = "zh",
+    scenarioId = DEFAULT_SCENARIO_ID,
+  } = options;
 
   const openai = new OpenAI({ apiKey });
   const truncated = text.slice(0, maxChars);
+  const scenario = getScenario(scenarioId);
+  const scenarioOverlay = getScenarioPromptOverlay(scenario.id, locale);
+  const knowledgeBlock = formatScenarioKnowledgeForPrompt(scenario.id, locale);
 
-  const systemPrompt = deep
+  // Step 1 — build clause index from extracted text
+  const clauseIndex = buildContractIndex(truncated);
+  const indexJson = formatClauseIndexForPrompt(clauseIndex, 80, 100);
+  const indexRules = locale === "en" ? CLAUSE_INDEX_RULES_EN : CLAUSE_INDEX_RULES_ZH;
+
+  const baseSystemPrompt = deep
     ? locale === "en"
       ? DEEP_FIRST_PROMPT_EN
       : DEEP_FIRST_PROMPT_ZH
@@ -289,15 +343,42 @@ export async function analyzeContract(
       ? BASIC_PROMPT_EN
       : BASIC_PROMPT_ZH;
 
+  const systemPrompt = [baseSystemPrompt, scenarioOverlay, knowledgeBlock]
+    .filter(Boolean)
+    .join("\n\n");
+
+  const scenarioLine =
+    scenario.id !== "general"
+      ? locale === "en"
+        ? `\nReview scenario: ${scenario.id}. Apply scenario-specific expertise — not generic boilerplate.\n`
+        : `\n审阅场景：${scenario.id}。须按该场景专业标准输出，避免泛泛而谈。\n`
+      : "";
+
   const userPrompt =
     locale === "en"
-      ? `Analyze the following contract. Apply the full review checklist.\n\n---\n${truncated}\n---`
-      : `请分析以下合同，逐项适用审查清单。\n\n---\n${truncated}\n---`;
+      ? `Analyze the following contract. Apply the full review checklist.${scenarioLine}${indexRules}
+
+CLAUSE INDEX:
+${indexJson}
+
+CONTRACT TEXT:
+---
+${truncated}
+---`
+      : `请分析以下合同，逐项适用审查清单。${scenarioLine}${indexRules}
+
+条款索引 CLAUSE INDEX：
+${indexJson}
+
+合同原文：
+---
+${truncated}
+---`;
 
   const firstPass = await openai.chat.completions.create({
     model: deep ? "gpt-4o" : "gpt-4o-mini",
     temperature: deep ? 0.2 : 0.15,
-    max_tokens: deep ? 8000 : 5000,
+    max_tokens: deep ? 5500 : 3800,
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
@@ -311,13 +392,14 @@ export async function analyzeContract(
   }
 
   let parsed = normalize(JSON.parse(raw) as ScanResult, locale);
+  parsed.scenarioId = isValidScenarioId(scenarioId) ? scenarioId : DEFAULT_SCENARIO_ID;
 
   const minFlags = deep ? 8 : 6;
-  if (parsed.flags.length < minFlags) {
+  if (parsed.flags.length < minFlags - 2) {
     const retry = await openai.chat.completions.create({
-      model: deep ? "gpt-4o" : "gpt-4o-mini",
-      temperature: 0.25,
-      max_tokens: deep ? 8000 : 5000,
+      model: "gpt-4o-mini",
+      temperature: 0.2,
+      max_tokens: 3800,
       messages: [
         { role: "system", content: systemPrompt },
         {
@@ -337,63 +419,86 @@ export async function analyzeContract(
     }
   }
 
-  if (!deep) {
-    if (parsed.flags.length === 0) {
-      throw new Error(
-        locale === "en"
-          ? "Analysis returned no risk flags. Please retry."
-          : "分析未识别到风险条款，请重试。"
-      );
-    }
-    return parsed;
-  }
-
-  const refinePayload = JSON.stringify({ original: truncated, firstPass: parsed });
-  const refinePrompt = locale === "en" ? REFINE_PROMPT_EN : REFINE_PROMPT_ZH;
-
-  const secondPass = await openai.chat.completions.create({
-    model: "gpt-4o",
-    temperature: 0.1,
-    max_tokens: 8000,
-    messages: [
-      { role: "system", content: refinePrompt },
-      { role: "user", content: refinePayload },
-    ],
-    response_format: { type: "json_object" },
-  });
-
-  const refinedRaw = secondPass.choices[0]?.message?.content;
-  if (refinedRaw) {
-    try {
-      const refined = normalize(JSON.parse(refinedRaw) as ScanResult, locale);
-      // Keep first pass if refinement dropped flags or key sections
-      if (
-        refined.flags.length >= parsed.flags.length &&
-        refined.flags.length > 0
-      ) {
-        parsed = refined;
-      } else {
-        console.warn("Deep refinement incomplete — keeping first pass");
-        parsed.refineNotes =
-          refined.refineNotes ||
-          (locale === "en"
-            ? "Refinement pass was incomplete; showing first-pass analysis."
-            : "交叉验证结果不完整，已展示初版分析。");
-      }
-    } catch {
-      console.warn("Deep analysis refinement parse failed, falling back to first pass");
-    }
-  }
-
   if (parsed.flags.length === 0) {
     throw new Error(
       locale === "en"
-        ? "Deep analysis returned no risk flags. Please retry."
-        : "深度分析未识别到风险条款，请重试。"
+        ? "Analysis returned no risk flags. Please retry."
+        : "分析未识别到风险条款，请重试。"
     );
   }
 
-  return parsed;
+  return finalizeFirstPass(clauseIndex, truncated, parsed);
+}
+
+/** Phase 1 — main AI pass + quote snap + review lock (fast path). */
+export async function analyzeContractFirstPass(
+  text: string,
+  apiKey: string,
+  options: AnalyzeOptions = {}
+): Promise<ScanResult> {
+  return analyzeContract(text, apiKey, options);
+}
+
+/** Phase 2 — critic + rewrite + re-lock (same quality as full synchronous scan). */
+export async function refineScanResult(
+  contractText: string,
+  apiKey: string,
+  result: ScanResult,
+  options: AnalyzeOptions = {}
+): Promise<ScanResult> {
+  const {
+    deep = false,
+    maxChars = 12000,
+    locale = "zh",
+    scenarioId = DEFAULT_SCENARIO_ID,
+  } = options;
+
+  const openai = new OpenAI({ apiKey });
+  const truncated = contractText.slice(0, maxChars);
+  const clauseIndex = buildContractIndex(truncated);
+  const pipeOpts: PipelineOptions = {
+    deep,
+    locale,
+    scenarioId: isValidScenarioId(scenarioId) ? scenarioId : DEFAULT_SCENARIO_ID,
+  };
+
+  if (!pipelineRefineNeeded(result, pipeOpts)) {
+    return attachContractReview(clauseIndex, result);
+  }
+
+  const piped = await runAnalysisPipeline(openai, truncated, result, pipeOpts);
+  return attachContractReview(clauseIndex, piped.result);
+}
+
+export { pipelineRefineNeeded };
+
+function finalizeFirstPass(
+  clauseIndex: ReturnType<typeof buildContractIndex>,
+  contractText: string,
+  parsed: ScanResult
+): ScanResult {
+  let current = snapScanResultToSource(contractText, parsed);
+  current = annotateScanConfidence(current, contractText);
+  current.qualityStats = computeQualityStats(current);
+  return attachContractReview(clauseIndex, current);
+}
+
+function attachContractReview(
+  clauseIndex: ReturnType<typeof buildContractIndex>,
+  parsed: ScanResult
+): ScanResult {
+  const contractReview = buildContractReview(clauseIndex, parsed);
+  return { ...parsed, contractReview };
+}
+
+/** Full synchronous scan (first pass + refine). */
+export async function analyzeContractFull(
+  text: string,
+  apiKey: string,
+  options: AnalyzeOptions = {}
+): Promise<ScanResult> {
+  const first = await analyzeContractFirstPass(text, apiKey, options);
+  return refineScanResult(text, apiKey, first, options);
 }
 
 /* ================================================================== */
@@ -403,9 +508,9 @@ export async function analyzeContract(
 function normalize(parsed: ScanResult, locale: "zh" | "en"): ScanResult {
   parsed.flags = ensureFlagsArray(parsed.flags).map(normalizeFlag).filter((f) => f.text.trim());
   parsed.timeTerms = normalizeTimeTerms(parsed.timeTerms);
-  parsed.negotiations = (parsed.negotiations || []).sort(
-    (a, b) => a.priority - b.priority
-  );
+  parsed.negotiations = (parsed.negotiations || [])
+    .map(normalizeNegotiation)
+    .sort((a, b) => a.priority - b.priority);
   parsed.missingClauses = normalizeMissingClauses(parsed.missingClauses);
   parsed.strengths = parsed.strengths || [];
   parsed.actionItems = parsed.actionItems || [];
@@ -449,15 +554,32 @@ function normalize(parsed: ScanResult, locale: "zh" | "en"): ScanResult {
 }
 
 function normalizeFlag(f: RiskFlag): RiskFlag {
+  const raw = f as RiskFlag & { clauseId?: string };
   return {
     icon: f.icon || "⚠️",
     text: toTextField(f.text),
     suggestion: toTextField(f.suggestion),
     level: f.level || "medium",
     category: f.category ? toTextField(f.category) : undefined,
+    clauseId: raw.clauseId ? toTextField(raw.clauseId) : undefined,
     quote: f.quote ? toTextField(f.quote) : undefined,
     legalBasis: f.legalBasis ? toTextField(f.legalBasis) : undefined,
     impact: f.impact ? toTextField(f.impact) : undefined,
+    confidence: f.confidence,
+  };
+}
+
+function normalizeNegotiation(n: NegotiationPoint): NegotiationPoint {
+  const raw = n as NegotiationPoint & { clauseId?: string };
+  return {
+    priority: n.priority,
+    clause: toTextField(n.clause),
+    clauseId: raw.clauseId ? toTextField(raw.clauseId) : undefined,
+    quote: n.quote ? toTextField(n.quote) : undefined,
+    current: n.current ? toTextField(n.current) : undefined,
+    suggested: toTextField(n.suggested),
+    reason: toTextField(n.reason),
+    confidence: n.confidence,
   };
 }
 

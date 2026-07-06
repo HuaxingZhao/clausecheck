@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { extractTextFromBuffer } from "@/lib/extract-text";
-import { analyzeContract } from "@/lib/analyze";
+import { analyzeContractFirstPass, pipelineRefineNeeded } from "@/lib/analyze";
+import { DEFAULT_SCENARIO_ID, isValidScenarioId } from "@/lib/contract-scenarios";
 import { getDemoResult } from "@/lib/demo";
 import { getSessionFromRequest } from "@/lib/auth/session";
 import { resolveTierForRequest } from "@/lib/billing/entitlements";
@@ -32,6 +33,8 @@ export async function POST(req: NextRequest) {
 
     // 读取 locale（由前端 FormData 传入）
     const locale = (form.get("locale") as string) === "en" ? "en" : "zh";
+    const rawScenario = String(form.get("scenario") ?? DEFAULT_SCENARIO_ID);
+    const scenarioId = isValidScenarioId(rawScenario) ? rawScenario : DEFAULT_SCENARIO_ID;
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const mimeType = file.type || "application/octet-stream";
@@ -82,15 +85,24 @@ export async function POST(req: NextRequest) {
 
     const deep = tier === "pro" || tier === "pay_per_use";
     const maxChars = deep ? PRO_MAX_CHARS : FREE_MAX_CHARS;
-    const result = await analyzeContract(extracted.text, apiKey, {
+    const result = await analyzeContractFirstPass(extracted.text, apiKey, {
       deep,
       maxChars,
       locale,
+      scenarioId,
+    });
+
+    const contractText = extracted.text.slice(0, maxChars);
+    const refineNeeded = pipelineRefineNeeded(result, {
+      deep,
+      locale,
+      scenarioId: result.scenarioId ?? scenarioId,
     });
 
     return NextResponse.json({
       ...result,
-      contractText: extracted.text.slice(0, maxChars),
+      contractText,
+      refineNeeded,
     });
   } catch (err: any) {
     console.error("scan error:", err);

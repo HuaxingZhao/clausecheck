@@ -13,6 +13,10 @@ import {
 import type { ScanResult, SigningRecommendation, ContractChange } from "./types";
 import { buildRedlinedDocument, type RedlineSpan } from "./redline";
 import { toContractLines } from "./contract-format";
+import {
+  type ContractTemplateId,
+  getContractTemplate,
+} from "./contract-templates";
 
 export type ReportLocale = "zh" | "en";
 
@@ -884,6 +888,47 @@ class PdfWriter {
     }
   }
 
+  /** Original text with red highlight behind flagged passages — no strikethrough or replacements. */
+  drawHighlightParagraphs(
+    paragraphs: { text: string; kind: "normal" | "deleted" | "inserted" }[][],
+    size = 10
+  ) {
+    const highlightBg = rgb(1, 0.82, 0.82);
+
+    for (const para of paragraphs) {
+      if (!para.length) continue;
+      this.ensureSpace(size + this.lineGap + 4);
+      let x = this.margin;
+
+      for (const span of para) {
+        if (span.kind === "inserted") continue;
+
+        for (const ch of span.text) {
+          const cw = this.charWidth(ch, size);
+          if (x + cw > this.margin + this.contentW && x > this.margin) {
+            this.y -= size + this.lineGap;
+            this.ensureSpace(size + this.lineGap + 4);
+            x = this.margin;
+          }
+          const yPos = this.y;
+          if (span.kind === "deleted") {
+            this.page.drawRectangle({
+              x: x - 1,
+              y: yPos - 2,
+              width: cw + 2,
+              height: size + 3,
+              color: highlightBg,
+              opacity: 0.9,
+            });
+          }
+          this.drawLine(ch, x, yPos, size, COLORS.primary);
+          x += cw;
+        }
+      }
+      this.y -= size + this.lineGap * 2;
+    }
+  }
+
   drawFooters(labelFn: (n: number, total: number) => string) {
     const total = this.pages.length;
     const dateStr = new Date().toISOString().slice(0, 10);
@@ -1191,14 +1236,98 @@ export async function generateSuggestionsPdf(
   return pdf.save();
 }
 
+export type SuggestionReportItem = ContractChange & { accepted?: boolean };
+
+const REPORT_LABELS = {
+  zh: {
+    title: "带建议的修订报告",
+    contractSection: "合同原文（红色标注为建议修改处）",
+    suggestionsSection: "修订建议明细",
+    generated: "生成时间",
+    item: (n: number) => `建议 ${n}`,
+    original: "原文",
+    suggested: "建议修改为",
+    reason: "理由",
+    status: "您的选择",
+    accepted: "接受",
+    rejected: "不接受",
+    disclaimer: "AI 生成，仅供参考，不构成法律意见。请在签署前自行审阅。",
+    footer: (n: number, total: number) => `ClauseCheck · 第 ${n} / ${total} 页`,
+  },
+  en: {
+    title: "Report with Suggestions",
+    contractSection: "Original contract (red = suggested change areas)",
+    suggestionsSection: "Suggestion details",
+    generated: "Generated",
+    item: (n: number) => `Suggestion ${n}`,
+    original: "Original",
+    suggested: "Suggested change",
+    reason: "Rationale",
+    status: "Your choice",
+    accepted: "Accepted",
+    rejected: "Declined",
+    disclaimer: "AI-generated for reference only — not legal advice. Review before signing.",
+    footer: (n: number, total: number) => `ClauseCheck · Page ${n} of ${total}`,
+  },
+};
+
+/** Full report: original contract with red highlights + suggestion appendix with accept/decline status. */
+export async function generateSuggestionReportPdf(
+  originalText: string,
+  items: SuggestionReportItem[],
+  locale: ReportLocale = "zh"
+): Promise<Uint8Array> {
+  const L = REPORT_LABELS[locale];
+  const { paragraphs } = buildRedlinedDocument(originalText, items, { preserveLayout: true });
+
+  const pdf = await PDFDocument.create();
+  pdf.registerFontkit(fontkit);
+
+  const latin = await pdf.embedFont(StandardFonts.Helvetica);
+  const latinBold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const cjkBytes = await loadCjkFontBytes();
+  const cjk = await pdf.embedFont(cjkBytes);
+
+  const [width, height] = PageSizes.A4;
+  const margin = 52;
+  const contentW = width - margin * 2;
+
+  const w = new PdfWriter(pdf, latin, latinBold, cjk, width, height, margin, contentW, locale);
+
+  w.drawText("ClauseCheck", { size: 20, color: COLORS.accent, bold: true, gap: 2 });
+  w.drawText(L.title, { size: 14, bold: true, gap: 6 });
+  w.drawText(`${L.generated}: ${formatDate(locale)}`, { size: 9, color: COLORS.muted, gap: 14 });
+
+  w.drawSectionTitle(L.contractSection);
+  w.drawHighlightParagraphs(paragraphs as RedlineSpan[][], 10);
+  w.spacer(12);
+
+  w.drawSectionTitle(L.suggestionsSection);
+  items.forEach((c, i) => {
+    const status = c.accepted ? L.accepted : L.rejected;
+    w.drawSectionTitle(`${L.item(i + 1)} · ${status}${c.section ? ` · ${c.section}` : ""}`);
+    w.drawRedlinePair(L.original, c.original, L.suggested, c.revised);
+    if (c.reason) {
+      w.drawText(`${L.reason}: ${c.reason}`, { size: 8, color: COLORS.muted, gap: 8 });
+    }
+  });
+
+  w.drawText(L.disclaimer, { size: 8, color: COLORS.muted, gap: 5 });
+  w.drawFooters(L.footer);
+
+  return pdf.save();
+}
+
 /**
  * @deprecated Final-contract generation removed. Kept as a thin shim only so
  * older imports don't break; not used by the product.
  */
 export async function generateCleanContractPdf(
   finalText: string,
-  locale: ReportLocale = "zh"
+  locale: ReportLocale = "zh",
+  templateId: ContractTemplateId = "formal-zh"
 ): Promise<Uint8Array> {
+  const tpl = getContractTemplate(templateId);
   const lines = toContractLines(finalText);
 
   const pdf = await PDFDocument.create();
@@ -1210,21 +1339,28 @@ export async function generateCleanContractPdf(
   const cjk = await pdf.embedFont(cjkBytes);
 
   const [width, height] = PageSizes.A4;
-  const margin = 56;
-  const contentW = width - margin * 2;
+  const mmToPt = (mm: number) => mm * 2.834645669;
+  const marginLeft = mmToPt(tpl.marginsMm.left);
+  const marginTop = mmToPt(tpl.marginsMm.top);
+  const contentW = width - mmToPt(tpl.marginsMm.left + tpl.marginsMm.right);
 
-  const w = new PdfWriter(pdf, latin, latinBold, cjk, width, height, margin, contentW, locale);
-
-  w.spacer(8);
+  const bodyIndentPt = tpl.bodyFirstLineIndentMm * 2.834645669;
+  const w = new PdfWriter(pdf, latin, latinBold, cjk, width, height, marginLeft, contentW, locale);
+  w.spacer(Math.max(8, marginTop - marginLeft + 8));
   for (const line of lines) {
     if (line.kind === "title") {
-      w.drawCentered(line.text, { size: 16, bold: true, gap: 10 });
-      w.spacer(6);
+      w.drawCentered(line.text, { size: tpl.pdfTitleSize, bold: true, gap: 10 });
+      w.spacer(8);
     } else if (line.kind === "heading") {
-      w.spacer(4);
-      w.drawText(line.text, { size: 11.5, bold: true, gap: 6 });
+      w.spacer(6);
+      w.drawText(line.text, { size: tpl.pdfHeadingSize, bold: true, gap: 6 });
     } else {
-      w.drawText(line.text, { size: 10, gap: 5 });
+      w.drawText(line.text, {
+        size: tpl.pdfBodySize,
+        gap: tpl.pdfLineGap,
+        indent: bodyIndentPt > 0 ? bodyIndentPt : undefined,
+        maxWidth: bodyIndentPt > 0 ? contentW - bodyIndentPt : contentW,
+      });
     }
   }
 

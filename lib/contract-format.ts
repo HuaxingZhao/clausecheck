@@ -21,19 +21,38 @@ export function formatContractText(raw: string): string {
     new RegExp(`\\s*(第\\s*[${CN_NUM}\\d]+\\s*[条章节款項项])`, "g"),
     "\n\n$1"
   );
-
-  // 3) Break before decimal sub-clause numbering (1.1, 2.3, 10.2.1 …) when it
-  //    sits between content (a clause number), not inside an amount/percentage.
+  // 2b) Glued headers: …协议第一条 → …协议 + 第一条
   s = s.replace(
-    /([\u3000\s\u4e00-\u9fff。」』）)】，,；;：:])(\d{1,2}(?:\.\d{1,2}){1,2})(?=[\s\u3000\u4e00-\u9fff])/g,
+    new RegExp(`([\\u4e00-\\u9fff]{2,})(第\\s*[${CN_NUM}\\d]+\\s*[条章节款項项])`, "g"),
+    "$1\n\n$2"
+  );
+
+  // 2c) Party labels on their own line
+  s = s.replace(/([。；;]\s*|\n\s*)(甲方|乙方|丙方|丁方)/g, "$1\n$2");
+
+  // 3) Break before decimal sub-clause numbering (1.1, 2.3, 10.2.1 …)
+  s = s.replace(
+    /([\u3000\s\u4e00-\u9fffA-Za-z0-9。」』）)】，,；;：:])(\d{1,2}(?:\.\d{1,2}){1,2})(?=[\s\u3000\u4e00-\u9fffA-Za-z(（])/g,
     "$1\n$2"
   );
 
   // 4) Break before bare ordinal list items at sentence boundaries: "。3. " etc.
   s = s.replace(/([。；;])\s*(\d{1,2}[\.、])(?=\s*[\u4e00-\u9fff])/g, "$1\n$2");
 
-  // 5) English headings: "Section 3", "Article 5", "3.1 "
-  s = s.replace(/\s*(Section\s+\d+|Article\s+\d+|Clause\s+\d+)\b/gi, "\n\n$1");
+  // 5) English headings: "Section 3", "Article 5", "Clause 2.5", "PART I"
+  s = s.replace(/\s*(Section\s+\d+(?:\.\d+)*|Article\s+[IVXLC\d]+|Clause\s+\d+(?:\.\d+)*|PART\s+[IVXLC\d]+)\b/gi, "\n\n$1");
+  // 5b) English decimal clauses glued to prior text: "...Agreement2.5 Title"
+  s = s.replace(
+    /([a-zA-Z.)"\u201d\u2019])(\d{1,2}\.\d{1,2})(?=\s+[A-Z])/g,
+    "$1\n\n$2"
+  );
+  // 5c) English recitals
+  s = s.replace(/\s*(WHEREAS[,:]?|NOW[, ]+THEREFORE[, ]+|IN WITNESS WHEREOF[, ]*)/gi, "\n\n$1 ");
+  // 5d) Party labels
+  s = s.replace(/([.;])\s*(Party\s+[A-D]|Landlord|Tenant|Buyer|Seller|Licensor|Licensee)\b/gi, "$1\n\n$2");
+
+  // 6) Sentence breaks inside long unbroken runs (common after PDF extraction).
+  s = s.replace(/([。；;])\s*(?=[^\n\d])/g, "$1\n");
 
   // Collapse runs of blank lines and trailing spaces per line.
   s = s
@@ -55,8 +74,9 @@ export interface ContractLine {
 export function isHeadingLine(line: string): boolean {
   return (
     new RegExp(`^第\\s*[${CN_NUM}\\d]+\\s*[条章节]`).test(line) ||
-    /^(article|section|clause)\s+\d+/i.test(line) ||
-    /^(附件|附录|签署页|签字页)/.test(line)
+    /^(article|section|clause|part)\s+[\d.IVXLC]+/i.test(line) ||
+    /^\d{1,2}(?:\.\d{1,2}){1,2}\s+[A-Z]/.test(line) ||
+    /^(附件|附录|签署页|签字页|schedule|exhibit|appendix)/i.test(line)
   );
 }
 

@@ -4,7 +4,7 @@
 
 /* ================================================================
    ClauseCheck — 品牌全局样式
-   品牌色：paper=#faf9f6, ink=#1A1A1A, accent=#d4a574, border=#E5E0D8
+   专业法律风：legal navy + brass gold + warm cream
    ================================================================ */
 
 /* ---------- Base ---------- */
@@ -20,7 +20,7 @@
   }
 
   h1, h2, h3, h4 {
-    @apply font-sans font-semibold tracking-tight text-ink;
+    @apply font-display font-semibold tracking-tight text-legal-navy;
   }
 
   h1 { font-size: 2.75rem; line-height: 1.15; }
@@ -38,7 +38,12 @@
 
   /* ── Nav ── */
   .nav-inner {
-    @apply max-w-6xl mx-auto flex items-center justify-between py-4 px-6;
+    @apply page-content-wide flex items-center justify-between py-4;
+  }
+
+  /* ── Wide content (results + review) ── */
+  .page-content-wide {
+    @apply w-full max-w-[min(1760px,calc(100vw-2rem))] mx-auto px-4 sm:px-6 lg:px-8;
   }
 
   /* ── Buttons ── */
@@ -47,11 +52,11 @@
            transition-all duration-200 select-none;
   }
   .btn-primary {
-    @apply bg-ink text-white hover:bg-ink/85;
+    @apply bg-legal-navy text-white hover:bg-legal-navy-light shadow-sm;
   }
   .btn-outline {
-    @apply border border-border bg-transparent text-ink-light
-           hover:border-ink/30 hover:bg-paper-dark;
+    @apply border border-border bg-white text-ink
+           hover:border-legal-navy/30 hover:bg-legal-cream;
   }
   .btn-lg {
     @apply px-7 py-3.5 text-base;
@@ -76,8 +81,16 @@
 
   /* ── Section label ── */
   .section-label {
-    @apply text-xs font-sans font-semibold uppercase tracking-widest
-           text-accent-dark mb-3;
+    @apply inline-flex items-center gap-2 text-xs font-sans font-bold uppercase tracking-[0.2em]
+           text-legal-gold mb-3;
+  }
+  .section-label::before {
+    content: "";
+    @apply w-8 h-0.5 bg-legal-gold rounded-full;
+  }
+
+  .results-page-title {
+    @apply font-display text-3xl md:text-4xl font-bold text-legal-navy tracking-tight;
   }
 
   /* ── Steps ── */
@@ -96,7 +109,8 @@
     @apply grid grid-cols-1 lg:grid-cols-3 gap-6;
   }
   .result-card {
-    @apply bg-white rounded-2xl p-6 border border-border/50 shadow-sm;
+    @apply bg-white rounded-2xl p-6 border border-border/60 shadow-sm
+           hover:shadow-md transition-shadow;
   }
   .risk-score {
     @apply flex items-center gap-5;
@@ -169,7 +183,34 @@
     @apply block text-xs text-ink-muted font-sans mt-1 leading-relaxed;
   }
 
-  /* ── Time terms ── */
+  /* ── Time terms (compact strip inside flags card) ── */
+  .time-terms-compact {
+    @apply mb-5 pb-4 border-b border-border/40;
+  }
+  .time-terms-compact-title {
+    @apply text-xs font-sans font-bold uppercase tracking-wide text-legal-navy mb-2;
+  }
+  .time-terms-compact-list {
+    @apply flex flex-wrap gap-2;
+  }
+  .time-term-chip {
+    @apply inline-flex flex-wrap items-center gap-x-2 gap-y-1 px-3 py-2
+           rounded-lg border border-border/50 bg-legal-cream/40 text-sm max-w-full;
+  }
+  .time-term-chip-icon {
+    @apply text-base leading-none shrink-0;
+  }
+  .time-term-chip-type {
+    @apply text-xs font-sans font-semibold text-legal-navy shrink-0;
+  }
+  .time-term-chip-desc {
+    @apply text-xs font-sans text-ink leading-snug;
+  }
+  .time-term-chip-badge {
+    @apply mt-0 shrink-0;
+  }
+
+  /* legacy vertical time terms (unused in main flow) */
   .time-terms-grid {
     @apply space-y-3;
   }
@@ -277,7 +318,20 @@
     @apply mt-1 w-4 h-4 rounded border-border text-accent focus:ring-accent/30 flex-shrink-0;
   }
   .diff-block {
-    @apply rounded-xl border border-border/40 overflow-hidden;
+    @apply rounded-xl border border-border/40 overflow-hidden transition-opacity;
+  }
+  .diff-block-excluded {
+    @apply opacity-50;
+  }
+  .diff-block-excluded .diff-old,
+  .diff-block-excluded .diff-new {
+    @apply grayscale;
+  }
+  .diff-toggle-row {
+    @apply flex items-center justify-between gap-3 bg-paper-dark/60 px-4 py-2 border-b border-border/30;
+  }
+  .diff-section-inline {
+    @apply text-xs font-sans font-semibold text-ink-muted truncate;
   }
   .diff-section-label {
     @apply text-xs font-sans font-semibold text-ink bg-paper-dark/60 px-4 py-2 border-b border-border/30;
@@ -290,6 +344,9 @@
   }
   .diff-label {
     @apply block text-[0.65rem] font-semibold uppercase tracking-wide mb-1 opacity-70;
+  }
+  .diff-text {
+    @apply whitespace-pre-wrap break-words;
   }
   .revised-contract-box {
     @apply rounded-xl border border-border/50 overflow-hidden bg-paper-dark/30;
@@ -345,6 +402,710 @@
   }
   .link-accent {
     @apply text-accent-dark font-medium hover:underline;
+  }
+
+  /* ── Original contract preview (PDF iframe / DOCX HTML) ── */
+  .original-preview-box {
+    @apply rounded-xl border border-border/50 overflow-hidden bg-white;
+  }
+  .original-preview-frame {
+    @apply w-full border-0 bg-white;
+    height: min(72vh, 720px);
+  }
+  .original-preview-docx {
+    @apply max-h-[640px] overflow-y-auto px-6 py-5 text-sm leading-relaxed text-ink;
+  }
+  .original-preview-docx :where(p) {
+    @apply mb-3;
+  }
+  .preview-highlight-removed {
+    @apply text-red-800/90 line-through bg-red-50/80 px-0.5 rounded-sm;
+  }
+  .preview-highlight-added {
+    @apply text-green-900 bg-green-50/90 px-0.5 rounded-sm font-medium not-italic;
+  }
+  .preview-highlight-added-block {
+    @apply block text-green-900 bg-green-50/90 px-2 py-1.5 rounded my-1.5 font-medium text-sm
+           leading-relaxed whitespace-pre-wrap break-words border border-green-200/60;
+  }
+  .preview-highlight-applied {
+    @apply text-green-900 bg-green-50/90 px-0.5 rounded-sm font-medium not-italic;
+  }
+  .preview-highlight-target {
+    @apply text-ink bg-red-100/90 px-0.5 rounded-sm not-italic relative;
+  }
+  .preview-highlight-target--linked {
+    @apply cursor-pointer scroll-mt-24;
+  }
+  .preview-highlight-target--focused {
+    @apply ring-2 ring-accent bg-red-200/90;
+  }
+  .highlight-badge {
+    @apply inline-flex items-center justify-center min-w-[1.1rem] h-[1.1rem] px-0.5 mr-0.5
+           rounded-full bg-red-700 text-white text-[0.6rem] font-bold font-sans align-super leading-none;
+  }
+  .suggestion-pick-card--focused {
+    @apply ring-2 ring-accent/50 border-accent/40 shadow-md;
+    transform: translateY(-1px);
+  }
+  .suggestion-pick-card--applied-flash {
+    animation: suggestion-applied-flash 1.2s ease-out;
+  }
+  .suggestion-pick-card--error {
+    @apply ring-2 ring-red-400/60 border-red-300/50;
+  }
+  @keyframes suggestion-applied-flash {
+    0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.45); }
+    40% { box-shadow: 0 0 0 6px rgba(22, 163, 74, 0.15); }
+    100% { box-shadow: none; }
+  }
+  .suggestion-pick-number--focused {
+    @apply bg-accent text-white;
+  }
+  .editor-suggestion-mark {
+    @apply rounded-sm;
+    background: rgba(254, 202, 202, 0.55);
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+  .editor-suggestion-mark--focused {
+    background: rgba(252, 165, 165, 0.75);
+    outline: 2px solid rgba(234, 88, 12, 0.55);
+    outline-offset: 1px;
+    animation: editor-mark-pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes editor-mark-pulse {
+    0%, 100% { outline-color: rgba(234, 88, 12, 0.45); }
+    50% { outline-color: rgba(234, 88, 12, 0.85); }
+  }
+  .contract-editable-root {
+    @apply bg-[#e8e4dc] min-h-0;
+  }
+  .contract-editor-toolbar-shell {
+    @apply sticky top-0 z-20 bg-[#f3f3f3] border-b border-border/40 shadow-sm;
+  }
+  .contract-editor-status-bar {
+    @apply bg-white/90 border-b border-border/20 backdrop-blur-sm;
+  }
+  .contract-editor-canvas {
+    @apply p-4 sm:p-6;
+  }
+  .contract-editor-page-wrap {
+    @apply mx-auto max-w-[210mm];
+  }
+  .contract-document-page--word {
+    @apply shadow-lg ring-1 ring-black/5;
+  }
+  .contract-document-page--zh {
+    font-family: "SimSun", "Songti SC", "STSong", serif;
+    font-size: 10.5pt;
+  }
+  .contract-document-page--en {
+    font-family: "Times New Roman", Times, Calibri, Arial, serif;
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+  .contract-document-page--en :where(p) {
+    text-indent: 0;
+  }
+  .contract-applied-body {
+    @apply font-serif text-[15px] leading-[1.85] text-ink;
+  }
+  .contract-applied-paragraph {
+    @apply mb-3 whitespace-pre-wrap break-words text-justify;
+  }
+
+  /* A4 document page in the editor */
+  .contract-document-page {
+    @apply mx-auto bg-white shadow-md border border-border/30 text-ink;
+    max-width: 210mm;
+    min-height: 280mm;
+    padding: 25mm 28mm 28mm 30mm;
+    font-family: "SimSun", "Songti SC", "STSong", serif;
+    font-size: 10.5pt;
+    line-height: 1.85;
+  }
+  .contract-document-page--pdf {
+    @apply max-w-none min-h-0 p-0 shadow-none border-0 bg-transparent;
+  }
+  .contract-docx-body {
+    @apply max-h-none overflow-visible px-0 py-0 text-[10.5pt] leading-[1.85];
+    font-family: inherit;
+  }
+  .contract-docx-body :where(p) {
+    @apply mb-2 text-justify;
+    text-indent: 2em;
+  }
+  .contract-docx-body :where(p:first-child),
+  .contract-docx-body :where(h1 + p),
+  .contract-docx-body :where(h2 + p) {
+    text-indent: 0;
+  }
+  .contract-docx-body :where(h1) {
+    @apply text-center font-bold text-base mb-6 mt-0;
+    text-indent: 0;
+  }
+  .contract-docx-body :where(h2, h3) {
+    @apply font-bold text-[10.5pt] mt-4 mb-2;
+    text-indent: 0;
+  }
+  .contract-document-page--text .doc-line--title {
+    @apply text-center font-bold mb-6 mt-0;
+    text-indent: 0;
+  }
+  .contract-document-page--text .doc-line--heading {
+    @apply font-bold mt-4 mb-2;
+    text-indent: 0;
+  }
+  .contract-document-page--editable {
+    @apply p-0 min-h-0 shadow-md;
+    max-width: 210mm;
+    min-height: min(720px, 70vh);
+  }
+  .contract-document-page--rich {
+    @apply p-0 min-h-0;
+  }
+  .contract-rich-text-editor {
+    @apply w-full min-h-[min(720px,70vh)];
+  }
+  .contract-rich-text-editor--readonly {
+    @apply pointer-events-none;
+  }
+  .contract-rich-text-editor--readonly .ProseMirror {
+    @apply cursor-default;
+  }
+  /* Shared document surface — edit + preview use identical rules (WYSIWYG) */
+  .contract-document-surface,
+  .contract-rich-text-editor .ProseMirror.contract-document-surface {
+    @apply outline-none min-h-[min(680px,65vh)] text-ink w-full;
+    font-family: SimSun, "Songti SC", STSong, serif;
+    font-size: 12pt;
+    line-height: 1.75;
+    padding: 25mm 28mm 28mm 30mm;
+    word-break: break-word;
+  }
+  .contract-document-page--en .contract-document-surface,
+  .contract-document-page--en .contract-rich-text-editor .ProseMirror.contract-document-surface {
+    font-family: "Times New Roman", Times, Calibri, Arial, serif;
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+  .contract-document-page--en .contract-document-surface p,
+  .contract-document-page--en .contract-rich-text-content p {
+    text-indent: 0;
+  }
+  .contract-document-surface p,
+  .contract-rich-text-content p {
+    @apply mb-3;
+    text-align: justify;
+    text-indent: 2em;
+  }
+  .contract-document-surface p[style*="text-align: center"],
+  .contract-rich-text-content p[style*="text-align: center"],
+  .contract-document-surface p[style*="text-align:center"],
+  .contract-rich-text-content p[style*="text-align:center"],
+  .contract-document-surface h1,
+  .contract-document-surface h2,
+  .contract-document-surface h3,
+  .contract-rich-text-content h1,
+  .contract-rich-text-content h2,
+  .contract-rich-text-content h3 {
+    text-indent: 0;
+  }
+  .contract-document-surface p[style*="text-align: right"],
+  .contract-rich-text-content p[style*="text-align: right"],
+  .contract-document-surface p[style*="text-align:right"],
+  .contract-rich-text-content p[style*="text-align:right"] {
+    text-indent: 0;
+  }
+  .contract-document-surface h1,
+  .contract-rich-text-content h1 {
+    @apply text-xl font-bold text-center mb-6;
+  }
+  .contract-document-surface h2,
+  .contract-rich-text-content h2 {
+    @apply text-base font-bold mt-4 mb-2;
+  }
+  .contract-document-surface h3,
+  .contract-rich-text-content h3 {
+    @apply text-sm font-bold mt-3 mb-2;
+  }
+  .contract-document-surface ul,
+  .contract-document-surface ol,
+  .contract-rich-text-content ul,
+  .contract-rich-text-content ol {
+    @apply my-2 pl-8;
+    text-indent: 0;
+    text-align: left;
+  }
+  .contract-document-surface li,
+  .contract-rich-text-content li {
+    @apply mb-1;
+    text-indent: 0;
+  }
+  .contract-document-surface ul,
+  .contract-rich-text-content ul {
+    list-style-type: disc;
+  }
+  .contract-document-surface ol,
+  .contract-rich-text-content ol {
+    list-style-type: decimal;
+  }
+  .contract-document-surface mark,
+  .contract-rich-text-content mark {
+    border-radius: 2px;
+    padding: 0 1px;
+  }
+  .contract-document-surface sub,
+  .contract-document-surface sup,
+  .contract-rich-text-content sub,
+  .contract-rich-text-content sup {
+    font-size: 0.75em;
+  }
+  .rte-toolbar {
+    @apply flex flex-wrap items-center gap-1 px-3 py-2 border-b border-border/25 bg-paper/90 shrink-0;
+  }
+  .rte-toolbar-btn {
+    @apply inline-flex items-center justify-center min-w-[2rem] h-8 px-2 rounded-md
+           text-sm text-ink border border-transparent bg-transparent
+           hover:bg-paper-dark/60 disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+  .rte-toolbar-btn--active {
+    @apply bg-accent/15 border-accent/30 text-accent;
+  }
+  .rte-toolbar-divider {
+    @apply w-px h-6 bg-border/40 mx-1 shrink-0;
+  }
+  .rte-toolbar-select {
+    @apply h-8 rounded-md border border-border/40 bg-paper px-2 text-xs text-ink font-sans;
+    max-width: 9rem;
+  }
+  .rte-toolbar-select--narrow {
+    max-width: 4.5rem;
+  }
+  /* Word-style Home ribbon */
+  .word-ribbon {
+    @apply shrink-0 border-b border-border/30 bg-[#f3f2f1] font-sans;
+  }
+  .word-ribbon-row {
+    @apply flex flex-wrap items-center gap-0.5 px-2 py-1;
+  }
+  .word-ribbon-row + .word-ribbon-row {
+    @apply border-t border-border/20 pt-1 pb-1.5;
+  }
+  .word-ribbon-group {
+    @apply inline-flex items-center gap-0.5;
+  }
+  .word-ribbon-group--font {
+    @apply items-stretch;
+  }
+  .word-ribbon-sep {
+    @apply w-px self-stretch min-h-[1.75rem] bg-border/50 mx-1 shrink-0;
+  }
+  .word-ribbon-btn {
+    @apply inline-flex items-center justify-center w-7 h-7 rounded-sm
+           text-ink border border-transparent bg-transparent
+           hover:bg-black/5 active:bg-black/10
+           disabled:opacity-35 disabled:cursor-not-allowed transition-colors;
+  }
+  .word-ribbon-btn--wide {
+    @apply w-auto min-w-[1.75rem] px-1;
+  }
+  .word-ribbon-btn--active {
+    @apply bg-[#c7e0f4] border-[#0078d4]/25 text-[#0078d4];
+  }
+  .word-ribbon-icon {
+    @apply w-4 h-4 shrink-0;
+  }
+  .word-ribbon-char {
+    @apply text-[15px] leading-none text-ink select-none;
+    font-family: "Segoe UI", Calibri, Arial, sans-serif;
+  }
+  .word-ribbon-char--bold {
+    font-weight: 700;
+  }
+  .word-ribbon-char--italic {
+    font-style: italic;
+    font-weight: 600;
+  }
+  .word-ribbon-char--underline {
+    text-decoration: underline;
+    font-weight: 600;
+  }
+  .word-ribbon-font-select {
+    @apply h-7 min-w-[8.5rem] max-w-[10rem] rounded-sm border border-border/50 bg-white
+           px-2 text-[13px] text-ink;
+    font-family: inherit;
+  }
+  .word-ribbon-size-select {
+    @apply h-7 w-[3.25rem] rounded-sm border border-border/50 bg-white
+           px-1.5 text-[13px] text-ink text-center;
+    font-family: inherit;
+  }
+  .word-ribbon-style-select {
+    @apply h-7 min-w-[9rem] max-w-[11rem] rounded-sm border border-border/50 bg-white
+           px-2 text-[13px] text-ink font-medium;
+    font-family: inherit;
+  }
+  .word-ribbon-format-select {
+    @apply h-7 min-w-[9.5rem] max-w-[12rem] rounded-sm border border-border/50 bg-white
+           px-2 text-[13px] text-ink;
+    font-family: inherit;
+  }
+  .word-ribbon-group--styles {
+    @apply flex items-center gap-1;
+  }
+  .word-ribbon-case-wrap {
+    @apply relative inline-flex;
+  }
+  .word-ribbon-case-select {
+    @apply absolute inset-0 opacity-0 w-full h-full cursor-pointer;
+  }
+  .word-ribbon-color-wrap {
+    @apply relative inline-flex items-center;
+  }
+  .word-ribbon-color-wrap:hover .word-ribbon-color-swatches,
+  .word-ribbon-color-wrap:focus-within .word-ribbon-color-swatches {
+    @apply flex;
+  }
+  .word-ribbon-color-input {
+    @apply sr-only;
+  }
+  .word-ribbon-color-swatches {
+    @apply hidden absolute top-full left-0 z-20 mt-1 p-1 rounded-md border border-border/40
+           bg-white shadow-md gap-0.5;
+  }
+  .word-ribbon-swatch {
+    @apply w-4 h-4 rounded-sm border border-border/30 cursor-pointer hover:scale-110 transition-transform;
+  }
+  .word-ribbon-swatch--highlight {
+    @apply border-border/50;
+  }
+  .revise-editor-preview-pane .doc-editor-scroll {
+    @apply bg-paper-dark/40;
+  }
+  .original-preview-docx :where(h1, h2, h3) {
+    @apply font-bold text-ink mb-3;
+  }
+  .original-preview-docx :where(h1) {
+    @apply text-center text-lg;
+  }
+  .original-preview-docx :where(table) {
+    @apply w-full border-collapse text-sm my-3;
+  }
+  .original-preview-docx :where(td, th) {
+    @apply border border-border/40 px-2 py-1 align-top;
+  }
+
+  /* ── Full-screen contract revise editor ── */
+  .revise-editor-overlay {
+    @apply fixed inset-0 z-[9999] flex items-stretch justify-stretch p-0;
+    background: rgba(0, 0, 0, 0.65);
+  }
+  .revise-editor-overlay--fullscreen {
+    @apply p-0;
+  }
+  .revise-editor-window {
+    @apply bg-paper rounded-2xl border border-border/50 shadow-2xl flex flex-col w-full
+           max-w-[min(1400px,98vw)] h-[min(96vh,920px)] overflow-hidden;
+  }
+  .revise-editor-window--fullscreen {
+    @apply max-w-none w-full h-full rounded-none border-0 shadow-none;
+  }
+  .revise-editor-header {
+    @apply flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between
+           px-4 sm:px-6 py-4 border-b border-border/40 bg-white shrink-0;
+  }
+  .revise-editor-title {
+    @apply font-sans text-lg font-semibold text-ink mb-0.5;
+  }
+  .revise-editor-header-actions {
+    @apply flex flex-wrap items-center gap-2 shrink-0;
+  }
+  .revise-editor-unsaved {
+    @apply text-xs font-sans font-medium text-amber-800 bg-amber-50 px-2.5 py-1 rounded-full;
+  }
+  .revise-editor-saved-flash {
+    @apply text-xs font-sans font-medium text-green-800 bg-green-50 px-2.5 py-1 rounded-full;
+  }
+  .revise-editor-close {
+    @apply w-9 h-9 flex items-center justify-center rounded-lg text-2xl text-ink-muted
+           hover:bg-paper-dark hover:text-ink leading-none transition-colors;
+  }
+  .revise-editor-body {
+    @apply flex-1 min-h-0 grid grid-rows-1 lg:grid-cols-[minmax(0,1fr)_minmax(280px,32%)] lg:grid-rows-none gap-0 overflow-hidden;
+  }
+  .revise-editor-body--pro {
+    @apply bg-[#f0ece4];
+  }
+  .revise-editor-preview-pane {
+    @apply flex flex-col min-h-0 border-b lg:border-b-0 lg:border-r border-border/40 bg-[#e8e4dc] overflow-hidden;
+  }
+  .revise-editor-preview-pane--pro {
+    @apply bg-[#e8e4dc];
+  }
+  .revise-editor-edit-pane {
+    @apply flex flex-col min-h-0 bg-white overflow-hidden;
+  }
+  .revise-editor-edit-pane--pro {
+    @apply max-w-[420px] border-l border-border/30 shadow-[-4px_0_24px_rgba(0,0,0,0.04)];
+  }
+  .revise-editor-header--pro {
+    @apply bg-gradient-to-r from-white to-paper-dark/30;
+  }
+  .revise-editor-app-icon {
+    @apply w-10 h-10 rounded-xl bg-accent/10 text-accent flex items-center justify-center shrink-0;
+  }
+  .revise-editor-pane-label--pro {
+    @apply normal-case tracking-normal text-ink font-semibold text-sm bg-white/80;
+  }
+  .revise-editor-suggestions-hint {
+    @apply bg-paper-dark/40 border-b border-border/20;
+  }
+  .revise-editor-footer--pro {
+    @apply bg-white/95 backdrop-blur-sm;
+  }
+  .revise-editor-pane-tabs {
+    @apply inline-flex rounded-md border border-border/40 overflow-hidden;
+  }
+  .revise-editor-pane-tab {
+    @apply px-2.5 py-0.5 text-[11px] font-sans font-medium normal-case tracking-normal
+           text-ink-muted bg-white hover:bg-paper-dark/50 transition-colors
+           disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+  .revise-editor-pane-tab--active {
+    @apply bg-accent/15 text-accent;
+  }
+  .revise-editor-pane-tab + .revise-editor-pane-tab {
+    @apply border-l border-border/40;
+  }
+  .revise-editor-pane-label {
+    @apply text-xs font-sans font-semibold uppercase tracking-wide text-ink-muted
+           px-4 py-2.5 bg-paper-dark/50 border-b border-border/30 shrink-0;
+  }
+  .revise-editor-preview-pane .original-preview-box {
+    @apply flex-1 min-h-0 border-0 rounded-none;
+  }
+  .revise-editor-preview-pane .original-preview-frame {
+    height: 100%;
+    min-height: 240px;
+  }
+  .revise-editor-preview-stale {
+    @apply text-xs text-amber-800 bg-amber-50/90 px-4 py-2 font-sans border-t border-amber-200/60 shrink-0;
+  }
+  .revise-editor-changes-list {
+    @apply flex-1 min-h-0 overflow-y-auto p-2.5 space-y-2.5;
+  }
+  .diff-block-focused {
+    @apply ring-2 ring-accent/40 border-accent/30;
+  }
+  .revise-editor-footer {
+    @apply px-4 sm:px-6 py-3 border-t border-border/40 bg-white shrink-0;
+  }
+  .revise-editor-top-bar {
+    @apply rounded-xl border border-accent/30 bg-white shadow-sm overflow-hidden;
+  }
+  .revise-editor-top-bar-inner {
+    @apply flex flex-col sm:flex-row sm:items-center gap-4 p-4 sm:p-5 border-l-4 border-accent;
+  }
+  .suggestion-pick-card {
+    @apply rounded-xl border border-border/40 overflow-hidden bg-white transition-all;
+  }
+  .suggestion-pick-card--active {
+    @apply border-accent/40 ring-1 ring-accent/20 shadow-sm;
+  }
+  .suggestion-pick-header {
+    @apply w-full flex items-start gap-2 p-2.5 text-left hover:bg-paper-dark/40 transition-colors;
+  }
+  .suggestion-pick-check {
+    @apply w-5 h-5 shrink-0 rounded border-2 border-border flex items-center justify-center
+           text-xs font-bold text-white mt-0.5;
+  }
+  .suggestion-pick-check--on {
+    @apply bg-accent border-accent;
+  }
+  .suggestion-pick-number {
+    @apply w-6 h-6 shrink-0 flex items-center justify-center rounded-full
+           bg-paper-dark text-[10px] font-sans font-bold text-ink-muted;
+  }
+  .suggestion-stacked {
+    @apply flex flex-col gap-2;
+  }
+  .suggestion-stack-block {
+    @apply rounded-md p-2 border border-border/30 bg-white;
+  }
+  .suggestion-side-by-side {
+    @apply grid gap-3 sm:grid-cols-2;
+  }
+  .suggestion-side-col {
+    @apply rounded-lg p-3 border border-border/40 bg-white;
+  }
+  .suggestion-stack-block--plain {
+    @apply bg-white border-border/25;
+  }
+  .suggestion-diff-text {
+    @apply text-xs font-sans text-ink leading-relaxed mt-0.5;
+  }
+  .diff-added {
+    @apply bg-green-100 text-green-900 rounded-sm px-0.5;
+    text-decoration: none;
+  }
+  .diff-removed {
+    @apply text-ink-muted line-through decoration-ink-muted/50;
+  }
+  .suggestion-context-text--original {
+    @apply text-xs font-sans text-ink leading-relaxed mt-0.5;
+  }
+  .suggestion-context-text--suggested {
+    @apply text-xs font-sans text-ink leading-relaxed mt-0.5;
+  }
+  .suggestion-pick-actions {
+    @apply bg-paper-dark/20 px-2.5 py-2;
+  }
+  .word-tooltip-wrap {
+    @apply relative inline-flex;
+  }
+  .word-tooltip {
+    @apply pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+6px)]
+           z-50 whitespace-nowrap rounded px-2 py-1 text-[11px] font-sans text-white
+           bg-[#323130] shadow-lg opacity-0 invisible transition-opacity duration-150;
+  }
+  .word-tooltip-wrap:hover .word-tooltip,
+  .word-tooltip-wrap:focus-within .word-tooltip {
+    @apply opacity-100 visible;
+  }
+  .word-tooltip::after {
+    content: "";
+    @apply absolute left-1/2 -translate-x-1/2 top-full border-4 border-transparent;
+    border-top-color: #323130;
+  }
+  .word-ribbon-format-label {
+    @apply text-[11px] font-sans font-medium px-0.5 whitespace-nowrap;
+  }
+  .suggestion-pick-edit {
+    @apply bg-paper-dark/20;
+  }
+  .suggestion-context {
+    @apply rounded-lg px-3 py-2 text-sm font-sans leading-relaxed;
+  }
+  .suggestion-context-label {
+    @apply block text-[0.65rem] font-semibold uppercase tracking-wide mb-1;
+  }
+  .suggestion-context--original {
+    @apply bg-red-50/90 text-red-900/90 border border-red-200/60;
+  }
+  .suggestion-context--original .suggestion-context-label {
+    @apply text-red-800/80;
+  }
+  .suggestion-context--suggested {
+    @apply bg-green-50/90 text-green-900 border border-green-200/60;
+  }
+  .suggestion-context--suggested .suggestion-context-label {
+    @apply text-green-800/80;
+  }
+  .suggestion-context-text {
+    @apply block whitespace-pre-wrap break-words;
+  }
+
+  /* ── Word-style contract document editor ── */
+  .doc-editor-scroll {
+    @apply flex-1 min-h-0 overflow-y-auto bg-paper-dark/30 p-4;
+  }
+  .doc-editor-page {
+    @apply max-w-[820px] mx-auto bg-white shadow-md border border-border/40 min-h-full;
+  }
+  .doc-editor-toolbar {
+    @apply flex flex-wrap items-center justify-between gap-2 px-5 py-2 border-b border-border/30
+           bg-paper-dark/40 text-xs font-sans;
+  }
+  .doc-editor-applied-badge {
+    @apply text-green-800 bg-green-50 px-2 py-0.5 rounded-full font-medium;
+  }
+  .doc-editor-body {
+    @apply px-10 py-10 text-[15px] leading-[1.85] text-ink font-serif;
+  }
+  .doc-para {
+    @apply mb-3 text-justify last:mb-0;
+  }
+  .doc-replaced {
+    @apply bg-green-50 text-green-900 px-0.5 rounded-sm;
+  }
+  .doc-line--title {
+    @apply text-center font-bold mb-6;
+  }
+  .doc-line--heading {
+    @apply font-semibold mt-5 mb-2;
+  }
+  .doc-line--body {
+    @apply mb-3 text-justify;
+  }
+  .contract-template--formal-zh .doc-editor-body {
+    font-family: "SimSun", "Songti SC", serif;
+  }
+  .contract-template--standard-zh .doc-editor-body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+  }
+  .contract-template--standard-en .doc-editor-body {
+    font-family: Calibri, "Helvetica Neue", Arial, sans-serif;
+  }
+  .contract-template--formal-zh .doc-line--title {
+    @apply text-lg;
+  }
+  .contract-template--formal-zh .doc-line--body {
+    @apply text-[15px] leading-[1.9] indent-[2em];
+  }
+
+  .template-picker {
+    @apply bg-paper-dark/15 shrink-0;
+  }
+  .template-option {
+    @apply flex items-start gap-3 p-3 rounded-xl border border-border/40 bg-white
+           cursor-pointer hover:border-accent/30 transition-colors;
+  }
+  .template-option--active {
+    @apply border-accent/50 ring-1 ring-accent/20 bg-orange-50/30;
+  }
+  .template-chip {
+    @apply inline-flex items-center px-3 py-1.5 rounded-full text-xs font-sans font-medium
+           border border-border/50 bg-white text-ink-muted cursor-pointer
+           hover:border-accent/40 transition-colors;
+  }
+  .template-chip--active {
+    @apply border-accent/60 bg-orange-50/80 text-ink font-semibold ring-1 ring-accent/20;
+  }
+
+  .editor-ready-banner {
+    @apply flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4
+           rounded-2xl border border-accent/30 bg-gradient-to-br from-orange-50/90 to-amber-50/60 p-5;
+  }
+
+  /* ── Side-by-side original contract + edit panel (legacy) ── */
+  .revise-preview-layout {
+    @apply grid gap-6 mb-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-start;
+  }
+  .revise-preview-pane {
+    @apply min-h-[420px] lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)];
+  }
+  .revise-edit-pane {
+    @apply min-w-0;
+  }
+
+  /* ── Confirm changes callout (Step 2 → unlock modified areas) ── */
+  .confirm-changes-banner {
+    @apply mt-6 rounded-2xl border-2 border-accent/50 bg-gradient-to-br from-orange-50 to-amber-50/90
+           p-5 shadow-sm ring-1 ring-accent/15;
+  }
+  .confirm-changes-banner--done {
+    @apply border-green-400/60 bg-gradient-to-br from-green-50 to-emerald-50/90 ring-green-200/40;
+  }
+  .confirm-changes-title {
+    @apply text-base;
+  }
+  .confirm-changes-banner--done .confirm-changes-title {
+    @apply text-green-900;
+  }
+  .confirm-changes-done-btn {
+    @apply border border-green-300 bg-white text-green-800 hover:bg-green-50;
   }
 
   /* ── Pricing ── */
@@ -628,8 +1389,198 @@ footer {
 .score-pill.medium { @apply bg-amber-50 text-amber-800; }
 .score-pill.low { @apply bg-green-50 text-green-700; }
 
-.report-empty {
-  @apply bg-paper-dark rounded-2xl p-10 text-center border border-border/40;
+.report-delivery-section .btn-outline {
+  @apply text-ink border-border/80;
+}
+.report-delivery-section input.auth-input {
+  @apply text-ink placeholder:text-ink/45;
+}
+
+/* ── Contract review (read-only split view) ── */
+.contract-review-section {
+  @apply mt-10;
+}
+.contract-review-hero {
+  @apply flex flex-col lg:flex-row lg:items-stretch gap-6 mb-6
+         rounded-2xl border border-legal-navy/20 overflow-hidden
+         bg-gradient-to-br from-white via-legal-cream/40 to-amber-50/30
+         shadow-md;
+}
+.contract-review-hero-inner {
+  @apply flex-1 px-6 py-6 sm:px-8 sm:py-8 border-l-4 border-legal-gold;
+}
+.contract-review-hero-badge {
+  @apply inline-flex items-center text-[11px] font-sans font-bold uppercase tracking-[0.18em]
+         text-legal-navy bg-legal-navy/10 px-3 py-1 rounded-full mb-4;
+}
+.contract-review-hero-title {
+  @apply font-display text-3xl sm:text-4xl lg:text-[2.75rem] font-bold
+         text-legal-navy leading-tight tracking-tight mb-3;
+}
+.contract-review-hero-purpose {
+  @apply text-base sm:text-lg text-ink font-sans font-medium leading-relaxed mb-2;
+}
+.contract-review-hero-meta {
+  @apply text-sm text-ink-light font-sans leading-relaxed;
+}
+.contract-review-hero-stat {
+  @apply flex flex-col items-center justify-center shrink-0
+         px-8 py-6 lg:px-10 bg-legal-navy text-white;
+}
+.contract-review-hero-stat-num {
+  @apply text-4xl sm:text-5xl font-display font-bold leading-none;
+}
+.contract-review-hero-stat-label {
+  @apply text-xs font-sans font-semibold uppercase tracking-widest text-white/75 mt-2;
+}
+.contract-review-pipeline-dot {
+  @apply w-6 h-6 shrink-0 flex items-center justify-center rounded-full
+         text-[10px] font-bold bg-legal-navy text-white;
+}
+.contract-review-pipeline-dot--done {
+  @apply bg-legal-navy;
+}
+.contract-review-shell {
+  @apply grid grid-cols-1 grid-rows-2 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.95fr)] lg:grid-rows-1
+         h-[min(82vh,860px)] max-h-[82vh] rounded-2xl border border-legal-navy/20
+         bg-white shadow-lg overflow-hidden;
+}
+.contract-review-pane {
+  @apply flex flex-col min-h-0 h-full min-w-0 overflow-hidden;
+}
+.contract-review-pane--original {
+  @apply lg:border-r border-border/30;
+}
+.contract-review-pane-header {
+  @apply shrink-0 px-4 py-3 border-b border-border/30 bg-legal-cream/50;
+}
+.contract-review-pane-title {
+  @apply text-sm font-sans font-bold text-legal-navy;
+}
+.contract-review-pane-hint {
+  @apply text-xs text-ink font-sans leading-snug mt-0.5;
+}
+.contract-review-pane-body {
+  @apply flex-1 min-h-0 p-3 sm:p-4;
+}
+.contract-review-pane-scroll {
+  @apply flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 bg-paper-dark/20;
+  overscroll-behavior-y: auto;
+}
+.contract-readonly-mark {
+  @apply scroll-mt-24 rounded-sm transition-colors cursor-pointer;
+}
+.contract-readonly-mark--idle {
+  @apply bg-red-100/70 text-ink hover:bg-red-200/80;
+}
+.contract-readonly-mark--focused {
+  @apply ring-2 ring-accent bg-red-200/95;
+}
+.contract-readonly-pin-row {
+  @apply inline-flex flex-wrap items-center gap-0.5 mr-1 align-super;
+}
+.contract-readonly-pin {
+  @apply inline-flex items-center justify-center min-w-[1.1rem] h-[1.1rem] px-1
+         rounded-full bg-red-600 text-white text-[0.6rem] font-bold font-sans
+         leading-none cursor-pointer border-0 hover:bg-red-800 transition-colors;
+}
+.contract-readonly-pin--focused {
+  @apply bg-accent ring-2 ring-white scale-110;
+}
+.contract-document-page--readonly {
+  @apply min-h-0 shadow-none border-0 max-w-none p-0;
+}
+.contract-readonly-body {
+  @apply whitespace-pre-wrap break-words text-[10.5pt] leading-[1.85] text-ink p-6 sm:p-8;
+  font-family: SimSun, "Songti SC", STSong, serif;
+  text-align: justify;
+}
+.contract-document-page--en .contract-readonly-body {
+  font-family: "Times New Roman", Times, Calibri, serif;
+  font-size: 11pt;
+  line-height: 1.55;
+  text-align: left;
+}
+.contract-review-suggestions-list {
+  @apply flex-1 min-h-0 overflow-y-auto p-2 sm:p-3 space-y-2;
+  overscroll-behavior-y: auto;
+}
+.review-suggestions-group-title {
+  @apply text-xs font-sans font-semibold text-ink px-1 mb-0.5;
+}
+.review-suggestions-group-hint {
+  @apply text-[11px] text-ink-muted font-sans px-1 mb-2 leading-snug;
+}
+.review-suggestion-card--missing {
+  @apply border-blue-200/70 bg-blue-50/25;
+}
+.review-suggestion-number--missing {
+  @apply bg-blue-600 text-white;
+}
+.review-suggestion-card--focused {
+  @apply border-accent/50 ring-2 ring-accent/20 shadow-md;
+}
+.review-suggestion-card--unlocated {
+  @apply border-amber-200/80 bg-amber-50/30;
+}
+.review-suggestion-card--section {
+  @apply border-amber-100/60;
+}
+.review-suggestion-number--unlocated {
+  @apply bg-amber-500/90 text-white;
+}
+.review-navigator {
+  @apply flex flex-wrap items-center justify-center gap-3 sm:gap-4
+         rounded-xl border border-legal-navy/15 bg-paper-dark/40
+         px-4 py-2.5 font-sans text-sm;
+}
+.review-navigator-btn {
+  @apply px-3 py-1.5 rounded-lg border border-legal-navy/20 bg-white
+         text-ink font-medium hover:bg-legal-cream hover:border-accent/40
+         transition-colors;
+}
+.review-navigator-counter {
+  @apply text-ink-muted font-semibold tabular-nums min-w-[7rem] text-center;
+}
+.review-suggestion-card-header {
+  @apply flex items-start gap-2.5 p-3 hover:bg-paper-dark/30 transition-colors cursor-pointer;
+}
+.review-suggestion-number {
+  @apply w-7 h-7 shrink-0 flex items-center justify-center rounded-full
+         bg-paper-dark text-xs font-sans font-bold text-ink-muted;
+}
+.review-suggestion-number--focused {
+  @apply bg-accent text-white;
+}
+.review-suggestion-kind {
+  @apply text-[10px] font-sans font-semibold uppercase tracking-wide text-ink-muted;
+}
+.review-suggestion-title {
+  @apply leading-snug;
+}
+.review-level-badge {
+  @apply text-[10px] font-sans font-semibold px-1.5 py-0.5 rounded;
+}
+.review-level-badge--high {
+  @apply bg-red-100 text-red-800;
+}
+.review-level-badge--medium {
+  @apply bg-amber-100 text-amber-900;
+}
+.review-level-badge--low {
+  @apply bg-green-100 text-green-800;
+}
+.review-missing-block {
+  @apply rounded-md bg-green-50/80 border border-green-200/50 p-2.5;
+}
+.review-card--high {
+  @apply border-l-4 border-l-red-400;
+}
+.review-card--medium {
+  @apply border-l-4 border-l-amber-400;
+}
+.review-card--low {
+  @apply border-l-4 border-l-green-400;
 }
 
 .upgrade-banner {
@@ -646,4 +1597,471 @@ footer {
 
 .email-report-form {
   @apply max-w-lg mx-auto;
+}
+
+.analysis-quality-banner {
+  @apply rounded-xl border border-border/50 bg-white/80 p-4 mb-6;
+}
+.confidence-badge {
+  @apply text-[10px] font-sans font-semibold px-1.5 py-0.5 rounded;
+}
+.confidence-badge--high {
+  @apply bg-green-100 text-green-800;
+}
+.confidence-badge--medium {
+  @apply bg-amber-100 text-amber-900;
+}
+.confidence-badge--low {
+  @apply bg-orange-100 text-orange-900;
+}
+
+/* Scenario picker — compact chips */
+.scenario-picker {
+  @apply mb-2;
+}
+.scenario-picker-header {
+  @apply mb-3;
+}
+.scenario-picker-title {
+  @apply text-sm font-sans font-semibold text-ink;
+}
+.scenario-picker-subtitle {
+  @apply text-xs text-ink-muted font-sans mt-0.5;
+}
+.scenario-chips {
+  @apply flex flex-wrap gap-2;
+}
+.scenario-chips--more {
+  @apply mt-2 pt-2 border-t border-border/30;
+}
+.scenario-chip {
+  @apply inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border/60
+         bg-white hover:border-accent/40 transition-colors cursor-pointer text-left;
+}
+.scenario-chip--selected {
+  @apply border-accent bg-amber-50/50 ring-1 ring-accent/25;
+}
+.scenario-chip:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+.scenario-chip-icon {
+  @apply text-base leading-none;
+}
+.scenario-chip-name {
+  @apply text-sm font-sans font-medium text-ink whitespace-nowrap;
+}
+.scenario-more-toggle {
+  @apply mt-2.5 text-xs font-sans text-ink-muted hover:text-accent transition-colors;
+}
+.scenario-selected-note {
+  @apply text-xs text-accent/90 font-sans mt-2;
+}
+.scenario-result-badge {
+  @apply inline-flex items-center gap-1 text-xs font-sans font-semibold
+         bg-accent/10 text-[#8B3A0E] px-2.5 py-1 rounded-full shrink-0;
+}
+
+/* Decision summary */
+.decision-summary {
+  @apply rounded-2xl border border-legal-navy/20 bg-white p-5 sm:p-6 shadow-md;
+}
+.decision-summary-header {
+  @apply flex flex-wrap items-start justify-between gap-3 mb-4;
+}
+.decision-summary-header h3 {
+  @apply font-display text-xl sm:text-2xl font-bold text-legal-navy;
+}
+.report-delivery-section {
+  @apply border-l-4 border-legal-gold;
+}
+.decision-verdict {
+  @apply rounded-xl p-4 border;
+}
+.decision-verdict--sign {
+  @apply bg-green-50/80 border-green-200/70;
+}
+.decision-verdict--sign_with_changes {
+  @apply bg-amber-50/80 border-amber-200/70;
+}
+.decision-verdict--do_not_sign {
+  @apply bg-red-50/80 border-red-200/70;
+}
+.decision-verdict-label {
+  @apply text-xs font-sans font-semibold uppercase tracking-wide text-ink-muted block mb-1;
+}
+.decision-verdict-value {
+  @apply text-lg font-serif font-semibold text-ink;
+}
+.decision-verdict-rationale {
+  @apply text-sm text-ink-light mt-2 leading-relaxed;
+}
+.decision-mustfix-list {
+  @apply space-y-2.5 list-none p-0 m-0;
+}
+.decision-mustfix-item {
+  @apply flex items-start gap-2.5;
+}
+.decision-mustfix-num {
+  @apply w-6 h-6 shrink-0 flex items-center justify-center rounded-full
+         bg-red-100 text-red-800 text-xs font-sans font-bold;
+}
+
+/* Review accept + export */
+.review-back-btn {
+  @apply bg-legal-cream border border-legal-navy/25 text-legal-navy font-semibold
+         hover:bg-white hover:border-legal-navy/40 shadow-sm;
+}
+.review-actions-bar {
+  @apply flex flex-col gap-3 rounded-xl border border-border/60 bg-white p-4 shadow-sm;
+}
+.review-actions-top {
+  @apply flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3;
+}
+.review-actions-buttons {
+  @apply flex flex-wrap gap-2;
+}
+.review-actions-bar .btn-outline {
+  @apply text-ink border-border/80 hover:border-ink/40;
+}
+.review-accept-levels {
+  @apply inline-flex flex-wrap items-center gap-2 px-2 py-1.5 rounded-lg
+         border border-border/60 bg-legal-cream/30;
+}
+.review-accept-levels-label {
+  @apply text-xs font-sans font-semibold text-ink shrink-0;
+}
+.review-accept-level-chip {
+  @apply inline-flex items-center gap-1 text-xs font-sans cursor-pointer select-none;
+}
+.review-accept-level-chip input {
+  @apply rounded border-border text-legal-navy focus:ring-legal-navy/30;
+}
+.review-accept-level-count {
+  @apply text-ink-muted;
+}
+.review-export-notes {
+  @apply space-y-1.5 pt-3 border-t border-border/50;
+}
+.review-export-note {
+  @apply text-sm font-sans text-ink leading-relaxed;
+}
+.review-export-note--muted {
+  @apply text-ink/80;
+}
+.review-accept-row {
+  @apply flex items-center gap-2 px-3 pb-3 pt-0 text-xs font-sans text-ink-light cursor-pointer;
+}
+.review-export-note--warn {
+  @apply text-amber-800;
+}
+
+/* Results expandable sections */
+.results-expandable {
+  @apply rounded-xl border border-border/50 bg-white overflow-hidden;
+}
+.results-expandable--warning {
+  @apply border-red-200/80;
+}
+.results-expandable-header {
+  @apply w-full flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 text-left
+         hover:bg-paper-dark/50 transition-colors;
+}
+.results-expandable-title {
+  @apply text-sm font-sans font-semibold text-ink shrink-0;
+}
+.results-expandable-count {
+  @apply text-xs font-sans font-semibold text-ink-muted bg-paper-dark
+         px-2 py-0.5 rounded-full shrink-0;
+}
+.results-expandable-preview {
+  @apply flex-1 min-w-0 text-xs font-sans text-ink/70 truncate;
+}
+.results-expandable-chevron {
+  @apply ml-auto text-ink-muted text-sm shrink-0;
+}
+.results-expandable-body {
+  @apply px-4 pb-4 pt-1 border-t border-border/30;
+}
+
+/* Results insights — consolidated at-a-glance panel */
+.results-insights {
+  @apply rounded-2xl border border-legal-navy/15 bg-white shadow-sm overflow-hidden;
+}
+.results-insights-heading {
+  @apply font-display text-lg font-bold text-legal-navy px-5 pt-5 pb-0;
+}
+.results-insights-sub {
+  @apply text-xs text-ink-muted font-sans px-5 pb-4 leading-relaxed;
+}
+.results-insights-body {
+  @apply px-5 pb-4 space-y-4;
+}
+.results-insights-block {
+  @apply rounded-xl border border-border/40 bg-legal-cream/25 p-4;
+}
+.results-insights-block--warn {
+  @apply border-red-200/70 bg-red-50/50;
+}
+.results-insights-block--muted {
+  @apply bg-green-50/30 border-green-200/40;
+}
+.results-insights-label {
+  @apply text-xs font-sans font-bold uppercase tracking-wide text-ink-muted mb-2;
+}
+.results-insights-worst {
+  @apply text-sm font-sans font-medium text-red-900 leading-relaxed;
+}
+.results-insights-nego {
+  @apply space-y-3 list-none p-0 m-0;
+}
+.results-insights-nego-item {
+  @apply flex items-start gap-3;
+}
+.results-insights-nego-rank {
+  @apply w-7 h-7 shrink-0 flex items-center justify-center rounded-full
+         bg-legal-navy text-white text-xs font-sans font-bold;
+}
+.results-insights-nego-clause {
+  @apply text-sm font-sans font-semibold text-ink leading-snug;
+}
+.results-insights-nego-suggest {
+  @apply text-xs text-accent-dark font-sans mt-1 leading-relaxed;
+}
+.results-insights-more-hint {
+  @apply text-xs text-ink-muted font-sans mt-2 pl-10;
+}
+.results-insights-chips {
+  @apply flex flex-wrap gap-2;
+}
+.results-insights-chip {
+  @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-sans font-semibold;
+}
+.results-insights-chip--missing {
+  @apply bg-blue-100/80 text-blue-900 border border-blue-200/60;
+}
+.results-insights-actions {
+  @apply space-y-1.5 list-none p-0 m-0 text-sm font-sans text-ink leading-relaxed;
+}
+.results-insights-actions li::before {
+  content: "→ ";
+  @apply text-accent font-semibold;
+}
+.results-insights-strengths {
+  @apply space-y-1 list-none p-0 m-0 text-xs font-sans text-green-900 leading-relaxed;
+}
+.results-insights-details {
+  @apply space-y-4 pt-2 border-t border-border/30;
+}
+.results-insights-toggle {
+  @apply w-full mt-2 py-2.5 text-sm font-sans font-semibold text-legal-navy
+         border border-dashed border-legal-navy/25 rounded-xl
+         hover:bg-legal-cream/50 transition-colors;
+}
+
+.results-compact-list {
+  @apply space-y-1.5 list-none p-0 m-0;
+}
+.negotiations-list--compact .nego-item--compact {
+  @apply py-2.5;
+}
+.negotiations-list--compact .nego-item--compact + .nego-item--compact {
+  @apply border-t border-border/25;
+}
+.missing-clause-item--compact {
+  @apply py-2.5;
+}
+.missing-clause-item--compact + .missing-clause-item--compact {
+  @apply border-t border-border/25 mt-0 pt-2.5;
+}
+.action-list--compact li {
+  @apply text-sm leading-snug;
+}
+.review-accept-row input {
+  @apply rounded border-border text-accent focus:ring-accent;
+}
+
+/* ── Report layout v3: hero → action → flags → supplementary ── */
+.report-hero {
+  @apply rounded-2xl border border-legal-navy/20 bg-white shadow-md overflow-hidden;
+}
+.report-hero-top {
+  @apply flex flex-col lg:flex-row lg:items-stretch gap-6 p-5 sm:p-6;
+}
+.report-hero-verdict-col {
+  @apply flex-1 min-w-0;
+}
+.report-hero-verdict {
+  @apply rounded-xl p-4 border mb-3;
+}
+.report-hero-verdict--sign {
+  @apply bg-green-50/80 border-green-200/70;
+}
+.report-hero-verdict--sign_with_changes {
+  @apply bg-amber-50/80 border-amber-200/70;
+}
+.report-hero-verdict--do_not_sign {
+  @apply bg-red-50/80 border-red-200/70;
+}
+.report-hero-verdict-label {
+  @apply text-xs font-sans font-semibold uppercase tracking-wide text-ink-muted block mb-1;
+}
+.report-hero-verdict-value {
+  @apply text-2xl sm:text-3xl font-display font-bold text-legal-navy leading-tight;
+}
+.report-hero-summary {
+  @apply text-sm font-sans text-ink leading-relaxed mb-4;
+}
+.report-hero-meta {
+  @apply flex flex-wrap gap-2 mb-3;
+}
+.report-hero-meta-chip {
+  @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-sans font-semibold
+         bg-legal-cream/80 text-ink border border-border/40;
+}
+.report-hero-meta-chip--scenario {
+  @apply bg-accent/10 text-[#8B3A0E] border-accent/20;
+}
+.report-hero-quality {
+  @apply text-xs font-sans text-ink-muted leading-relaxed;
+}
+.report-hero-quality-warn {
+  @apply text-amber-800;
+}
+.report-hero-score-col {
+  @apply flex flex-col items-center justify-center shrink-0 lg:w-44
+         lg:border-l lg:border-border/30 lg:pl-6;
+}
+.risk-ring--hero {
+  @apply w-20 h-20 sm:w-24 sm:h-24 text-2xl sm:text-3xl;
+}
+.report-hero-score-label {
+  @apply text-xs font-sans font-semibold text-ink-muted mt-2 text-center;
+}
+.report-hero-dim-mini {
+  @apply w-full mt-4 space-y-1.5;
+}
+.report-hero-dim-mini-item {
+  @apply flex items-center gap-2 text-[10px] font-sans;
+}
+.report-hero-dim-mini-label {
+  @apply w-8 shrink-0 text-ink-muted font-semibold;
+}
+.report-hero-dim-mini-bar {
+  @apply flex-1 h-1.5 rounded-full bg-paper-dark overflow-hidden;
+}
+.report-hero-dim-mini-fill {
+  @apply h-full rounded-full bg-legal-navy/70;
+}
+.report-hero-dim-mini-val {
+  @apply w-6 text-right text-ink-muted tabular-nums;
+}
+.report-hero-actions {
+  @apply flex flex-col gap-2 px-5 sm:px-6 py-4
+         border-t border-border/30 bg-legal-cream/30;
+}
+.report-hero-actions-buttons {
+  @apply flex flex-col sm:flex-row flex-wrap gap-3;
+}
+.report-hero-actions-hint {
+  @apply text-xs text-ink-muted font-sans;
+}
+
+.report-action-plan {
+  @apply rounded-2xl border border-legal-navy/15 bg-white p-5 sm:p-6 shadow-sm;
+}
+.report-action-plan-title {
+  @apply font-display text-lg font-bold text-legal-navy mb-0.5;
+}
+.report-action-plan-sub {
+  @apply text-xs text-ink-muted font-sans mb-4;
+}
+.report-action-plan-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-3;
+}
+.report-action-plan-card {
+  @apply rounded-xl border border-border/40 bg-legal-cream/20 p-4;
+}
+.report-action-plan-card--warn {
+  @apply md:col-span-2 border-red-200/60 bg-red-50/40;
+}
+.report-action-plan-label {
+  @apply text-xs font-sans font-bold uppercase tracking-wide text-ink-muted mb-2;
+}
+.report-action-plan-text {
+  @apply text-sm font-sans font-medium text-red-900 leading-relaxed;
+}
+.report-action-plan-nego {
+  @apply space-y-2 list-none p-0 m-0;
+}
+.report-action-plan-nego li {
+  @apply flex items-start gap-2 text-sm font-sans text-ink;
+}
+.report-action-plan-nego-rank {
+  @apply w-6 h-6 shrink-0 flex items-center justify-center rounded-full
+         bg-legal-navy text-white text-xs font-bold;
+}
+.report-action-plan-nego-text {
+  @apply leading-snug pt-0.5;
+}
+
+.report-flags-panel {
+  @apply p-5 sm:p-6;
+}
+.report-flags-title {
+  @apply font-display text-lg font-bold text-legal-navy;
+}
+.report-flags-hint {
+  @apply text-xs text-ink-muted font-sans mb-4 -mt-1;
+}
+.flag-item--panel {
+  @apply border border-border/30 rounded-lg mb-2 overflow-hidden;
+}
+.flag-item-row {
+  @apply flex items-start gap-2 w-full p-3 text-left hover:bg-paper-dark/30
+         transition-colors disabled:cursor-default;
+}
+.flag-expand-icon {
+  @apply text-ink-muted text-sm shrink-0 pt-1;
+}
+.flag-item-detail {
+  @apply px-3 pb-3 pt-0 border-t border-border/20 bg-paper-dark/20 space-y-1.5;
+}
+.report-flags-low-toggle {
+  @apply w-full py-2 mt-1 text-sm font-sans font-semibold text-ink-muted
+         border border-dashed border-border/50 rounded-lg hover:bg-paper-dark/30;
+}
+.report-time-rest-summary {
+  @apply text-xs font-sans font-semibold text-ink-muted cursor-pointer;
+}
+.report-supplementary {
+  @apply rounded-xl border border-border/40 bg-white/60 overflow-hidden;
+}
+.report-supplementary-toggle {
+  @apply w-full px-4 py-3 text-sm font-sans font-semibold text-ink-muted
+         hover:bg-paper-dark/40 transition-colors text-left;
+}
+.report-supplementary-body {
+  @apply px-4 pb-4 pt-1 space-y-4 border-t border-border/30;
+}
+.report-supplementary-label {
+  @apply text-xs font-sans font-bold uppercase tracking-wide text-ink-muted mb-2;
+}
+
+.results-refining-banner {
+  @apply flex items-start gap-3 rounded-xl border border-accent/30 bg-amber-50/80
+         px-4 py-3 mb-6;
+}
+.results-refining-title {
+  @apply text-sm font-sans font-semibold text-ink;
+}
+.results-refining-hint {
+  @apply text-xs text-ink-muted font-sans mt-0.5 leading-relaxed;
+}
+.results-refining-spinner {
+  @apply w-5 h-5 shrink-0 mt-0.5 rounded-full border-2 border-accent/30 border-t-accent
+         animate-spin;
+}
+.contract-review-refining-overlay {
+  @apply absolute inset-0 z-10 flex flex-col items-center justify-center gap-3
+         rounded-2xl bg-white/85 backdrop-blur-[2px] border border-border/40;
 }

@@ -22,6 +22,8 @@ export async function GET(req: NextRequest) {
       locale: r.locale,
       changeCount: r.changes?.length ?? 0,
       createdAt: r.createdAt,
+      hasFinalContract: !!(r.originalFile && r.originalFileType),
+      finalFileType: r.originalFileType,
     })),
   });
 }

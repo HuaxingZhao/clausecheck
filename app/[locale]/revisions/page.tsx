@@ -11,6 +11,8 @@ interface RevisionRow {
   locale: string;
   changeCount: number;
   createdAt: string;
+  hasFinalContract?: boolean;
+  finalFileType?: "pdf" | "docx" | null;
 }
 
 export default function RevisionsPage() {

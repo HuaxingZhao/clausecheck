@@ -19,15 +19,11 @@ const config: Config = {
           'sans-serif',
         ],
         display: [
-          'Inter',
-          '"Noto Sans SC"',
-          'system-ui',
-          '-apple-system',
-          'BlinkMacSystemFont',
-          '"Microsoft YaHei"',
-          '"PingFang SC"',
-          '"Hiragino Sans GB"',
-          'sans-serif',
+          'var(--font-display)',
+          '"Noto Serif SC"',
+          '"Songti SC"',
+          'Georgia',
+          'serif',
         ],
         mono: [
           '"JetBrains Mono"',
@@ -46,14 +42,21 @@ const config: Config = {
       },
       colors: {
         paper: {
-          DEFAULT: 'rgb(250 249 246 / <alpha-value>)',
-          dark: '#F0EDE8',
+          DEFAULT: 'rgb(248 246 241 / <alpha-value>)',
+          dark: '#EDE9E1',
         },
-        ink: { DEFAULT: '#1A1A1A', light: '#5C5C5C', muted: '#6B6B6B' },
-        border: '#E5E0D8',
+        ink: { DEFAULT: '#1A2332', light: '#4A5568', muted: '#64748B' },
+        border: '#D8D2C8',
         accent: {
-          DEFAULT: '#d4a574',
-          dark: '#b07540',
+          DEFAULT: '#C9A227',
+          dark: '#9A7B1A',
+        },
+        legal: {
+          navy: '#1A365D',
+          'navy-light': '#2C5282',
+          'navy-dark': '#0F2440',
+          gold: '#C9A227',
+          cream: '#F8F6F1',
         },
         // dimension scores
         dim: {

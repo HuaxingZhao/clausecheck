@@ -59,7 +59,7 @@ export default function EmailReportForm({ result, locale }: EmailReportFormProps
 
   return (
     <form onSubmit={handleSubmit} className="email-report-form">
-      <p className="text-sm text-ink-light mb-3 font-sans">{t("hint")}</p>
+      <p className="text-sm text-ink mb-3 font-sans">{t("hint")}</p>
       <div className="flex flex-col sm:flex-row gap-2">
         <input
           type="email"
@@ -69,7 +69,7 @@ export default function EmailReportForm({ result, locale }: EmailReportFormProps
           placeholder={t("placeholder")}
           className="auth-input flex-1"
         />
-        <button type="submit" disabled={loading} className="btn btn-outline shrink-0">
+        <button type="submit" disabled={loading} className="btn btn-outline shrink-0 text-ink">
           {loading ? t("sending") : t("send")}
         </button>
       </div>

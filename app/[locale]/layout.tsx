@@ -2,9 +2,17 @@ import { NextIntlClientProvider, useTranslations } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
+import { Noto_Serif_SC } from "next/font/google";
 import Link from "next/link";
 import type { Metadata } from "next";
 import "./globals.css";
+
+const displaySerif = Noto_Serif_SC({
+  subsets: ["latin"],
+  weight: ["600", "700"],
+  variable: "--font-display",
+  display: "swap",
+});
 
 export async function generateMetadata({
   params,
@@ -55,7 +63,7 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale === "zh" ? "zh-CN" : "en"}>
-      <body>
+      <body className={displaySerif.variable}>
         <NextIntlClientProvider messages={messages}>
           <div className="flex flex-col min-h-screen">
             <main className="flex-1">{children}</main>

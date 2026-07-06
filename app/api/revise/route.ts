@@ -22,6 +22,8 @@ export async function POST(req: NextRequest) {
       acceptedFlags = [],
       acceptedNegotiations = [],
       acceptedMissingClauses = [],
+      originalFileBase64,
+      originalFileType,
     } = body as {
       contractText?: string;
       result?: ScanResult;
@@ -29,6 +31,8 @@ export async function POST(req: NextRequest) {
       acceptedFlags?: number[];
       acceptedNegotiations?: number[];
       acceptedMissingClauses?: number[];
+      originalFileBase64?: string;
+      originalFileType?: "pdf" | "docx";
     };
 
     const locale = rawLocale === "en" ? "en" : "zh";
@@ -102,6 +106,8 @@ export async function POST(req: NextRequest) {
           originalText: contractText,
           revisedContract: reviseResult.revisedContract,
           changes: reviseResult.changes,
+          originalFile: originalFileBase64 ?? null,
+          originalFileType: originalFileType ?? null,
         });
         revisionId = saved.id;
       } catch (e) {

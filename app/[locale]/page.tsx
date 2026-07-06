@@ -5,10 +5,13 @@ import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import { checkQuota, recordScan, setPro, isPro, syncProFromServer, saveProEmail, getProEmail } from "@/lib/quota";
 import type { ScanResult, ScanError } from "@/lib/types";
+import type { ContractScenarioId } from "@/lib/contract-scenarios";
+import { DEFAULT_SCENARIO_ID } from "@/lib/contract-scenarios";
 import ResultsSection from "./components/results-section";
 import PricingSection from "./components/pricing-section";
 import LangSwitch from "./components/lang-switch";
 import AuthPanel from "./components/auth-panel";
+import ScenarioPicker from "./components/scenario-picker";
 
 export default function Home() {
   const t = useTranslations();
@@ -22,10 +25,12 @@ export default function Home() {
   const [dragOver, setDragOver] = useState(false);
   const [scanCount, setScanCount] = useState<number | null>(null);
   const [scanStage, setScanStage] = useState(0);
+  const [refining, setRefining] = useState(false);
   const [pro, setProState] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [authUser, setAuthUser] = useState<{ email: string; pro: boolean } | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
+  const [scenario, setScenario] = useState<ContractScenarioId>(DEFAULT_SCENARIO_ID);
   const resultsRef = useRef<HTMLElement>(null);
 
   const refreshAuth = useCallback(async () => {
@@ -194,6 +199,7 @@ export default function Home() {
     setError(null);
     setResult(null);
     setContractText(null);
+    setRefining(false);
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -212,14 +218,16 @@ export default function Home() {
     setError(null);
     setScanStage(1);
 
-    const stageTimer = setTimeout(() => setScanStage(2), 800);
-    const stageTimer2 = setTimeout(() => setScanStage(3), 2500);
+    const stageTimer = setTimeout(() => setScanStage(2), 1200);
+    const stageTimer2 = setTimeout(() => setScanStage(3), 3500);
+    const stageTimer3 = setTimeout(() => setScanStage(4), 6000);
 
     try {
       const form = new FormData();
       form.append("file", file);
       form.append("locale", locale);
       form.append("tier", scanTier);
+      form.append("scenario", scenario);
 
       const res = await fetch("/api/scan", {
         method: "POST",
@@ -227,20 +235,59 @@ export default function Home() {
         headers: { "x-user-tier": scanTier },
       });
       const data = (await res.json()) as
-        | (ScanResult & { contractText?: string })
+        | (ScanResult & { contractText?: string; refineNeeded?: boolean })
         | ScanError;
 
       if (!res.ok) throw new Error((data as ScanError).error || "Scan failed");
 
-      const { contractText: extractedText, ...scanResult } = data as ScanResult & {
-        contractText?: string;
-      };
+      const {
+        contractText: extractedText,
+        refineNeeded,
+        ...scanResult
+      } = data as ScanResult & { contractText?: string; refineNeeded?: boolean };
+
       if (extractedText) setContractText(extractedText);
       setResult(scanResult as ScanResult);
       recordScan();
       fetch("/api/scan-count", { method: "POST" }).catch(() => {});
-      setScanStage(3);
+      setScanStage(4);
       saveReportToHistory(scanResult, file.name);
+
+      window.setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 120);
+
+      if (refineNeeded && extractedText) {
+        setRefining(true);
+        try {
+          const refineRes = await fetch("/api/scan/refine", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              result: scanResult,
+              contractText: extractedText,
+              locale,
+              scenarioId: scenario,
+              tier: scanTier,
+            }),
+          });
+          const refined = (await refineRes.json()) as ScanResult & { error?: string };
+          if (!refineRes.ok) throw new Error(refined.error || "Refine failed");
+          setResult(refined);
+          saveReportToHistory(refined, file.name);
+        } catch (refineErr: unknown) {
+          const msg =
+            refineErr instanceof Error ? refineErr.message : "Refine failed";
+          setToast(
+            locale === "zh"
+              ? `深度优化未完成（${msg}），当前为初版分析结果`
+              : `Deep refine incomplete (${msg}); showing first-pass results`
+          );
+          window.setTimeout(() => setToast(null), 6000);
+        } finally {
+          setRefining(false);
+        }
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Scan failed, please retry";
       setError(message);
@@ -248,6 +295,7 @@ export default function Home() {
     } finally {
       clearTimeout(stageTimer);
       clearTimeout(stageTimer2);
+      clearTimeout(stageTimer3);
       setLoading(false);
     }
   }
@@ -460,7 +508,13 @@ export default function Home() {
           <h2 className="mb-2">{t("upload.title")}</h2>
           <p className="text-ink-light mb-8">{t("upload.subtitle")}</p>
 
-          <form onSubmit={handleSubmit}>
+          <ScenarioPicker
+            value={scenario}
+            onChange={setScenario}
+            disabled={loading}
+          />
+
+          <form onSubmit={handleSubmit} className="mt-8">
             <label
               className={`upload-zone ${file ? "has-file" : ""} ${dragOver ? "border-accent" : ""}`}
               onDragOver={(e) => {
@@ -555,14 +609,19 @@ export default function Home() {
                   done={scanStage > 1}
                 />
                 <ProgressStage
-                  label={t("progress.analyzing")}
+                  label={t("progress.indexing")}
                   active={scanStage >= 2}
                   done={scanStage > 2}
                 />
                 <ProgressStage
-                  label={t("progress.generating")}
+                  label={t("progress.analyzing")}
                   active={scanStage >= 3}
-                  done={false}
+                  done={scanStage > 3}
+                />
+                <ProgressStage
+                  label={t("progress.locking")}
+                  active={scanStage >= 4}
+                  done={scanStage >= 4 && !loading}
                 />
               </div>
               <div className="scanning-text mt-4">{t("upload.scanningText")}</div>
@@ -577,6 +636,8 @@ export default function Home() {
                   setFile(null);
                   setResult(null);
                   setError(null);
+                  setRefining(false);
+                  setScanStage(0);
                 }}
               >
                 {t("upload.rescan")}
@@ -590,9 +651,11 @@ export default function Home() {
         <ResultsSection
           result={result}
           contractText={contractText}
+          sourceFile={file}
           riskCls={riskCls}
           isPro={isProUser}
           locale={locale}
+          refining={refining}
           onDownload={handleDownloadPdf}
           scrollTo={scrollTo}
           onUpgradePro={() => handleCheckout("pro_monthly", locale === "zh" ? "cny" : "usd")}

@@ -1,6 +1,10 @@
 import OpenAI from "openai";
-import type { ScanResult, ReviseResult, ContractChange } from "./types";
-import { buildRedlinedDocument } from "./redline";
+import type { ScanResult, ReviseResult, ContractChange, SkippedChangeSummary } from "./types";
+import { buildRedlinedDocument, snapChangesToSource } from "./redline";
+import {
+  repairChangesFromAccepted,
+  validateLocatableChanges,
+} from "./change-validation";
 
 export interface AcceptedRevision {
   type: "flag" | "negotiation" | "missing_clause";
@@ -23,8 +27,9 @@ const REVISE_PROMPT_ZH = `你是资深合同律师。你将收到一份合同的
 关键规则：
 1. "original" 必须是原文的真实子串，禁止改写、缩写或凭空编造；若找不到可精确复制的片段，则跳过该建议。
 2. 只针对被选中的建议生成编辑，未涉及的条款一律不动。
-3. 对"缺失条款"类建议：将 original 设为应插入位置**前一句的原文结尾片段**，revised 设为"该原文片段 + 新增条款全文"，以便插入而不破坏原文。
-4. 不要返回整份合同，只返回 edits 数组。
+3. 对"缺失条款"类建议：将 original 设为应插入位置**前一句的原文结尾片段**（必须逐字复制），revised 设为「该原文片段 + 新增条款的完整法律条文」（可直接粘贴进合同）。禁止在 revised 中写「合同中未提及…」「建议增加…」等说明性文字。
+4. revised 必须是可直接写入合同的条文，禁止任何元评论、摘要或评价（如「未提及 SLA」「缺少验收标准」等）。
+5. 不要返回整份合同，只返回 edits 数组。
 
 仅输出严格 JSON（无 markdown）：
 {
@@ -46,8 +51,9 @@ Each edit contains:
 Critical rules:
 1. "original" MUST be a real substring of the source. Do not paraphrase, shorten, or invent it. If you cannot copy an exact excerpt, skip that suggestion.
 2. Only produce edits for the selected suggestions; leave all other clauses untouched.
-3. For "missing clause" suggestions: set original to the verbatim END of the sentence that precedes the insertion point, and set revised to "that same original excerpt + the new clause text", so it inserts without breaking the source.
-4. Do not return the whole contract — only the edits array.
+3. For "missing clause" suggestions: set original to the verbatim END of the sentence before the insertion point, and set revised to "that excerpt + the FULL new clause text" (ready to paste into the contract). Never write "the contract does not mention…" or "recommend adding…" in revised.
+4. revised must be enforceable contract language only — no meta-commentary, summaries, or observations (e.g. "SLA is missing", "no acceptance criteria").
+5. Do not return the whole contract — only the edits array.
 
 Output strict JSON only (no markdown):
 {
@@ -195,11 +201,22 @@ export async function reviseContract(
     changes = fallbackChangesFromAccepted(acceptedRevisions, locale);
   }
 
-  // Derive the revised contract deterministically from the ORIGINAL text,
-  // so the output keeps the exact original format.
+  changes = snapChangesToSource(truncated, changes);
+  changes = repairChangesFromAccepted(truncated, changes, acceptedRevisions, locale);
+  changes = snapChangesToSource(truncated, changes);
+
+  const { valid, skipped } = validateLocatableChanges(truncated, changes, locale);
+  changes = valid;
+
+  const skippedChanges: SkippedChangeSummary[] = skipped.map((s) => ({
+    section: s.change.section,
+    reason: s.reason,
+  }));
+
+  doc = buildRedlinedDocument(truncated, changes);
   const revisedContract = doc.matched > 0 ? doc.plainRevised : truncated;
 
-  return { revisedContract, changes };
+  return { revisedContract, changes, skippedChanges };
 }
 
 /** Build suggestion changes straight from the accepted revisions (no AI). */
@@ -234,6 +251,14 @@ export function getDemoReviseResult(
       reason: locale === "en" ? "Selected suggestion." : "所选建议。",
     }));
 
-  const doc = buildRedlinedDocument(contractText, changes);
-  return { revisedContract: doc.matched > 0 ? doc.plainRevised : contractText, changes };
+  const snapped = snapChangesToSource(contractText, changes);
+  let repaired = repairChangesFromAccepted(contractText, snapped, accepted, locale);
+  repaired = snapChangesToSource(contractText, repaired);
+  const { valid, skipped } = validateLocatableChanges(contractText, repaired, locale);
+  const finalDoc = buildRedlinedDocument(contractText, valid);
+  return {
+    revisedContract: finalDoc.matched > 0 ? finalDoc.plainRevised : contractText,
+    changes: valid,
+    skippedChanges: skipped.map((s) => ({ section: s.change.section, reason: s.reason })),
+  };
 }
