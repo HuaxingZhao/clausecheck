@@ -1,0 +1,100 @@
+---
+description: ClauseCheck product architecture, pipelines, and constraints (always read first)
+alwaysApply: true
+---
+
+# ClauseCheck — Project Memory
+
+Bilingual (EN/ZH) Next.js contract risk scanner. **Not legal advice** — decision support + negotiation deliverables.
+
+## User flow (current)
+
+```
+选场景 → 上传 → 扫描 → 决策摘要 → 风险报告（可折叠详情）
+  → 保存分析报告（PDF）→ 合同审阅（左原文/右建议）→ 勾选采纳 → 谈判邮件 / 修订对照稿 Word
+```
+
+## Product principles
+
+1. **Scenario-first**: 18 场景入口；专业化靠 `contract-scenarios.ts` Prompt + `scenario-knowledge.ts` RAG，不是换模型。
+2. **Executable output**: 建议须为可粘贴条款句；说明性文字经 `rewrite-suggestions.ts` 改写；导出用 `revision-workbook-docx.ts`（对照+全文），不静默覆盖原文件。
+3. **Verifiable**: 每条 flag 尽量有 `clauseId` + 原文 `quote`；`confidence` 高/中/需核实；无 quote 不冒充确定结论。
+4. **i18n parity**: `messages/zh.json` + `en.json` 同步。
+
+## Analysis pipeline v2 (`lib/analysis-pipeline.ts`)
+
+```
+主分析 analyze.ts (免费 mini / 专业 4o)
+  system prompt 注入: scenario overlay + scenario-rag 知识库（含 general 走 COMMON）
+  → runAnalysisPipeline:
+       snapScanResultToSource
+       → rewriteAdvisorySuggestions (mini，若有说明性建议)
+       → runCriticPass (deep 或 scenario≠general)
+       → annotateScanConfidence → qualityStats
+  → attachContractReview → buildContractReview → normalizeReviewItems
+```
+
+## Results page layout (`results-section.tsx`)
+
+顺序：**决策摘要** → 质量横幅 → 评分/flags → **可折叠区块**（谈判优先级、最坏情况、有利条款、缺失条款、行动项、综合评估）→ **保存分析报告**（`report-delivery-section`）→ **合同审阅**。
+
+- 全宽容器：`page-content-wide`（约 1760px）
+- 时间敏感条款：嵌在 flags 卡片顶部**横向紧凑标签**，不占右侧整列
+- 可折叠：`results-expandable-section.tsx`（默认收起）
+
+## Review UI (read-only split — no TipTap in main flow)
+
+| Component | Role |
+|-----------|------|
+| `scenario-picker.tsx` | 8 常用 + 展开更多 |
+| `results-section.tsx` | 结果页编排 |
+| `decision-summary.tsx` | 签不签 + Top3 |
+| `contract-review-section.tsx` | 审阅 hero 标题区（无顶部返回按钮） |
+| `contract-review-view.tsx` | 左右分栏 + 采纳状态 |
+| `contract-readonly-pane.tsx` | 原文 + 红色 pin；**点击整段高亮**可跳转 |
+| `contract-suggestions-pane.tsx` | 对照修改 + 建议新增（missing 单独分组） |
+| `review-actions-bar.tsx` | 按等级采纳 / 清空 / 下载邮件 / 导出对照稿 |
+
+**审阅区滚动**：`contract-review-shell` 固定 **82vh** 高度，左右**各自内部滚动**（勿改为整页撑开，用户已明确偏好）。
+
+**定位与缺失项**：
+- API 返回 `result.contractReview`；`resolveContractReview` + `normalizeReviewItems` 处理旧数据
+- AI 把「未提及/未规定…」当 quote → `isAbsenceDescription`（`suggestion-diff.ts`）→ 归入 **missing** 建议新增，不显示「未找到原文段落」
+- 章节级 fallback：`lockAtSection` 在 quote 对不上时仍可跳转
+
+**采纳 UX**（`review-actions-bar` + `contract-review-view`）：
+- 高/中/低 **勾选即采纳/取消**，无单独「采纳所选等级」按钮
+- **清空选择**同时清空等级勾选与所有采纳
+- 单条卡片 checkbox 仍可手动覆盖
+- 谈判邮件：**仅下载**，无复制按钮
+
+**视觉**：legal navy + gold 配色；标题 `font-display`（Noto Serif SC）；审阅 hero：`contract-review-hero`
+
+## Key lib files
+
+| File | Role |
+|------|------|
+| `lib/analyze.ts` | AI prompts, scan entry |
+| `lib/analysis-pipeline.ts` | snap → rewrite → critic → confidence |
+| `lib/scenario-knowledge.ts` | 18 场景 PACKS（未知 id → COMMON） |
+| `lib/lock-suggestions.ts` | lock + `normalizeReviewItems` + `resolveContractReview` |
+| `lib/suggestion-diff.ts` | `isAbsenceDescription` / `isMetaCommentary` |
+| `lib/review-to-changes.ts` | `acceptIdsForLevels`、导出 changes |
+| `lib/revision-export.ts` | 天/日推导 + 全文替换 |
+| `lib/negotiation-email.ts` | 客户端生成谈判邮件 |
+
+## Models
+
+- Free: `gpt-4o-mini`; Pro: `gpt-4o`; pipeline extras: `gpt-4o-mini`
+
+## Do NOT
+
+- 宣传「法律意见」或固定准确率数字
+- 审阅/导出用与 `review.source` 不一致的正文
+- 修订导出改回静默 patch 原 DOCX
+- 恢复 TipTap 到主流程 unless user asks
+- 把审阅区改成整页自然高度滚动（用户要保留 82vh 内滚）
+
+## Legacy (repo only, not mounted)
+
+TipTap editor: `contract-revise-editor.tsx`, `contract-editable-document.tsx`, `/api/revise/final`
