@@ -8,11 +8,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ pro: false, tier: "free", authenticated: false });
   }
 
-  const { pro, tier, user } = await getUserEntitlements(session.sub);
+  const { pro, tier, user, payPerUseCredits } = await getUserEntitlements(session.sub);
   return NextResponse.json({
     authenticated: true,
     email: user?.email,
     pro,
     tier,
+    payPerUseCredits,
   });
 }

@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import type { ScanResult, RiskFlag } from "@/lib/types";
 
 import UpgradeBanner from "./upgrade-banner";
+import { trackEvent } from "@/lib/analytics";
 import ReportDeliverySection from "./report-delivery-section";
 import ContractReviewSection from "./contract-review-section";
 import ResultsReportHero from "./results-report-hero";
@@ -64,7 +65,10 @@ export default function ResultsSection({
           result={result}
           riskCls={riskCls}
           refining={refining}
-          onStartReview={() => scrollTo("contract-review")}
+          onStartReview={() => {
+            trackEvent("review_opened", { locale });
+            scrollTo("contract-review");
+          }}
           onDownload={onDownload}
         />
 

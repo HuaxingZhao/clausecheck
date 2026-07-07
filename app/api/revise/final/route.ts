@@ -29,10 +29,7 @@ function originalTypeFromFile(file: File): "pdf" | "docx" | null {
 export async function POST(req: NextRequest) {
   try {
     const session = await getSessionFromRequest(req);
-    const tier = await resolveTierForRequest(
-      session?.sub ?? null,
-      req.headers.get("x-user-tier")
-    );
+    const tier = await resolveTierForRequest(session?.sub ?? null);
     const isPro = tier === "pro" || tier === "pay_per_use";
 
     const contentType = req.headers.get("content-type") ?? "";

@@ -70,3 +70,36 @@ CREATE INDEX IF NOT EXISTS idx_reports_team ON reports(team_id, created_at DESC)
 CREATE INDEX IF NOT EXISTS idx_users_team ON users(team_id);
 CREATE INDEX IF NOT EXISTS idx_revisions_user ON revisions(user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_revisions_team ON revisions(team_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS app_metrics (
+  key TEXT PRIMARY KEY,
+  value BIGINT NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS pay_per_use_credits (
+  id TEXT PRIMARY KEY,
+  email TEXT NOT NULL,
+  stripe_session_id TEXT UNIQUE NOT NULL,
+  consumed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_ppu_credits_email ON pay_per_use_credits(email) WHERE consumed_at IS NULL;
+
+CREATE TABLE IF NOT EXISTS scan_quota (
+  id TEXT PRIMARY KEY,
+  trial_start TIMESTAMPTZ,
+  month_key TEXT NOT NULL DEFAULT '',
+  scan_count INT NOT NULL DEFAULT 0,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS analytics_events (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  path TEXT,
+  props JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_analytics_events_name ON analytics_events(name, created_at DESC);

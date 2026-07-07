@@ -172,11 +172,11 @@
   },
   "progress": {
     "extracting": "① Reading contract…",
-    "indexing": "② Parsing clauses…",
-    "analyzing": "③ AI risk analysis…",
-    "locking": "④ Building report…",
+    "firstPass": "② First-pass AI analysis…",
+    "reportReady": "③ Building report…",
+    "refiningDeep": "④ Deep suggestion refine…",
     "refining": "Optimizing suggestions & cross-check…",
-    "refiningHint": "Read the summary and flags above — review & PDF update when this finishes"
+    "refiningHint": "First-pass report is ready; review & PDF update when deep refine finishes"
   },
   "results": {
     "label": "Scan Results",
@@ -255,7 +255,11 @@
   },
   "quota": {
     "limitReached": "Monthly free limit reached. Upgrade to Pro or pay per scan.",
+    "trialActive": "Free trial active — unlimited scans",
+    "freeRemaining": "{count} free scan(s) left this month",
+    "payPerUseRemaining": "{count} pay-per-use credit(s) remaining",
     "checkoutSuccess": "🎉 Payment successful! Pro unlocked — unlimited scans + report export",
+    "payPerUseSuccess": "🎉 Payment successful! 1 Pro scan unlocked — upload your contract now",
     "checkoutError": "Payment redirect failed. Please try again."
   },
   "auth": {
@@ -288,7 +292,9 @@
     "backScan": "Back to scanner",
     "view": "View",
     "download": "Download PDF",
-    "saved": "Report saved to history."
+    "saved": "Report saved to history.",
+    "count": "{count} saved report(s)",
+    "openReport": "Open report"
   },
   "revisions": {
     "label": "Pro",
@@ -356,6 +362,8 @@
     "sectionSubtitle": "Original left · Suggestions right · Click red highlights to jump",
     "itemsLabel": "items",
     "originalTitle": "Original contract",
+    "mobileTabOriginal": "Original",
+    "mobileTabSuggestions": "Suggestions",
     "originalHint": "Red numbered marks show all suggestions · click a mark or card to jump",
     "marksInText": "{marks} / {total} marks in original text",
     "suggestionsTitle": "Risks & suggestions",

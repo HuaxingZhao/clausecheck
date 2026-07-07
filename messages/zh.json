@@ -172,11 +172,11 @@
   },
   "progress": {
     "extracting": "① 读取合同…",
-    "indexing": "② 解析条款…",
-    "analyzing": "③ AI 风险分析…",
-    "locking": "④ 生成报告…",
+    "firstPass": "② 初版 AI 分析…",
+    "reportReady": "③ 生成报告…",
+    "refiningDeep": "④ 深度优化建议…",
     "refining": "正在优化修改建议与交叉校验…",
-    "refiningHint": "你可以先阅读上方结论与风险条款；完成后审阅区与 PDF 将自动更新"
+    "refiningHint": "初版报告已就绪；深度优化完成后审阅区与 PDF 将自动更新"
   },
   "results": {
     "label": "扫描结果",
@@ -255,7 +255,11 @@
   },
   "quota": {
     "limitReached": "本月免费额度已用完，升级专业版或按次使用",
+    "trialActive": "免费试用期内，可无限次扫描",
+    "freeRemaining": "本月免费剩余 {count} 次",
+    "payPerUseRemaining": "按次额度剩余 {count} 次",
     "checkoutSuccess": "🎉 支付成功！已解锁专业版，无限次扫描 + 报告导出",
+    "payPerUseSuccess": "🎉 支付成功！已解锁 1 次专业扫描，请立即上传合同",
     "checkoutError": "支付跳转失败，请稍后再试"
   },
   "auth": {
@@ -288,7 +292,9 @@
     "backScan": "返回扫描",
     "view": "查看",
     "download": "下载 PDF",
-    "saved": "报告已保存到历史记录。"
+    "saved": "报告已保存到历史记录。",
+    "count": "共 {count} 份报告",
+    "openReport": "打开报告"
   },
   "revisions": {
     "label": "专业版",
@@ -356,6 +362,8 @@
     "itemsLabel": "条建议",
     "backToAnalysis": "← 返回分析",
     "originalTitle": "合同原文",
+    "mobileTabOriginal": "原文",
+    "mobileTabSuggestions": "建议",
     "originalHint": "原文中红色数字为全部建议标记 · 点击标记或右侧卡片可双向跳转",
     "marksInText": "原文已标记 {marks} / {total} 处",
     "suggestionsTitle": "风险与修改建议",

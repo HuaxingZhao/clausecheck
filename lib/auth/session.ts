@@ -1,13 +1,13 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
+import { getAuthSecret } from "../env";
 
 export const SESSION_COOKIE = "cc_session";
 const SESSION_DAYS = 30;
 
 function getSecret(): Uint8Array {
-  const secret = process.env.AUTH_SECRET || "dev-only-change-me-in-production";
-  return new TextEncoder().encode(secret);
+  return new TextEncoder().encode(getAuthSecret());
 }
 
 export interface SessionPayload {

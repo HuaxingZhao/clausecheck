@@ -29,10 +29,7 @@ export async function POST(req: NextRequest) {
     }
 
     const session = await getSessionFromRequest(req);
-    const tier = await resolveTierForRequest(
-      session?.sub ?? null,
-      req.headers.get("x-user-tier")
-    );
+    const tier = await resolveTierForRequest(session?.sub ?? null);
     const isPro = tier === "pro" || tier === "pay_per_use";
     if (!isPro) {
       return NextResponse.json(

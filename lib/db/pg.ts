@@ -89,6 +89,37 @@ export async function ensureSchema() {
         )`;
       await db`ALTER TABLE revisions ADD COLUMN IF NOT EXISTS original_file TEXT`;
       await db`ALTER TABLE revisions ADD COLUMN IF NOT EXISTS original_file_type TEXT`;
+      await db`
+        CREATE TABLE IF NOT EXISTS app_metrics (
+          key TEXT PRIMARY KEY,
+          value BIGINT NOT NULL DEFAULT 0
+        )`;
+      await db`
+        CREATE TABLE IF NOT EXISTS pay_per_use_credits (
+          id TEXT PRIMARY KEY,
+          email TEXT NOT NULL,
+          stripe_session_id TEXT UNIQUE NOT NULL,
+          consumed_at TIMESTAMPTZ,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )`;
+      await db`CREATE INDEX IF NOT EXISTS idx_ppu_credits_email ON pay_per_use_credits(email) WHERE consumed_at IS NULL`;
+      await db`
+        CREATE TABLE IF NOT EXISTS scan_quota (
+          id TEXT PRIMARY KEY,
+          trial_start TIMESTAMPTZ,
+          month_key TEXT NOT NULL DEFAULT '',
+          scan_count INT NOT NULL DEFAULT 0,
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )`;
+      await db`
+        CREATE TABLE IF NOT EXISTS analytics_events (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          path TEXT,
+          props JSONB NOT NULL DEFAULT '{}'::jsonb,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )`;
+      await db`CREATE INDEX IF NOT EXISTS idx_analytics_events_name ON analytics_events(name, created_at DESC)`;
     })();
   }
   await schemaReady;

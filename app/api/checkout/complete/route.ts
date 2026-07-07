@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { findUserByEmail } from "@/lib/db/store";
+import { findUserByEmail, upsertUser } from "@/lib/db/store";
 import {
   createSessionToken,
   sessionCookieOptions,
@@ -19,15 +19,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid checkout session" }, { status: 400 });
     }
 
-    const user = await findUserByEmail(result.email);
+    let user = await findUserByEmail(result.email);
+    if (!user) {
+      user = await upsertUser(result.email, {});
+    }
+
     const res = NextResponse.json({
       ok: true,
       email: result.email,
       pro: result.pro,
-      authenticated: !!user,
+      payPerUse: result.payPerUse,
+      authenticated: true,
     });
 
-    if (user && result.pro) {
+    if (result.pro || result.payPerUse) {
       const token = await createSessionToken({ sub: user.id, email: user.email });
       res.cookies.set(SESSION_COOKIE, token, sessionCookieOptions());
     }

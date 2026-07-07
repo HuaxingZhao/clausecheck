@@ -9,10 +9,7 @@ export const maxDuration = 90;
 export async function POST(req: NextRequest) {
   try {
     const session = await getSessionFromRequest(req);
-    const tier = await resolveTierForRequest(
-      session?.sub ?? null,
-      req.headers.get("x-user-tier")
-    );
+    const tier = await resolveTierForRequest(session?.sub ?? null);
     const isPro = tier === "pro" || tier === "pay_per_use";
     const form = await req.formData();
     const locale = form.get("locale") === "en" ? "en" : "zh";

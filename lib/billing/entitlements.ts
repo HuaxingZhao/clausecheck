@@ -4,6 +4,7 @@ import {
   findTeamById,
   upsertUser,
 } from "../db/store";
+import { countPayPerUseCredits, hasPayPerUseCredit } from "../db/scan-metrics";
 import type { SubscriptionStatus, Team, User } from "../db/types";
 import type { UserTier } from "../quota";
 
@@ -37,11 +38,16 @@ export async function getUserEntitlements(userId: string) {
   const user = await findUserById(userId);
   const pro = await isProUser(user);
   const team = await getTeamForUser(user);
+  const payPerUseCredits = user ? await countPayPerUseCredits(user.email) : 0;
+  let tier: UserTier = "free";
+  if (pro) tier = "pro";
+  else if (payPerUseCredits > 0) tier = "pay_per_use";
   return {
     user,
     team,
     pro,
-    tier: tierForPro(pro),
+    tier,
+    payPerUseCredits,
     isTeamMember: !!user?.teamId,
     isTeamOwner: user?.teamRole === "owner",
   };
@@ -67,16 +73,12 @@ export async function deactivateProSubscription(email: string) {
   });
 }
 
-export async function resolveTierForRequest(
-  sessionUserId: string | null,
-  headerTier: string | null
-): Promise<UserTier> {
-  if (sessionUserId) {
-    const { pro } = await getUserEntitlements(sessionUserId);
-    if (pro) return "pro";
-  }
-  if (headerTier === "pay_per_use") return "pay_per_use";
-  if (headerTier === "pro") return "pro";
+/** Resolve tier from server session only — never trust client headers. */
+export async function resolveTierForRequest(sessionUserId: string | null): Promise<UserTier> {
+  if (!sessionUserId) return "free";
+  const { pro, user } = await getUserEntitlements(sessionUserId);
+  if (pro) return "pro";
+  if (user && (await hasPayPerUseCredit(user.email))) return "pay_per_use";
   return "free";
 }
 

@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef, useCallback, type FormEvent, type ChangeEvent } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
-import { checkQuota, recordScan, setPro, isPro, syncProFromServer, saveProEmail, getProEmail } from "@/lib/quota";
+import { checkQuota, recordScan, setPro, isPro, syncProFromServer, saveProEmail, getProEmail, applyServerQuota, type ServerQuotaStatus } from "@/lib/quota";
+import { trackEvent } from "@/lib/analytics";
 import type { ScanResult, ScanError } from "@/lib/types";
 import type { ContractScenarioId } from "@/lib/contract-scenarios";
 import { DEFAULT_SCENARIO_ID } from "@/lib/contract-scenarios";
@@ -31,7 +32,35 @@ export default function Home() {
   const [authUser, setAuthUser] = useState<{ email: string; pro: boolean } | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [scenario, setScenario] = useState<ContractScenarioId>(DEFAULT_SCENARIO_ID);
+  const [quotaHint, setQuotaHint] = useState<string | null>(null);
   const resultsRef = useRef<HTMLElement>(null);
+
+  const refreshServerQuota = useCallback(async () => {
+    try {
+      const res = await fetch("/api/quota", { credentials: "include" });
+      if (!res.ok) return checkQuota();
+      const status = (await res.json()) as ServerQuotaStatus;
+      const quota = applyServerQuota(status);
+      if (quota.tier === "pro" || quota.remaining === -1) {
+        setQuotaHint(null);
+      } else if (quota.tier === "pay_per_use") {
+        setQuotaHint(
+          quota.remaining > 0
+            ? t("quota.payPerUseRemaining", { count: quota.remaining })
+            : t("quota.limitReached")
+        );
+      } else if (status.inTrialPeriod) {
+        setQuotaHint(t("quota.trialActive"));
+      } else if (quota.remaining > 0) {
+        setQuotaHint(t("quota.freeRemaining", { count: quota.remaining }));
+      } else {
+        setQuotaHint(t("quota.limitReached"));
+      }
+      return quota;
+    } catch {
+      return checkQuota();
+    }
+  }, [t]);
 
   const refreshAuth = useCallback(async () => {
     try {
@@ -79,20 +108,10 @@ export default function Home() {
     [authUser, locale, file?.name, pro, t]
   );
 
-  async function resolveScanTier(): Promise<string> {
-    try {
-      const res = await fetch("/api/entitlements");
-      const data = await res.json();
-      if (data.pro) return "pro";
-    } catch {
-      /* ignore */
-    }
-    return checkQuota().tier;
-  }
-
   useEffect(() => {
     setProState(isPro());
     refreshAuth();
+    refreshServerQuota();
 
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
@@ -125,15 +144,20 @@ export default function Home() {
                 setPro();
                 setProState(true);
                 setToast(t("quota.checkoutSuccess"));
+                trackEvent("checkout_completed", { type: "pro" });
                 if (data.email) {
                   setAuthUser({ email: data.email, pro: true });
                   saveProEmail(data.email);
                 }
+              } else if (data.payPerUse) {
+                setToast(t("quota.payPerUseSuccess"));
+                trackEvent("checkout_completed", { type: "pay_per_use" });
+                if (data.email) {
+                  setAuthUser({ email: data.email, pro: false });
+                }
               }
             } catch {
-              setPro();
-              setProState(true);
-              setToast(t("quota.checkoutSuccess"));
+              setToast(t("quota.checkoutError"));
             }
           } else {
             setPro();
@@ -141,6 +165,7 @@ export default function Home() {
             setToast(t("quota.checkoutSuccess"));
           }
           await refreshAuth();
+          await refreshServerQuota();
           window.history.replaceState({}, "", window.location.pathname);
         };
         finishCheckout();
@@ -155,7 +180,7 @@ export default function Home() {
         window.history.replaceState({}, "", window.location.pathname);
       }
     }
-  }, [t, refreshAuth]);
+  }, [t, refreshAuth, refreshServerQuota]);
 
   useEffect(() => {
     if (toast) {
@@ -206,39 +231,42 @@ export default function Home() {
     e.preventDefault();
     if (!file) return;
 
-    const quota = checkQuota();
+    const quota = await refreshServerQuota();
     if (!quota.allowed) {
       setError(t("quota.limitReached"));
+      trackEvent("scan_quota_blocked", { tier: quota.tier });
       return;
     }
 
-    const scanTier = await resolveScanTier();
-
+    trackEvent("scan_started", { scenario, locale });
     setLoading(true);
     setError(null);
     setScanStage(1);
 
-    const stageTimer = setTimeout(() => setScanStage(2), 1200);
-    const stageTimer2 = setTimeout(() => setScanStage(3), 3500);
-    const stageTimer3 = setTimeout(() => setScanStage(4), 6000);
+    const stageTimer = setTimeout(() => setScanStage(2), 900);
 
     try {
       const form = new FormData();
       form.append("file", file);
       form.append("locale", locale);
-      form.append("tier", scanTier);
       form.append("scenario", scenario);
 
       const res = await fetch("/api/scan", {
         method: "POST",
         body: form,
-        headers: { "x-user-tier": scanTier },
       });
       const data = (await res.json()) as
         | (ScanResult & { contractText?: string; refineNeeded?: boolean })
         | ScanError;
 
-      if (!res.ok) throw new Error((data as ScanError).error || "Scan failed");
+      if (!res.ok) {
+        const errData = data as ScanError & { code?: string };
+        if (errData.code === "QUOTA_EXCEEDED") {
+          trackEvent("scan_quota_blocked", { tier: "free" });
+          await refreshServerQuota();
+        }
+        throw new Error(errData.error || "Scan failed");
+      }
 
       const {
         contractText: extractedText,
@@ -249,9 +277,12 @@ export default function Home() {
       if (extractedText) setContractText(extractedText);
       setResult(scanResult as ScanResult);
       recordScan();
-      fetch("/api/scan-count", { method: "POST" }).catch(() => {});
-      setScanStage(4);
+      setScanCount((c) => (typeof c === "number" ? c + 1 : c));
+      setScanStage(3);
+      setLoading(false);
+      trackEvent("scan_completed", { scenario, flags: scanResult.flags?.length ?? 0 });
       saveReportToHistory(scanResult, file.name);
+      await refreshServerQuota();
 
       window.setTimeout(() => {
         resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -259,6 +290,7 @@ export default function Home() {
 
       if (refineNeeded && extractedText) {
         setRefining(true);
+        setScanStage(4);
         try {
           const refineRes = await fetch("/api/scan/refine", {
             method: "POST",
@@ -268,12 +300,12 @@ export default function Home() {
               contractText: extractedText,
               locale,
               scenarioId: scenario,
-              tier: scanTier,
             }),
           });
           const refined = (await refineRes.json()) as ScanResult & { error?: string };
           if (!refineRes.ok) throw new Error(refined.error || "Refine failed");
           setResult(refined);
+          trackEvent("scan_refine_completed", { scenario });
           saveReportToHistory(refined, file.name);
         } catch (refineErr: unknown) {
           const msg =
@@ -286,7 +318,10 @@ export default function Home() {
           window.setTimeout(() => setToast(null), 6000);
         } finally {
           setRefining(false);
+          setScanStage(0);
         }
+      } else {
+        setScanStage(0);
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Scan failed, please retry";
@@ -294,14 +329,13 @@ export default function Home() {
       setScanStage(0);
     } finally {
       clearTimeout(stageTimer);
-      clearTimeout(stageTimer2);
-      clearTimeout(stageTimer3);
       setLoading(false);
     }
   }
 
   async function handleDownloadPdf() {
     if (!result) return;
+    trackEvent("report_pdf_download", { locale });
     try {
       const res = await fetch("/api/export/pdf", {
         method: "POST",
@@ -334,6 +368,7 @@ export default function Home() {
     priceId: "pro_monthly" | "pay_per_use" | "team_monthly",
     currency: "cny" | "usd" | "sgd"
   ) {
+    trackEvent("checkout_started", { priceId, currency });
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
@@ -506,7 +541,11 @@ export default function Home() {
         <div className="max-w-2xl mx-auto px-6">
           <div className="section-label">{t("upload.label")}</div>
           <h2 className="mb-2">{t("upload.title")}</h2>
-          <p className="text-ink-light mb-8">{t("upload.subtitle")}</p>
+          <p className="text-ink-light mb-2">{t("upload.subtitle")}</p>
+          {quotaHint && !isProUser && (
+            <p className="text-sm text-ink-muted font-sans mb-6">{quotaHint}</p>
+          )}
+          {!quotaHint && <div className="mb-8" />}
 
           <ScenarioPicker
             value={scenario}
@@ -600,7 +639,7 @@ export default function Home() {
             )}
           </form>
 
-          {loading && (
+          {(loading || refining) && (
             <div className="mt-8">
               <div className="progress-stages">
                 <ProgressStage
@@ -609,22 +648,24 @@ export default function Home() {
                   done={scanStage > 1}
                 />
                 <ProgressStage
-                  label={t("progress.indexing")}
+                  label={t("progress.firstPass")}
                   active={scanStage >= 2}
                   done={scanStage > 2}
                 />
                 <ProgressStage
-                  label={t("progress.analyzing")}
+                  label={t("progress.reportReady")}
                   active={scanStage >= 3}
-                  done={scanStage > 3}
+                  done={scanStage > 3 || refining}
                 />
                 <ProgressStage
-                  label={t("progress.locking")}
-                  active={scanStage >= 4}
-                  done={scanStage >= 4 && !loading}
+                  label={t("progress.refiningDeep")}
+                  active={refining || scanStage >= 4}
+                  done={!refining && scanStage === 0 && !!result}
                 />
               </div>
-              <div className="scanning-text mt-4">{t("upload.scanningText")}</div>
+              <div className="scanning-text mt-4">
+                {refining ? t("progress.refiningHint") : t("upload.scanningText")}
+              </div>
             </div>
           )}
 

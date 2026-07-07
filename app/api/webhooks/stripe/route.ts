@@ -8,12 +8,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { syncCheckoutSession, syncSubscription } from "@/lib/billing/stripe-sync";
+import { getStripeWebhookSecret } from "@/lib/env";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
   apiVersion: "2025-02-24.acacia" as any,
 });
-
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "";
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
@@ -22,10 +21,11 @@ export async function POST(req: NextRequest) {
   let event: Stripe.Event;
 
   try {
-    if (webhookSecret) {
-      event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
-    } else {
+    const webhookSecret = getStripeWebhookSecret();
+    if (!webhookSecret) {
       event = JSON.parse(body) as Stripe.Event;
+    } else {
+      event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
     }
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Invalid signature";

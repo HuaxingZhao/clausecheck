@@ -137,13 +137,17 @@ export default function ReportsPage() {
         )}
 
         {!loading && !error && reports.length > 0 && (
-          <ul className="report-list">
+          <>
+            <p className="text-sm text-ink-muted font-sans mb-4">{t("count", { count: reports.length })}</p>
+            <ul className="report-list">
             {reports.map((r) => (
               <li key={r.id} className="report-item">
                 <div className="report-item-main">
                   <h3 className="font-sans font-semibold text-ink">{r.title}</h3>
                   {r.fileName && (
-                    <p className="text-xs text-ink-muted mt-1 font-sans">{r.fileName}</p>
+                    <p className="text-xs text-ink-muted mt-1 font-sans truncate max-w-[240px] sm:max-w-none">
+                      {r.fileName}
+                    </p>
                   )}
                   <p className="text-xs text-ink-muted mt-2 font-sans">{formatDate(r.createdAt)}</p>
                 </div>
@@ -151,9 +155,9 @@ export default function ReportsPage() {
                   <span className={`score-pill ${scoreClass(r.scoreNum)}`}>
                     {r.scoreNum} · {r.scoreText}
                   </span>
-                  <div className="report-actions">
+                  <div className="report-actions flex-wrap">
                     <Link href={`/${locale}?reportId=${r.id}`} className="btn btn-outline text-xs">
-                      {t("view")}
+                      {t("openReport")}
                     </Link>
                     <a href={`/api/reports/${r.id}/pdf`} className="btn btn-primary text-xs">
                       {t("download")}
@@ -163,6 +167,7 @@ export default function ReportsPage() {
               </li>
             ))}
           </ul>
+          </>
         )}
       </main>
 

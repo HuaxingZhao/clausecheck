@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { refineScanResult, pipelineRefineNeeded } from "@/lib/analyze";
 import { DEFAULT_SCENARIO_ID, isValidScenarioId } from "@/lib/contract-scenarios";
+import { resolveAuthorizedScanTier } from "@/lib/server-quota";
 import type { ScanResult } from "@/lib/types";
 import type { PipelineOptions } from "@/lib/analysis-pipeline";
 
@@ -21,7 +22,6 @@ export async function POST(req: NextRequest) {
       contractText?: string;
       locale?: string;
       scenarioId?: string;
-      tier?: string;
     };
 
     const result = body.result;
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     const locale = body.locale === "en" ? "en" : "zh";
     const rawScenario = String(body.scenarioId ?? result.scenarioId ?? DEFAULT_SCENARIO_ID);
     const scenarioId = isValidScenarioId(rawScenario) ? rawScenario : DEFAULT_SCENARIO_ID;
-    const tier = body.tier;
+    const { tier } = await resolveAuthorizedScanTier(req);
     const deep = tier === "pro" || tier === "pay_per_use";
     const maxChars = deep ? PRO_MAX_CHARS : FREE_MAX_CHARS;
 

@@ -181,3 +181,57 @@ export function isPro(): boolean {
 export function getRemaining(): number {
   return checkQuota().remaining;
 }
+
+export interface ServerQuotaStatus {
+  tier: UserTier;
+  allowed: boolean;
+  remaining: number;
+  inTrialPeriod: boolean;
+  payPerUseCredits: number;
+}
+
+/** Sync local UX state from GET /api/quota (server is authoritative). */
+export function applyServerQuota(status: ServerQuotaStatus): QuotaResult {
+  const q = getQuotaState();
+
+  if (status.tier === "pro") {
+    q.tier = "pro";
+    saveQuota(q);
+    return { allowed: true, tier: "pro", remaining: -1 };
+  }
+
+  if (status.tier === "pay_per_use") {
+    q.tier = "free";
+    saveQuota(q);
+    return {
+      allowed: status.allowed && status.payPerUseCredits > 0,
+      tier: "pay_per_use",
+      remaining: status.payPerUseCredits,
+    };
+  }
+
+  q.tier = "free";
+  saveQuota(q);
+
+  if (!status.allowed) {
+    return {
+      allowed: false,
+      tier: "free",
+      remaining: 0,
+      reason:
+        status.inTrialPeriod === false && status.remaining <= 0
+          ? "本月免费额度已用完，升级专业版或按次使用"
+          : undefined,
+    };
+  }
+
+  if (status.inTrialPeriod) {
+    return { allowed: true, tier: "free", remaining: -1, reason: "试用期内" };
+  }
+
+  return {
+    allowed: true,
+    tier: "free",
+    remaining: status.remaining >= 0 ? status.remaining : 0,
+  };
+}

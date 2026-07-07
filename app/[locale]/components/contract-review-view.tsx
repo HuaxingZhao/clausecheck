@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import type { LockedReviewItem, ScanResult } from "@/lib/types";
 import { scrollChildIntoContainer } from "@/lib/scroll-container";
 import { attachScrollChainToPage } from "@/lib/scroll-chain-to-page";
@@ -33,6 +34,8 @@ export default function ContractReviewView({
   onUpgrade,
   onBackToAnalysis,
 }: ContractReviewViewProps) {
+  const t = useTranslations("review");
+  const [mobilePane, setMobilePane] = useState<"original" | "suggestions">("original");
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const didAutoFocus = useRef(false);
   const didInitAccept = useRef(false);
@@ -100,7 +103,11 @@ export default function ContractReviewView({
   const handleFocus = useCallback(
     (index: number) => {
       const item = items.find((i) => i.index === index);
-      if (!item || item.kind === "missing" || !item.navigable) return;
+      if (!item || item.kind === "missing" || !item.navigable) {
+        if (item?.kind === "missing") setMobilePane("suggestions");
+        return;
+      }
+      setMobilePane("suggestions");
       setFocusedIndex(index);
       scrollToReviewItem(index);
     },
@@ -217,27 +224,66 @@ export default function ContractReviewView({
           onNavigate={handleFocus}
         />
       )}
+      <div className="contract-review-mobile-tabs lg:hidden" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mobilePane === "original"}
+          className={`contract-review-mobile-tab${mobilePane === "original" ? " contract-review-mobile-tab--active" : ""}`}
+          onClick={() => setMobilePane("original")}
+        >
+          {t("mobileTabOriginal")}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mobilePane === "suggestions"}
+          className={`contract-review-mobile-tab${mobilePane === "suggestions" ? " contract-review-mobile-tab--active" : ""}`}
+          onClick={() => setMobilePane("suggestions")}
+        >
+          {t("mobileTabSuggestions")}
+        </button>
+      </div>
       <div className="contract-review-shell">
-        <ContractReadonlyPane
-          scrollRef={originalScrollRef}
-          contractSource={source}
-          editableItems={editableItems}
-          focusedIndex={focusedIndex}
-          stats={review.stats}
-          locale={locale}
-          onMarkClick={handleFocus}
-        />
-        <ContractSuggestionsPane
-          ref={suggestionsScrollRef}
-          items={items}
-          located={located}
-          markedIndices={markedIndices}
-          displayNumByIndex={displayNumByIndex}
-          focusedIndex={focusedIndex}
-          acceptedIds={acceptedIds}
-          onToggleAccept={toggleAccept}
-          onFocus={handleFocus}
-        />
+        <div
+          className={
+            mobilePane === "original"
+              ? "min-h-0 flex flex-col lg:contents"
+              : "min-h-0 hidden flex-col lg:contents"
+          }
+        >
+          <ContractReadonlyPane
+            scrollRef={originalScrollRef}
+            contractSource={source}
+            editableItems={editableItems}
+            focusedIndex={focusedIndex}
+            stats={review.stats}
+            locale={locale}
+            onMarkClick={(index) => {
+              setMobilePane("original");
+              handleFocus(index);
+            }}
+          />
+        </div>
+        <div
+          className={
+            mobilePane === "suggestions"
+              ? "min-h-0 flex flex-col lg:contents"
+              : "min-h-0 hidden flex-col lg:contents"
+          }
+        >
+          <ContractSuggestionsPane
+            ref={suggestionsScrollRef}
+            items={items}
+            located={located}
+            markedIndices={markedIndices}
+            displayNumByIndex={displayNumByIndex}
+            focusedIndex={focusedIndex}
+            acceptedIds={acceptedIds}
+            onToggleAccept={toggleAccept}
+            onFocus={handleFocus}
+          />
+        </div>
       </div>
     </div>
   );

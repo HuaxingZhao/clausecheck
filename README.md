@@ -5,66 +5,65 @@
 ## 快速开始
 
 ```bash
-# 1. 安装依赖
 npm install
-
-# 2. 配置环境变量（不填也能跑，用 demo 数据）
-cp env.example .env
-# 编辑 .env 填入 OPENAI_API_KEY
-
-# 3. 启动开发服务器
+cp env.example .env.local
+# 编辑 .env.local 填入 OPENAI_API_KEY（可选，不填则用 demo 数据）
 npm run dev
-# → 浏览器打开 http://localhost:3000
+# → http://localhost:3000
 ```
 
-> **不需要 OpenAI Key 也能预览 UI**：代码内置了 demo 数据，前端可以直接看到完整效果。
+本地开发可不配置 `DATABASE_URL`，数据会写入 `data/` 目录下的 JSON 文件。
 
-## 项目结构
-
-```
-clausecheck/
-├── app/
-│   ├── api/
-│   │   ├── extract/route.ts   # PDF / DOCX 文本提取
-│   │   └── scan/route.ts      # 合同分析 API
-│   ├── globals.css            # Tailwind + 自定义样式
-│   ├── layout.tsx             # 根布局
-│   └── page.tsx               # 主页（hero + 上传 + 结果 + 定价 + FAQ）
-├── lib/
-│   ├── types.ts               # 类型定义
-│   ├── extract-text.ts        # 文本提取逻辑
-│   └── analyze.ts             # AI 分析 + demo 模式
-├── package.json
-├── tsconfig.json
-├── tailwind.config.ts
-├── next.config.js
-├── postcss.config.js
-└── env.example
-```
-
-## 技术栈
-
-- **Next.js 14** (App Router)
-- **TypeScript**
-- **Tailwind CSS** — 暖色系合同风格
-- **OpenAI API** — gpt-4o-mini 做合同分析
-- **pdf-parse** + **mammoth** — PDF / DOCX 文本提取
-
-## 如何接 Stripe 收钱
-
-1. 去 [Stripe](https://stripe.com) 注册（可个人，无需公司）
-2. 创建 Payment Link（产品 → Payment Links → Create）
-3. 把链接填入 `.env` 的 `NEXT_PUBLIC_STRIPE_PAYMENT_LINK`
-4. 定价页面按钮自动跳转到 Stripe 付款
-
-## 部署 (Vercel)
+**生产部署**：见 [docs/DEPLOY.md](docs/DEPLOY.md)
 
 ```bash
-# 推送到 GitHub 后：
-# 1. vercel.com → 导入 repo
-# 2. 环境变量填 OPENAI_API_KEY
-# 3. Deploy → 获取公开域名
+npm run deploy:prep    # 部署前检查
+npm run db:check       # DATABASE_URL 连通 + 建表
+npm run deploy:env     # 推 env 到 Vercel（需 vercel link）
 ```
+
+### 自动验证
+
+```bash
+npm run verify:p0          # 无 dev server 时自动启动，结束后自动关闭
+npm run verify:staging     # 上线前 env 检查（BASE_URL=... 可测远端）
+```
+
+## 生产部署清单 (Vercel)
+
+| 变量 | 说明 |
+|------|------|
+| `OPENAI_API_KEY` | OpenAI API |
+| `DATABASE_URL` | **必填** — Neon / Supabase / Vercel Postgres |
+| `AUTH_SECRET` | **必填** — `openssl rand -base64 32` |
+| `STRIPE_SECRET_KEY` | Stripe 密钥 |
+| `STRIPE_WEBHOOK_SECRET` | **必填** — Stripe Dashboard → Webhooks |
+| `NEXT_PUBLIC_URL` | 生产域名，如 `https://clausecheck.app` |
+
+### Vercel 计划
+
+扫描 API 设置了 `maxDuration = 90`（`/api/scan`）和 `60`（`/api/scan/refine`、`/api/extract`），需要 **Vercel Pro**（Hobby 上限 10s）。
+
+### Stripe Webhook
+
+在 Stripe Dashboard 添加 endpoint：`https://your-domain/api/webhooks/stripe`
+
+监听事件：
+- `checkout.session.completed`
+- `customer.subscription.created` / `updated` / `deleted`
+
+### 数据库
+
+首次部署时 `ensureSchema()` 会自动建表。也可手动执行 `lib/db/schema.sql`。
+
+## 架构要点
+
+- **服务端 tier / 配额**：`/api/scan` 不信任客户端 header；`GET /api/quota` 同步 UI
+- **按次付费**：Stripe checkout → `pay_per_use_credits` → 扫描消耗
+- **免费额度**：3 天试用 + 每月 3 次（`scan_quota` 表）
+- **埋点**：`lib/analytics.ts` → `POST /api/events`（`analytics_events` 表）
+- **PDF**：行动摘要 → 时间条款 → flags → 补充详情（与网页报告一致）
+- **移动端审阅**：小屏原文/建议 Tab 切换，桌面保持左右分栏 82vh
 
 ## License
 

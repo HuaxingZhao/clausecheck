@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import { activateProSubscription, deactivateProSubscription } from "./entitlements";
+import { grantPayPerUseCredit } from "../db/scan-metrics";
 import {
   createTeam,
   findUserByEmail,
@@ -81,7 +82,12 @@ export async function syncCheckoutSession(session: Stripe.Checkout.Session) {
     });
   }
 
-  // pay_per_use — no persistent pro; handled per scan
+  // pay_per_use — grant one scan credit
+  if (session.mode === "payment" && priceId?.startsWith("pay_per_use:")) {
+    await grantPayPerUseCredit(email, session.id);
+    return upsertUser(email, { stripeCustomerId });
+  }
+
   return null;
 }
 
@@ -133,7 +139,7 @@ async function upsertPastDue(
 
 export async function getCheckoutSessionEmail(
   sessionId: string
-): Promise<{ email: string; pro: boolean } | null> {
+): Promise<{ email: string; pro: boolean; payPerUse: boolean } | null> {
   const stripe = getStripe();
   const session = await stripe.checkout.sessions.retrieve(sessionId, {
     expand: ["customer", "subscription"],
@@ -154,6 +160,7 @@ export async function getCheckoutSessionEmail(
 
   const priceId = session.metadata?.priceId;
   const pro = session.mode === "subscription" && isSubscriptionPriceId(priceId);
+  const payPerUse = session.mode === "payment" && !!priceId?.startsWith("pay_per_use:");
 
-  return { email, pro };
+  return { email, pro, payPerUse };
 }

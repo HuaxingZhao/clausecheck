@@ -11,4 +11,10 @@ tsconfig.tsbuildinfo
 .vercel
 test-zh-report.pdf
 data/app-db.json
+data/scan-metrics.json
+data/scan-count.json
+data/analytics-events.json
 data/*.rtf
+scripts/.verify-p0-cookies.txt
+scripts/.verify-p0-backup/
+scripts/.verify-p0-webhook.log

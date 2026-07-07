@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import type { LockedReviewItem, ScanResult } from "@/lib/types";
 import { lockedItemsToChanges } from "@/lib/review-to-changes";
 import { buildNegotiationEmail, downloadTextFile } from "@/lib/negotiation-email";
+import { trackEvent } from "@/lib/analytics";
 
 type RiskLevel = "high" | "medium" | "low";
 const RISK_LEVELS: RiskLevel[] = ["high", "medium", "low"];
@@ -74,6 +75,7 @@ export default function ReviewActionsBar({
       email,
       locale === "zh" ? "ClauseCheck-谈判邮件.txt" : "ClauseCheck-negotiation-email.txt"
     );
+    trackEvent("review_export_email", { count: changes.length, locale });
   }, [changes, acceptedItems, result, locale, sourceFile?.name]);
 
   const handleExportWorkbook = useCallback(async () => {
@@ -88,10 +90,7 @@ export default function ReviewActionsBar({
     try {
       const res = await fetch("/api/review/export", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-user-tier": isPro ? "pro" : "free",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           locale,
           contractText,
@@ -122,6 +121,7 @@ export default function ReviewActionsBar({
           : "ClauseCheck-Revision-Workbook.docx";
       a.click();
       URL.revokeObjectURL(url);
+      trackEvent("review_export_workbook", { count: changes.length, locale });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Export failed";
       alert(msg);

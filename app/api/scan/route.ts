@@ -3,8 +3,7 @@ import { extractTextFromBuffer } from "@/lib/extract-text";
 import { analyzeContractFirstPass, pipelineRefineNeeded } from "@/lib/analyze";
 import { DEFAULT_SCENARIO_ID, isValidScenarioId } from "@/lib/contract-scenarios";
 import { getDemoResult } from "@/lib/demo";
-import { getSessionFromRequest } from "@/lib/auth/session";
-import { resolveTierForRequest } from "@/lib/billing/entitlements";
+import { checkScanAccess, recordScanUsage } from "@/lib/server-quota";
 import type { ExtractedText } from "@/lib/types";
 
 export const maxDuration = 90;
@@ -20,35 +19,32 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "请上传文件" }, { status: 400 });
     }
 
-    // Resolve tier — prefer server session, then entitlements header sync
-    const session = await getSessionFromRequest(req);
-    const headerTier = req.headers.get("x-user-tier");
-    let tier = await resolveTierForRequest(session?.sub ?? null, headerTier);
-
-    // Also accept explicit tier from form (set after /api/entitlements check)
-    const formTier = form.get("tier") as string | null;
-    if (formTier === "pro" || formTier === "pay_per_use") {
-      tier = formTier;
-    }
-
-    // 读取 locale（由前端 FormData 传入）
     const locale = (form.get("locale") as string) === "en" ? "en" : "zh";
+    const access = await checkScanAccess(req, locale);
+    if (!access.allowed) {
+      return NextResponse.json(
+        { error: access.error, code: access.code },
+        { status: 403 }
+      );
+    }
+    const tier = access.tier;
+
     const rawScenario = String(form.get("scenario") ?? DEFAULT_SCENARIO_ID);
     const scenarioId = isValidScenarioId(rawScenario) ? rawScenario : DEFAULT_SCENARIO_ID;
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const mimeType = file.type || "application/octet-stream";
 
-    // 提取文本
     let extracted: ExtractedText;
     try {
       extracted = await extractTextFromBuffer(buffer, mimeType);
-    } catch (extractErr: any) {
+    } catch (extractErr: unknown) {
       console.error("Text extraction failed:", extractErr);
+      const message = extractErr instanceof Error ? extractErr.message : "Unknown error";
       const msg =
         locale === "en"
-          ? `Text extraction failed: ${extractErr.message || "Unknown error"}. If you uploaded a scanned (image-based) PDF, please convert it to a text-based PDF first.`
-          : `文本提取失败：${extractErr.message || "未知错误"}。如果您上传的是扫描件（图片型 PDF），请先转为文字型 PDF 再上传。`;
+          ? `Text extraction failed: ${message}. If you uploaded a scanned (image-based) PDF, please convert it to a text-based PDF first.`
+          : `文本提取失败：${message}。如果您上传的是扫描件（图片型 PDF），请先转为文字型 PDF 再上传。`;
       return NextResponse.json(
         { error: msg, code: "EXTRACTION_FAILED" },
         { status: 500 }
@@ -62,7 +58,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: msg }, { status: 400 });
     }
 
-    // 免费版：字数上限
     if (tier !== "pro" && tier !== "pay_per_use") {
       if (extracted.text.length > FREE_MAX_CHARS) {
         const msg =
@@ -76,8 +71,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // AI 分析 — 没有 Key 时返回 demo 结果
-    // ⚠️ 此行请勿改动：apiKey 从你本地 .env.local 的 OPENAI_API_KEY 读取
     const apiKey = process.env["OPENAI_API_KEY"];
     if (!apiKey) {
       return NextResponse.json(getDemoResult(locale));
@@ -92,6 +85,8 @@ export async function POST(req: NextRequest) {
       scenarioId,
     });
 
+    await recordScanUsage(req, access);
+
     const contractText = extracted.text.slice(0, maxChars);
     const refineNeeded = pipelineRefineNeeded(result, {
       deep,
@@ -103,12 +98,11 @@ export async function POST(req: NextRequest) {
       ...result,
       contractText,
       refineNeeded,
+      tier,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("scan error:", err);
-    return NextResponse.json(
-      { error: err.message || "扫描失败" },
-      { status: 500 }
-    );
+    const message = err instanceof Error ? err.message : "扫描失败";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

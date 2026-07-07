@@ -66,6 +66,12 @@ const LABELS = {
     strengths: "有利条款 (谈判筹码)",
     missing: "缺失的关键条款",
     actionItems: "优先行动项",
+    actionPlan: "优先行动摘要",
+    actionPlanHint: "签前必看：最坏情况、谈判重点、缺失条款与下一步",
+    negotiateTop: "谈判 TOP 3",
+    missingChips: "缺失关键条款",
+    nextSteps: "下一步",
+    supplementary: "补充详情",
     refineNotes: "交叉验证说明",
     disclaimer: "免责声明",
     disclaimerText:
@@ -112,6 +118,12 @@ const LABELS = {
     strengths: "Favorable Terms (Leverage)",
     missing: "Missing Standard Clauses",
     actionItems: "Priority Action Items",
+    actionPlan: "Action Plan (Priority)",
+    actionPlanHint: "Before signing: worst case, top negotiations, gaps, and next steps",
+    negotiateTop: "Negotiation TOP 3",
+    missingChips: "Missing Key Clauses",
+    nextSteps: "Next Steps",
+    supplementary: "Supplementary Detail",
     refineNotes: "Quality Review Notes",
     disclaimer: "Disclaimer",
     disclaimerText:
@@ -1036,9 +1048,45 @@ export async function generateReportPdf(
     w.drawText(L.dimHint, { size: 8, color: COLORS.muted, gap: 10 });
   }
 
-  w.drawSectionTitle(L.flags((normalized.flags ?? []).length));
-  for (const flag of normalized.flags ?? []) {
-    w.drawFlagCard(flag, L, flag.level || "medium");
+  const topNego = (normalized.negotiations ?? []).slice(0, 3);
+  const topActions = (normalized.actionItems ?? []).slice(0, 3);
+  const hasActionPlan =
+    normalized.worstCase ||
+    topNego.length > 0 ||
+    (normalized.missingClauses ?? []).length > 0 ||
+    topActions.length > 0;
+
+  if (hasActionPlan) {
+    w.drawSectionTitle(L.actionPlan);
+    w.drawText(L.actionPlanHint, { size: 8, color: COLORS.muted, gap: 8 });
+
+    if (normalized.worstCase) {
+      w.drawProseBlock(L.worstCase, normalized.worstCase, {
+        bg: COLORS.redBg,
+        titleColor: COLORS.accent,
+      });
+    }
+
+    if (topNego.length > 0) {
+      w.drawText(L.negotiateTop, { size: 10, bold: true, gap: 6 });
+      for (const n of topNego) {
+        w.drawNegotiationItem(n, L);
+      }
+    }
+
+    if (normalized.missingClauses?.length) {
+      w.drawText(L.missingChips, { size: 10, bold: true, gap: 6 });
+      for (const c of normalized.missingClauses) {
+        w.drawText(`• ${c.name}`, { size: 9, gap: 5, indent: 4 });
+      }
+    }
+
+    if (topActions.length > 0) {
+      w.drawText(L.nextSteps, { size: 10, bold: true, gap: 6 });
+      topActions.forEach((item, i) => {
+        w.drawText(`${i + 1}. ${item}`, { size: 9, gap: 6, indent: 4 });
+      });
+    }
   }
 
   if (normalized.timeTerms?.length) {
@@ -1051,18 +1099,28 @@ export async function generateReportPdf(
     }
   }
 
-  if (normalized.negotiations?.length) {
-    w.drawSectionTitle(L.negotiations);
-    for (const n of normalized.negotiations) {
-      w.drawNegotiationItem(n, L);
-    }
+  w.drawSectionTitle(L.flags((normalized.flags ?? []).length));
+  for (const flag of normalized.flags ?? []) {
+    w.drawFlagCard(flag, L, flag.level || "medium");
   }
 
-  if (normalized.worstCase) {
-    w.drawProseBlock(L.worstCase, normalized.worstCase, {
-      bg: COLORS.redBg,
-      titleColor: COLORS.accent,
-    });
+  const fullNego = normalized.negotiations ?? [];
+  const hasSupplementary =
+    fullNego.length > 3 ||
+    (normalized.strengths?.length ?? 0) > 0 ||
+    (normalized.missingClauses?.length ?? 0) > 0 ||
+    normalized.summary ||
+    normalized.refineNotes;
+
+  if (hasSupplementary) {
+    w.drawSectionTitle(L.supplementary);
+  }
+
+  if (fullNego.length > 3) {
+    w.drawText(L.negotiations, { size: 10, bold: true, gap: 6 });
+    for (const n of fullNego.slice(3)) {
+      w.drawNegotiationItem(n, L);
+    }
   }
 
   if (normalized.strengths?.length) {
@@ -1073,20 +1131,13 @@ export async function generateReportPdf(
   }
 
   if (normalized.missingClauses?.length) {
-    w.drawSectionTitle(L.missing);
+    w.drawText(L.missing, { size: 10, bold: true, gap: 6 });
     for (const c of normalized.missingClauses) {
       w.drawProseBlock(c.name, `${toText(c.importance)}\n\n${toText(c.suggestion)}`, {
         bg: COLORS.amberBg,
         size: 9,
       });
     }
-  }
-
-  if (normalized.actionItems?.length) {
-    w.drawSectionTitle(L.actionItems);
-    normalized.actionItems.forEach((item, i) => {
-      w.drawText(`${i + 1}. ${item}`, { size: 9, gap: 6, indent: 4 });
-    });
   }
 
   if (normalized.summary) {
