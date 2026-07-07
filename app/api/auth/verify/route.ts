@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { consumeMagicToken, findUserByEmail } from "@/lib/db/store";
+import { consumeMagicToken, findUserByEmail, upsertUser } from "@/lib/db/store";
 import { createSessionToken, sessionCookieOptions, SESSION_COOKIE } from "@/lib/auth/session";
 
 export async function GET(req: NextRequest) {
@@ -15,9 +15,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL(`/${locale}?auth=expired`, req.url));
   }
 
-  const user = await findUserByEmail(email);
+  let user = await findUserByEmail(email);
   if (!user) {
-    return NextResponse.redirect(new URL(`/${locale}?auth=invalid`, req.url));
+    user = await upsertUser(email, {});
   }
 
   const sessionToken = await createSessionToken({ sub: user.id, email: user.email });

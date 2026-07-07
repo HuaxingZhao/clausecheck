@@ -49,6 +49,6 @@ export async function POST(req: NextRequest) {
   const token = await createMagicToken(email);
   const link = `${base}/api/auth/verify?token=${token.token}&locale=${loc}`;
 
-  await sendMagicLinkEmail(email, link);
+  await sendMagicLinkEmail(email, link, loc);
   return NextResponse.json({ ok: true });
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createMagicToken, findUserByEmail } from "@/lib/db/store";
+import { createMagicToken, upsertUser } from "@/lib/db/store";
 import { sendMagicLinkEmail } from "@/lib/auth/email";
 
 export async function POST(req: NextRequest) {
@@ -9,18 +9,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Valid email required" }, { status: 400 });
     }
 
-    const user = await findUserByEmail(email);
-    if (!user) {
-      // Don't reveal whether account exists
-      return NextResponse.json({ ok: true });
-    }
-
-    const token = await createMagicToken(email);
     const loc = locale === "en" ? "en" : "zh";
+    const norm = email.trim().toLowerCase();
+
+    // Ensure user row exists so verify can issue a session (Pro still from entitlements).
+    await upsertUser(norm, {});
+
+    const token = await createMagicToken(norm);
     const base = process.env.NEXT_PUBLIC_URL || req.nextUrl.origin;
     const link = `${base}/api/auth/verify?token=${token.token}&locale=${loc}`;
 
-    await sendMagicLinkEmail(email, link);
+    await sendMagicLinkEmail(norm, link, loc);
     return NextResponse.json({ ok: true });
   } catch (err: unknown) {
     console.error("magic-link error:", err);

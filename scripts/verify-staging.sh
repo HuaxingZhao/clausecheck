@@ -51,6 +51,7 @@ main() {
   require_env OPENAI_API_KEY
   require_env DATABASE_URL
   require_env AUTH_SECRET
+  require_env RESEND_API_KEY
   require_env STRIPE_SECRET_KEY
   require_env STRIPE_WEBHOOK_SECRET
 

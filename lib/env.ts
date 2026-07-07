@@ -30,3 +30,11 @@ export function assertDatabaseConfigured(): void {
     throw new Error("DATABASE_URL is required in production");
   }
 }
+
+export function getResendApiKey(): string {
+  const key = process.env.RESEND_API_KEY;
+  if (isProduction() && !key) {
+    throw new Error("RESEND_API_KEY is required in production to send login emails");
+  }
+  return key || "";
+}

@@ -81,8 +81,8 @@ npm run deploy:prep
 | `STRIPE_SECRET_KEY` | Stripe Dashboard（生产用 `sk_live_`，测试用 `sk_test_`） | Production |
 | `STRIPE_WEBHOOK_SECRET` | 第 3 步创建 webhook 后填入 | Production |
 | `NEXT_PUBLIC_URL` | 暂定 `https://你的项目.vercel.app`，自定义域名后改 | Production |
-| `RESEND_API_KEY` | `.env.local` | Production |
-| `EMAIL_FROM` | 已验证域名发件人，如 `ClauseCheck <noreply@yourdomain.com>` | Production |
+| `RESEND_API_KEY` | `.env.local` | **Production 必填**（登录邮件） |
+| `EMAIL_FROM` | 已验证域名发件人 | Production |
 
 **CLI 批量导入**（已登录 `vercel link` 后）：
 
