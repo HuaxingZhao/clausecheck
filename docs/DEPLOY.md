@@ -171,7 +171,35 @@ BASE_URL=$BASE_URL npm run verify:p0
 ### Magic link 邮件发不出
 
 - Resend 需验证发件域名
-- `EMAIL_FROM` 必须使用已验证域名
+- `EMAIL_FROM` 必须使用已验证域名（**不能**长期用 `onboarding@resend.dev` — 该测试地址只能发到 Resend 注册邮箱）
+- 检查 Resend Dashboard → Logs 是否有 rejected / bounced
+- 若 API 返回 200 但收不到，优先改用 Google / Apple 登录（配置 OAuth 后）
+
+### Google / Apple 登录
+
+在 Vercel Production 配置：
+
+| 变量 | 说明 |
+|------|------|
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | [Google Cloud Console](https://console.cloud.google.com/) → OAuth 2.0 |
+| `APPLE_CLIENT_ID` | Apple Developer → Identifiers → **Services ID**（非 App ID） |
+| `APPLE_TEAM_ID` | Apple Developer → Membership 页面 Team ID |
+| `APPLE_KEY_ID` | Sign in with Apple 密钥 Key ID |
+| `APPLE_PRIVATE_KEY` | `.p8` 私钥全文（Vercel 中用 `\n` 换行） |
+
+**Redirect URI（必须完全一致）：**
+
+- Google: `https://你的域名/api/auth/google/callback`
+- Apple: `https://你的域名/api/auth/apple/callback`（Apple 使用 POST 回调）
+
+**Apple 配置步骤摘要：**
+
+1. Certificates, Identifiers & Profiles → Identifiers → 创建 **Services ID**，启用 Sign in with Apple
+2. 配置 Return URL 为上述 callback 地址
+3. Keys → 创建 Sign in with Apple 密钥，下载 `.p8` 文件
+4. 将 Services ID、Team ID、Key ID、私钥写入环境变量
+
+未配置 OAuth 时，登录弹窗仅显示邮箱 magic link。
 
 ### 登录后配额仍不对
 

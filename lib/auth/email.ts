@@ -49,6 +49,11 @@ export async function sendMagicLinkEmail(
   if (!res.ok) {
     const err = await res.text();
     console.error("Resend magic link error:", err);
+    if (from.includes("resend.dev")) {
+      console.error(
+        "Resend sandbox: onboarding@resend.dev only delivers to your Resend account email. Use a verified custom domain in EMAIL_FROM for production."
+      );
+    }
     throw new Error(`Email send failed: ${err}`);
   }
 }

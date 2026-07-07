@@ -174,9 +174,23 @@ export default function Home() {
       const authParam = params.get("auth");
       if (authParam === "expired") {
         setToast(t("auth.expired"));
+        setAuthOpen(true);
         window.history.replaceState({}, "", window.location.pathname);
       } else if (authParam === "invalid") {
         setToast(t("auth.invalid"));
+        setAuthOpen(true);
+        window.history.replaceState({}, "", window.location.pathname);
+      } else if (authParam === "success") {
+        setToast(t("auth.success"));
+        refreshAuth();
+        window.history.replaceState({}, "", window.location.pathname);
+      } else if (authParam === "oauth_failed") {
+        setToast(t("auth.oauth_failed"));
+        setAuthOpen(true);
+        window.history.replaceState({}, "", window.location.pathname);
+      } else if (authParam === "oauth_unavailable") {
+        setToast(t("auth.oauth_unavailable"));
+        setAuthOpen(true);
         window.history.replaceState({}, "", window.location.pathname);
       }
     }
@@ -445,12 +459,18 @@ export default function Home() {
                 {t("nav.reports")}
               </Link>
             )}
+            <Link href={`/${locale}/account`} className="hover:text-ink transition-colors">
+              {t("nav.account")}
+            </Link>
             <LangSwitch />
             {authUser ? (
               <div className="flex items-center gap-2">
-                <span className="hidden md:inline text-xs text-ink-muted max-w-[120px] truncate">
+                <Link
+                  href={`/${locale}/account`}
+                  className="hidden md:inline text-xs text-ink-muted max-w-[120px] truncate hover:text-ink transition-colors"
+                >
                   {authUser.email}
-                </span>
+                </Link>
                 {authUser.pro && (
                   <Link
                     href={`/${locale}/reports`}

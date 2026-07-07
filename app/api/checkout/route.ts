@@ -11,6 +11,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+import { getSessionFromRequest } from "@/lib/auth/session";
 
 /* ---------- Stripe 实例 ---------- */
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
@@ -75,13 +76,16 @@ export async function POST(req: NextRequest) {
 
     const cur = CURRENCIES[currencyKey];
     const base = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
+    const session = await getSessionFromRequest(req);
     const successPath = successUrl || `${base}?checkout=success`;
     const successWithSession = successPath.includes("?")
       ? `${successPath}&session_id={CHECKOUT_SESSION_ID}`
       : `${successPath}?checkout=success&session_id={CHECKOUT_SESSION_ID}`;
 
-    const session = await stripe.checkout.sessions.create({
+    const stripeSession = await stripe.checkout.sessions.create({
       mode: price.mode,
+      ...(session?.email ? { customer_email: session.email } : {}),
+      ...(session?.sub ? { client_reference_id: session.sub } : {}),
       line_items: [
         {
           price_data: {
@@ -100,7 +104,7 @@ export async function POST(req: NextRequest) {
       metadata: { priceId: compositeKey },
     });
 
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({ url: stripeSession.url });
   } catch (err: any) {
     console.error("Stripe checkout error:", err);
     return NextResponse.json(

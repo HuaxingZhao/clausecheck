@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { consumeMagicToken, findUserByEmail, upsertUser } from "@/lib/db/store";
-import { createSessionToken, sessionCookieOptions, SESSION_COOKIE } from "@/lib/auth/session";
+import { loginUserRedirect } from "@/lib/auth/login-redirect";
 
 export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get("token");
@@ -20,8 +20,5 @@ export async function GET(req: NextRequest) {
     user = await upsertUser(email, {});
   }
 
-  const sessionToken = await createSessionToken({ sub: user.id, email: user.email });
-  const res = NextResponse.redirect(new URL(`/${locale}/reports`, req.url));
-  res.cookies.set(SESSION_COOKIE, sessionToken, sessionCookieOptions());
-  return res;
+  return loginUserRedirect(user.email, locale, req);
 }

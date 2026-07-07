@@ -32,10 +32,8 @@ export async function POST(req: NextRequest) {
       authenticated: true,
     });
 
-    if (result.pro || result.payPerUse) {
-      const token = await createSessionToken({ sub: user.id, email: user.email });
-      res.cookies.set(SESSION_COOKIE, token, sessionCookieOptions());
-    }
+    const token = await createSessionToken({ sub: user.id, email: user.email });
+    res.cookies.set(SESSION_COOKIE, token, sessionCookieOptions());
 
     return res;
   } catch (err: unknown) {
