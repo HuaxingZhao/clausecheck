@@ -1,7 +1,7 @@
 import { SignJWT, jwtVerify } from "jose";
 import { getAuthSecret } from "../env";
 
-export type OAuthProvider = "google" | "apple";
+export type OAuthProvider = "google";
 
 function secret(): Uint8Array {
   return new TextEncoder().encode(getAuthSecret());
@@ -24,9 +24,8 @@ export async function verifyOAuthState(
   try {
     const { payload } = await jwtVerify(state, secret());
     const locale = payload.locale === "en" ? "en" : "zh";
-    const provider = payload.provider;
-    if (provider !== "google" && provider !== "apple") return null;
-    return { locale, provider };
+    if (payload.provider !== "google") return null;
+    return { locale, provider: "google" };
   } catch {
     return null;
   }

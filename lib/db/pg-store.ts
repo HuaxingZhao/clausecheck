@@ -61,6 +61,22 @@ export async function findUserById(id: string): Promise<User | null> {
   return rows[0] ? rowToUser(rows[0]) : null;
 }
 
+export async function getPasswordHash(email: string): Promise<string | null> {
+  await ensureSchema();
+  const rows = await getSql()`
+    SELECT password_hash FROM users WHERE email = ${normalizeEmail(email)} LIMIT 1`;
+  const hash = rows[0]?.password_hash;
+  return typeof hash === "string" && hash.length > 0 ? hash : null;
+}
+
+export async function setPasswordHash(email: string, passwordHash: string): Promise<void> {
+  await ensureSchema();
+  const key = normalizeEmail(email);
+  await getSql()`
+    UPDATE users SET password_hash = ${passwordHash}, updated_at = NOW()
+    WHERE email = ${key}`;
+}
+
 export async function upsertUser(
   email: string,
   patch: Partial<

@@ -21,10 +21,6 @@ KEYS=(
   EMAIL_FROM
   GOOGLE_CLIENT_ID
   GOOGLE_CLIENT_SECRET
-  APPLE_CLIENT_ID
-  APPLE_TEAM_ID
-  APPLE_KEY_ID
-  APPLE_PRIVATE_KEY
 )
 
 if ! command -v vercel >/dev/null 2>&1; then

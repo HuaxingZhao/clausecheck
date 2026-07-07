@@ -1414,8 +1414,17 @@ footer {
   @apply bg-accent/15 text-[#8B3A0E];
 }
 
-.auth-oauth-apple {
-  @apply bg-ink text-white border-ink hover:bg-ink/90;
+.auth-mode-tabs {
+  @apply flex rounded-xl border border-border overflow-hidden;
+}
+
+.auth-mode-tab {
+  @apply flex-1 py-2.5 text-sm font-sans font-medium text-ink-muted bg-white
+         hover:text-ink transition-colors;
+}
+
+.auth-mode-tab.active {
+  @apply bg-paper text-ink font-semibold;
 }
 
 .account-upgrade {

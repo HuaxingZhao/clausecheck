@@ -3,32 +3,45 @@
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 
+type AuthMode = "login" | "register";
+
 interface AuthPanelProps {
   open: boolean;
   onClose: () => void;
   locale: string;
   initialEmail?: string;
+  onSuccess?: () => void;
 }
 
-export default function AuthPanel({ open, onClose, locale, initialEmail = "" }: AuthPanelProps) {
+export default function AuthPanel({
+  open,
+  onClose,
+  locale,
+  initialEmail = "",
+  onSuccess,
+}: AuthPanelProps) {
   const t = useTranslations("auth");
+  const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState(initialEmail);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
       setEmail(initialEmail);
-      setSent(false);
+      setPassword("");
+      setConfirmPassword("");
       setError(null);
+      setMode("login");
     }
   }, [open, initialEmail]);
 
   if (!open) return null;
 
-  function startOAuth(provider: "google" | "apple") {
-    window.location.href = `/api/auth/${provider}?locale=${locale}`;
+  function startGoogleOAuth() {
+    window.location.href = `/api/auth/google?locale=${locale}`;
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -36,14 +49,23 @@ export default function AuthPanel({ open, onClose, locale, initialEmail = "" }: 
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/auth/magic-link", {
+      const endpoint = mode === "login" ? "/api/auth/login" : "/api/auth/register";
+      const body =
+        mode === "login"
+          ? { email, password, locale }
+          : { email, password, confirmPassword, locale };
+
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, locale }),
+        credentials: "include",
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
-      setSent(true);
+
+      onSuccess?.();
+      window.location.href = `/${locale}/account?auth=success`;
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed");
     } finally {
@@ -58,63 +80,101 @@ export default function AuthPanel({ open, onClose, locale, initialEmail = "" }: 
           ×
         </button>
         <h2 className="font-sans text-xl font-semibold mb-2">{t("title")}</h2>
-        <p className="text-sm text-ink-light mb-6">{t("subtitleShort")}</p>
+        <p className="text-sm text-ink-light mb-5">{t("subtitleShort")}</p>
 
-        {sent ? (
-          <div className="auth-sent">
-            <p className="text-sm text-ink font-medium">{t("sentTitle")}</p>
-            <p className="text-sm text-ink-light mt-2">{t("sentBody", { email })}</p>
-            <p className="text-xs text-ink-muted mt-3">{t("sentHint")}</p>
-            <button type="button" className="btn btn-primary w-full mt-6" onClick={onClose}>
-              {t("close")}
-            </button>
+        <div className="auth-social-stack">
+          <button
+            type="button"
+            className="auth-oauth-btn auth-oauth-google"
+            onClick={startGoogleOAuth}
+          >
+            <GoogleIcon />
+            {t("continueGoogle")}
+          </button>
+          <div className="auth-divider">
+            <span>{t("orDivider")}</span>
           </div>
-        ) : (
-          <>
-            <div className="auth-social-stack">
-              <button
-                type="button"
-                className="auth-oauth-btn auth-oauth-google"
-                onClick={() => startOAuth("google")}
-              >
-                <GoogleIcon />
-                {t("continueGoogle")}
-              </button>
-              <button
-                type="button"
-                className="auth-oauth-btn auth-oauth-apple"
-                onClick={() => startOAuth("apple")}
-              >
-                <AppleIcon />
-                {t("continueApple")}
-              </button>
-              <div className="auth-divider">
-                <span>{t("orDivider")}</span>
-              </div>
-            </div>
+        </div>
 
-            <form onSubmit={handleSubmit}>
-              <label className="block text-sm font-sans font-medium mb-2">{t("emailLabel")}</label>
+        <div className="auth-mode-tabs mb-4">
+          <button
+            type="button"
+            className={`auth-mode-tab ${mode === "login" ? "active" : ""}`}
+            onClick={() => {
+              setMode("login");
+              setError(null);
+            }}
+          >
+            {t("tabLogin")}
+          </button>
+          <button
+            type="button"
+            className={`auth-mode-tab ${mode === "register" ? "active" : ""}`}
+            onClick={() => {
+              setMode("register");
+              setError(null);
+            }}
+          >
+            {t("tabRegister")}
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <label className="block text-sm font-sans font-medium mb-2">{t("emailLabel")}</label>
+          <input
+            type="email"
+            required
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder={t("emailPlaceholder")}
+            className="auth-input"
+          />
+
+          <label className="block text-sm font-sans font-medium mb-2 mt-4">{t("passwordLabel")}</label>
+          <input
+            type="password"
+            required
+            autoComplete={mode === "login" ? "current-password" : "new-password"}
+            minLength={8}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={t("passwordPlaceholder")}
+            className="auth-input"
+          />
+
+          {mode === "register" && (
+            <>
+              <label className="block text-sm font-sans font-medium mb-2 mt-4">
+                {t("confirmPasswordLabel")}
+              </label>
               <input
-                type="email"
+                type="password"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t("emailPlaceholder")}
+                autoComplete="new-password"
+                minLength={8}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder={t("confirmPasswordPlaceholder")}
                 className="auth-input"
               />
-              {error && <p className="text-red-600 text-sm mt-3 font-sans">{error}</p>}
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn btn-primary w-full mt-6"
-              >
-                {loading ? t("sending") : t("sendLink")}
-              </button>
-              <p className="text-xs text-ink-muted mt-3 text-center font-sans">{t("emailHint")}</p>
-            </form>
-          </>
-        )}
+            </>
+          )}
+
+          {error && <p className="text-red-600 text-sm mt-3 font-sans">{error}</p>}
+
+          <button type="submit" disabled={loading} className="btn btn-primary w-full mt-6">
+            {loading
+              ? t("submitting")
+              : mode === "login"
+                ? t("loginButton")
+                : t("registerButton")}
+          </button>
+
+          <p className="text-xs text-ink-muted mt-3 text-center font-sans">
+            {mode === "login" ? t("loginHint") : t("registerHint")}
+          </p>
+        </form>
       </div>
     </div>
   );
@@ -139,14 +199,6 @@ function GoogleIcon() {
         fill="#EA4335"
         d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
       />
-    </svg>
-  );
-}
-
-function AppleIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
-      <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
     </svg>
   );
 }

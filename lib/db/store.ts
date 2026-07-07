@@ -18,9 +18,10 @@ type JsonDb = {
   magicTokens: MagicToken[];
   teams: Team[];
   teamInvites: TeamInvite[];
+  passwordHashes?: Record<string, string>;
 };
 
-const EMPTY: JsonDb = { users: [], reports: [], revisions: [], magicTokens: [], teams: [], teamInvites: [] };
+const EMPTY: JsonDb = { users: [], reports: [], revisions: [], magicTokens: [], teams: [], teamInvites: [], passwordHashes: {} };
 
 async function readJson(): Promise<JsonDb> {
   await mkdir(DATA_DIR, { recursive: true });
@@ -39,6 +40,7 @@ async function readJson(): Promise<JsonDb> {
       magicTokens: p.magicTokens ?? [],
       teams: p.teams ?? [],
       teamInvites: p.teamInvites ?? [],
+      passwordHashes: p.passwordHashes ?? {},
     };
   } catch {
     return { ...EMPTY };
@@ -68,6 +70,20 @@ export async function findUserByEmail(email: string) {
   if (usePostgres()) return pg.findUserByEmail(email);
   const db = await readJson();
   return db.users.find((u) => u.email === norm(email)) ?? null;
+}
+
+export async function getPasswordHash(email: string): Promise<string | null> {
+  if (usePostgres()) return pg.getPasswordHash(email);
+  const db = await readJson();
+  return db.passwordHashes?.[norm(email)] ?? null;
+}
+
+export async function setPasswordHash(email: string, passwordHash: string): Promise<void> {
+  if (usePostgres()) return pg.setPasswordHash(email, passwordHash);
+  const db = await readJson();
+  const key = norm(email);
+  db.passwordHashes = { ...(db.passwordHashes ?? {}), [key]: passwordHash };
+  await writeJson(db);
 }
 
 export async function findUserById(id: string) {

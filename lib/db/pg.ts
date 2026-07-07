@@ -89,6 +89,7 @@ export async function ensureSchema() {
         )`;
       await db`ALTER TABLE revisions ADD COLUMN IF NOT EXISTS original_file TEXT`;
       await db`ALTER TABLE revisions ADD COLUMN IF NOT EXISTS original_file_type TEXT`;
+      await db`ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT`;
       await db`
         CREATE TABLE IF NOT EXISTS app_metrics (
           key TEXT PRIMARY KEY,

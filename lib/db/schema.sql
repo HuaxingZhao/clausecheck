@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS users (
   pro_until TIMESTAMPTZ,
   team_id TEXT REFERENCES teams(id),
   team_role TEXT,
+  password_hash TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
