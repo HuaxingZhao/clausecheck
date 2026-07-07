@@ -3,12 +3,6 @@
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 
-interface AuthProviders {
-  email: boolean;
-  google: boolean;
-  apple: boolean;
-}
-
 interface AuthPanelProps {
   open: boolean;
   onClose: () => void;
@@ -22,27 +16,16 @@ export default function AuthPanel({ open, onClose, locale, initialEmail = "" }: 
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [providers, setProviders] = useState<AuthProviders>({
-    email: true,
-    google: false,
-    apple: false,
-  });
 
   useEffect(() => {
     if (open) {
       setEmail(initialEmail);
       setSent(false);
       setError(null);
-      fetch("/api/auth/providers")
-        .then((r) => r.json())
-        .then((data) => setProviders(data))
-        .catch(() => {});
     }
   }, [open, initialEmail]);
 
   if (!open) return null;
-
-  const hasSocial = providers.google || providers.apple;
 
   function startOAuth(provider: "google" | "apple") {
     window.location.href = `/api/auth/${provider}?locale=${locale}`;
@@ -75,7 +58,7 @@ export default function AuthPanel({ open, onClose, locale, initialEmail = "" }: 
           ×
         </button>
         <h2 className="font-sans text-xl font-semibold mb-2">{t("title")}</h2>
-        <p className="text-sm text-ink-light mb-6">{t("subtitle")}</p>
+        <p className="text-sm text-ink-light mb-6">{t("subtitleShort")}</p>
 
         {sent ? (
           <div className="auth-sent">
@@ -88,33 +71,27 @@ export default function AuthPanel({ open, onClose, locale, initialEmail = "" }: 
           </div>
         ) : (
           <>
-            {hasSocial && (
-              <div className="auth-social-stack">
-                {providers.google && (
-                  <button
-                    type="button"
-                    className="auth-oauth-btn auth-oauth-google"
-                    onClick={() => startOAuth("google")}
-                  >
-                    <GoogleIcon />
-                    {t("continueGoogle")}
-                  </button>
-                )}
-                {providers.apple && (
-                  <button
-                    type="button"
-                    className="auth-oauth-btn auth-oauth-apple"
-                    onClick={() => startOAuth("apple")}
-                  >
-                    <AppleIcon />
-                    {t("continueApple")}
-                  </button>
-                )}
-                <div className="auth-divider">
-                  <span>{t("orDivider")}</span>
-                </div>
+            <div className="auth-social-stack">
+              <button
+                type="button"
+                className="auth-oauth-btn auth-oauth-google"
+                onClick={() => startOAuth("google")}
+              >
+                <GoogleIcon />
+                {t("continueGoogle")}
+              </button>
+              <button
+                type="button"
+                className="auth-oauth-btn auth-oauth-apple"
+                onClick={() => startOAuth("apple")}
+              >
+                <AppleIcon />
+                {t("continueApple")}
+              </button>
+              <div className="auth-divider">
+                <span>{t("orDivider")}</span>
               </div>
-            )}
+            </div>
 
             <form onSubmit={handleSubmit}>
               <label className="block text-sm font-sans font-medium mb-2">{t("emailLabel")}</label>
@@ -134,6 +111,7 @@ export default function AuthPanel({ open, onClose, locale, initialEmail = "" }: 
               >
                 {loading ? t("sending") : t("sendLink")}
               </button>
+              <p className="text-xs text-ink-muted mt-3 text-center font-sans">{t("emailHint")}</p>
             </form>
           </>
         )}

@@ -265,13 +265,15 @@
   },
   "auth": {
     "signIn": "Sign in",
+    "signInRegister": "Sign in / Register",
     "restoreAccess": "Restore access",
     "logout": "Log out",
-    "title": "Sign in / Create account",
+    "title": "Sign in / Register",
     "subtitle": "Create a free account to scan contracts. Upgrade to Pro for saved reports and deep analysis. Sign in with email, Google, or Apple.",
+    "subtitleShort": "Free to register and scan. One-click sign-in with Google, Apple, or email.",
     "emailLabel": "Email",
     "emailPlaceholder": "you@company.com",
-    "sendLink": "Send magic link",
+    "sendLink": "Email sign-in (send link)",
     "sending": "Sending…",
     "sentTitle": "Check your inbox",
     "sentBody": "We sent a sign-in link to {email}. It expires in 30 minutes.",
@@ -286,6 +288,7 @@
     "oauth_failed": "Social sign-in failed. Try again or use email.",
     "oauth_unavailable": "Social sign-in is not configured yet. Use email instead.",
     "loggedOut": "Signed out.",
+    "emailHint": "We'll email you a one-time sign-in link — no password needed.",
     "signInToSave": "Sign in to save this report to your history."
   },
   "account": {

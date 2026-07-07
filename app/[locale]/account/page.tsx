@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import AuthPanel from "../components/auth-panel";
+import SiteNav from "../components/site-nav";
 import type { ServerQuotaStatus } from "@/lib/quota";
 
 interface AuthMe {
@@ -127,23 +128,17 @@ export default function AccountPage() {
         </div>
       )}
 
-      <nav className="border-b border-border bg-paper/80 backdrop-blur sticky top-0 z-40">
-        <div className="nav-inner">
-          <Link href={`/${locale}`} className="font-sans font-semibold text-lg tracking-tight">
-            ClauseCheck
-          </Link>
-          <div className="flex items-center gap-4 text-sm font-sans text-ink-light">
-            <Link href={`/${locale}`} className="hover:text-ink transition-colors">
-              {t("backScan")}
-            </Link>
-            {auth?.authenticated && (
-              <button onClick={handleLogout} className="hover:text-ink transition-colors">
-                {tAuth("logout")}
-              </button>
-            )}
-          </div>
-        </div>
-      </nav>
+      <SiteNav
+        locale={locale}
+        authUser={
+          auth?.authenticated && auth.email
+            ? { email: auth.email, pro: !!auth.pro }
+            : null
+        }
+        showProBadge={!!auth?.pro}
+        onSignIn={() => setAuthOpen(true)}
+        onLogout={handleLogout}
+      />
 
       <main className="max-w-2xl mx-auto px-6 py-16">
         <div className="section-label">{t("label")}</div>
@@ -153,12 +148,7 @@ export default function AccountPage() {
         {loading && <p className="text-sm text-ink-muted font-sans">{t("loading")}</p>}
 
         {!loading && !auth?.authenticated && (
-          <div className="account-card">
-            <p className="text-ink-light">{t("signInPrompt")}</p>
-            <button className="btn btn-primary mt-6" onClick={() => setAuthOpen(true)}>
-              {tAuth("signIn")}
-            </button>
-          </div>
+          <p className="text-sm text-ink-muted font-sans">{t("signInPrompt")}</p>
         )}
 
         {!loading && auth?.authenticated && (

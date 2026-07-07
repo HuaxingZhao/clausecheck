@@ -28,17 +28,27 @@ export async function generateMetadata({
 }
 
 function Footer({ locale }: { locale: string }) {
+  const isZh = locale === "zh";
   return (
     <footer className="border-t border-gray-200 mt-20 py-8 text-center text-sm text-gray-500">
-      <nav className="flex justify-center gap-6 mb-4">
+      <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2 mb-4 px-4">
+        <Link href={`/${locale}#how`} className="hover:text-gray-700 transition-colors">
+          {isZh ? "怎么用" : "How it works"}
+        </Link>
+        <Link href={`/${locale}#pricing`} className="hover:text-gray-700 transition-colors">
+          {isZh ? "定价" : "Pricing"}
+        </Link>
+        <Link href={`/${locale}#faq`} className="hover:text-gray-700 transition-colors">
+          FAQ
+        </Link>
         <Link href={`/${locale}/privacy`} className="hover:text-gray-700 transition-colors">
-          {locale === "zh" ? "隐私政策" : "Privacy"}
+          {isZh ? "隐私政策" : "Privacy"}
         </Link>
         <Link href={`/${locale}/terms`} className="hover:text-gray-700 transition-colors">
-          {locale === "zh" ? "用户协议" : "Terms"}
+          {isZh ? "用户协议" : "Terms"}
         </Link>
         <Link href={`/${locale}/about`} className="hover:text-gray-700 transition-colors">
-          {locale === "zh" ? "关于" : "About"}
+          {isZh ? "关于" : "About"}
         </Link>
       </nav>
       <p>

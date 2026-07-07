@@ -10,7 +10,7 @@ import type { ContractScenarioId } from "@/lib/contract-scenarios";
 import { DEFAULT_SCENARIO_ID } from "@/lib/contract-scenarios";
 import ResultsSection from "./components/results-section";
 import PricingSection from "./components/pricing-section";
-import LangSwitch from "./components/lang-switch";
+import SiteNav from "./components/site-nav";
 import AuthPanel from "./components/auth-panel";
 import ScenarioPicker from "./components/scenario-picker";
 
@@ -418,98 +418,16 @@ export default function Home() {
   const riskCls = result ? scoreCls(result.scoreText) : "";
   const isProUser = !!(authUser?.pro || (pro && !authUser) || pro);
   const showProBadge = authUser?.pro || pro;
-  const needsRestoreAccess = pro && !authUser;
 
   return (
     <>
-      <nav className="border-b border-border bg-paper/80 backdrop-blur sticky top-0 z-40">
-        <div className="nav-inner">
-          <a href="#" className="font-sans font-semibold text-lg tracking-tight">
-            {t("nav.brand")}
-            {showProBadge && (
-              <span className="ml-2.5 inline-flex items-center gap-1 text-xs bg-accent/15 text-[#8B3A0E] px-2 py-0.5 rounded-full font-sans font-semibold align-middle">
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                {t("nav.proBadge")}
-              </span>
-            )}
-          </a>
-          <div className="flex items-center gap-6 text-sm font-sans text-ink-light">
-            <button onClick={() => scrollTo("how")} className="hover:text-ink transition-colors">
-              {t("nav.how")}
-            </button>
-            <button onClick={() => scrollTo("pricing")} className="hover:text-ink transition-colors">
-              {t("nav.pricing")}
-            </button>
-            <button onClick={() => scrollTo("faq")} className="hover:text-ink transition-colors">
-              {t("nav.faq")}
-            </button>
-            {authUser?.pro && (
-              <Link href={`/${locale}/reports`} className="hover:text-ink transition-colors">
-                {t("nav.reports")}
-              </Link>
-            )}
-            <Link href={`/${locale}/account`} className="hover:text-ink transition-colors">
-              {t("nav.account")}
-            </Link>
-            <LangSwitch />
-            {authUser ? (
-              <div className="flex items-center gap-2">
-                <Link
-                  href={`/${locale}/account`}
-                  className="hidden md:inline text-xs text-ink-muted max-w-[120px] truncate hover:text-ink transition-colors"
-                >
-                  {authUser.email}
-                </Link>
-                {authUser.pro && (
-                  <Link
-                    href={`/${locale}/reports`}
-                    className="md:hidden text-xs hover:text-ink transition-colors"
-                  >
-                    {t("nav.reports")}
-                  </Link>
-                )}
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="text-xs hover:text-ink transition-colors"
-                >
-                  {t("auth.logout")}
-                </button>
-              </div>
-            ) : needsRestoreAccess ? (
-              <button
-                type="button"
-                onClick={() => setAuthOpen(true)}
-                className="text-xs text-accent hover:text-accent-dark transition-colors font-medium"
-              >
-                {t("auth.restoreAccess")}
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setAuthOpen(true)}
-                className="text-xs hover:text-ink transition-colors"
-              >
-                {t("auth.signIn")}
-              </button>
-            )}
-            <button onClick={() => scrollTo("upload")} className="btn btn-primary text-xs">
-              {t("nav.startScan")}
-            </button>
-          </div>
-        </div>
-      </nav>
+      <SiteNav
+        locale={locale}
+        authUser={authUser}
+        showProBadge={showProBadge}
+        onSignIn={() => setAuthOpen(true)}
+        onLogout={handleLogout}
+      />
 
       <section className="py-24 md:py-32 text-center px-6">
         <div className="max-w-3xl mx-auto">
