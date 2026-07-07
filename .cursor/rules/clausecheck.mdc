@@ -14,6 +14,19 @@ Bilingual (EN/ZH) Next.js contract risk scanner. **Not legal advice** — decisi
   → 保存分析报告（PDF）→ 合同审阅（左原文/右建议）→ 勾选采纳 → 谈判邮件 / 修订对照稿 Word
 ```
 
+**账户**：任意用户可注册/登录（Google 或邮箱密码）→ `/account` 查看额度与升级 Pro。顶栏仅保留语言 + 登录；怎么用/定价/FAQ 在页脚。
+
+## Auth (2026-07-07)
+
+| 方式 | 说明 |
+|------|------|
+| 邮箱+密码 | `POST /api/auth/login` / `register`；`users.password_hash`（scrypt） |
+| Google OAuth | `/api/auth/google`（Vercel 已配） |
+| Apple | **已移除** |
+| Magic link | 仅团队邀请内部；主 UI 不用 |
+
+生产：`www.clausecheck.cc` · HEAD `1a28f12` · 详见 `docs/PROJECT-STATUS.md`
+
 ## Product principles
 
 1. **Scenario-first**: 18 场景入口；专业化靠 `contract-scenarios.ts` Prompt + `scenario-knowledge.ts` RAG，不是换模型。

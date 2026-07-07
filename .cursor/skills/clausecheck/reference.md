@@ -14,6 +14,10 @@
 | Route | Purpose |
 |-------|---------|
 | `POST /api/scan` | Upload + `scenario` → `analyzeContract` |
+| `POST /api/auth/login` | Email + password → session cookie |
+| `POST /api/auth/register` | Register or set password on existing email |
+| `GET /api/auth/google` | Google OAuth |
+| `GET /api/auth/me` | Session + tier |
 | `POST /api/review/export` | Pro / pay_per_use: revision workbook DOCX |
 | `POST /api/revise/final` | Legacy: patch original file |
 | `POST /api/export/pdf` | Risk report PDF |
@@ -84,6 +88,10 @@ resolveContractReview
 - Review: hero header, level accept checkboxes, no copy email
 - Click red mark body → jump to suggestion
 - Scroll: keep 82vh internal (reverted full-page scroll experiment)
+- **P0 production**: server quota, Postgres, Stripe webhook, `verify:p0` / `verify:staging`
+- **Auth v2**: email/password login, Google OAuth, `/account` page, simplified `site-nav`
+- **Removed**: Apple sign-in; magic link removed from main login UI
+- **Production**: `www.clausecheck.cc`, HEAD `1a28f12` (2026-07-07) — see `docs/PROJECT-STATUS.md`
 
 ## Future direction
 
