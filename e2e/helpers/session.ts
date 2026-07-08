@@ -73,3 +73,22 @@ export async function resolveSmokeSessionCookie(): Promise<string | null> {
 export function cookieHeader(cookie: string): Record<string, string> {
   return { Cookie: cookie };
 }
+
+/** 探测 cookie 是否被目标 BASE_URL 接受；本地 JWT 打生产时会返回 null 并 skip */
+export async function resolveWorkingSessionCookie(
+  request: { get: (url: string, options?: { headers?: Record<string, string> }) => Promise<{ status: () => number }> }
+): Promise<string | null> {
+  const cookie = await resolveSmokeSessionCookie();
+  if (!cookie) return null;
+
+  const probe = await request.get("/api/user/credits", {
+    headers: cookieHeader(cookie),
+  });
+
+  if (probe.status() === 200) return cookie;
+
+  // 未显式提供 SMOKE_SESSION_COOKIE 时，本地签发的 cookie 在生产环境无效 → 跳过
+  if (!process.env.SMOKE_SESSION_COOKIE?.trim()) return null;
+
+  return cookie;
+}

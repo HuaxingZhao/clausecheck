@@ -5,24 +5,31 @@
  *   npm run test:smoke
  *   BASE_URL=https://preview.example.com npm run test:smoke
  *
- * 可选环境变量（带鉴权用例）：
- *   SMOKE_SESSION_COOKIE  — 生产 session（cc_session=… 或裸 JWT）
- *   SMOKE_ORDER_ID          — 当前用户拥有的订单 UUID（P0-2 正向用例）
- *   SMOKE_FOREIGN_ORDER_ID  — 他人订单 UUID（默认随机 UUID，期望 404）
- *   SMOKE_USER_ID / SMOKE_USER_EMAIL — 本地 AUTH_SECRET 签发 JWT 时使用
+ * 带鉴权用例（生产必配其一）：
+ *   SMOKE_SESSION_COOKIE  — 浏览器登录后复制 cc_session=…
+ *   SMOKE_ORDER_ID        — 当前用户订单 UUID（P0-2 正向用例，可选）
  */
-import { test, expect } from "@playwright/test";
+import { test, expect, request as playwrightRequest } from "@playwright/test";
 import {
   cookieHeader,
-  resolveSmokeSessionCookie,
+  resolveWorkingSessionCookie,
 } from "./helpers/session";
 
 const INVALID_ORDER_ID = "not-a-valid-uuid";
-/** 合法 UUID，通常不存在或不属于当前用户 */
 const FOREIGN_ORDER_ID =
   process.env.SMOKE_FOREIGN_ORDER_ID?.trim() ||
   "11111111-1111-4111-8111-111111111111";
 const OWN_ORDER_ID = process.env.SMOKE_ORDER_ID?.trim() || "";
+
+let sessionCookie: string | null = null;
+
+test.beforeAll(async () => {
+  const baseURL =
+    process.env.BASE_URL?.replace(/\/$/, "") ?? "https://www.clausecheck.cc";
+  const ctx = await playwrightRequest.newContext({ baseURL });
+  sessionCookie = await resolveWorkingSessionCookie(ctx);
+  await ctx.dispose();
+});
 
 test.describe("生产环境冒烟测试", () => {
   test.describe("Health Check", () => {
@@ -39,11 +46,13 @@ test.describe("生产环境冒烟测试", () => {
 
   test.describe("Credits API (P0-1)", () => {
     test("带有效 session → { balance: number }", async ({ request }) => {
-      const cookie = await resolveSmokeSessionCookie();
-      test.skip(!cookie, "需要 SMOKE_SESSION_COOKIE 或本地 AUTH_SECRET 以签发测试 session");
+      test.skip(
+        !sessionCookie,
+        "需要 SMOKE_SESSION_COOKIE（浏览器登录 www.clausecheck.cc 后复制 cc_session）"
+      );
 
       const res = await request.get("/api/user/credits", {
-        headers: cookieHeader(cookie!),
+        headers: cookieHeader(sessionCookie!),
       });
       expect(res.status()).toBe(200);
 
@@ -59,14 +68,8 @@ test.describe("生产环境冒烟测试", () => {
   });
 
   test.describe("Order Status API (P0-2)", () => {
-    let sessionCookie: string | null;
-
-    test.beforeAll(async () => {
-      sessionCookie = await resolveSmokeSessionCookie();
-    });
-
     test("带有效 session + 合法 orderId → { status: string }", async ({ request }) => {
-      test.skip(!sessionCookie, "需要有效 session");
+      test.skip(!sessionCookie, "需要 SMOKE_SESSION_COOKIE");
       test.skip(!OWN_ORDER_ID, "需要 SMOKE_ORDER_ID（当前用户拥有的订单 UUID）");
 
       const res = await request.get(`/api/orders/${OWN_ORDER_ID}/status`, {
@@ -80,17 +83,16 @@ test.describe("生产环境冒烟测试", () => {
     });
 
     test("非法 orderId 格式 → 4xx", async ({ request }) => {
-      test.skip(!sessionCookie, "需要有效 session");
+      test.skip(!sessionCookie, "需要 SMOKE_SESSION_COOKIE");
 
       const res = await request.get(`/api/orders/${INVALID_ORDER_ID}/status`, {
         headers: cookieHeader(sessionCookie!),
       });
-      // 路由当前对非法 UUID 返回 404；规范期望 400，二者均视为拒绝
       expect([400, 404]).toContain(res.status());
     });
 
     test("他人订单 → 404", async ({ request }) => {
-      test.skip(!sessionCookie, "需要有效 session");
+      test.skip(!sessionCookie, "需要 SMOKE_SESSION_COOKIE");
 
       const res = await request.get(`/api/orders/${FOREIGN_ORDER_ID}/status`, {
         headers: cookieHeader(sessionCookie!),
@@ -107,25 +109,20 @@ test.describe("生产环境冒烟测试", () => {
 
   test.describe("Dashboard Redirect (P0-3)", () => {
     test("/zh/dashboard → 重定向到 /zh/account", async ({ request }) => {
-      const res = await request.get("/zh/dashboard", { maxRedirects: 0 });
-      expect([307, 308]).toContain(res.status());
-
-      const location = res.headers()["location"] ?? "";
-      // Next.js redirect 可能返回相对或绝对 URL
-      expect(location).toMatch(/\/zh\/account\/?(\?.*)?$/);
+      const res = await request.get("/zh/dashboard", { maxRedirects: 5 });
+      expect(res.ok()).toBe(true);
+      expect(new URL(res.url()).pathname).toMatch(/^\/zh\/account\/?$/);
     });
 
-    test("/en/dashboard → 重定向到 /en/account", async ({ request }) => {
-      const res = await request.get("/en/dashboard", { maxRedirects: 0 });
-      expect([307, 308]).toContain(res.status());
-
-      const location = res.headers()["location"] ?? "";
-      expect(location).toMatch(/\/en\/account\/?(\?.*)?$/);
+    test("/en/dashboard → 重定向到 /account", async ({ request }) => {
+      // localePrefix: as-needed — 英文默认不带 /en 前缀
+      const res = await request.get("/en/dashboard", { maxRedirects: 5 });
+      expect(res.ok()).toBe(true);
+      expect(new URL(res.url()).pathname).toMatch(/^\/account\/?$/);
     });
   });
 
   test.describe("Admin Access Control", () => {
-    // 未登录访问运营后台应被拦截（重定向或 403）
     test("未登录访问 /admin/dashboard → 重定向或 403", async ({ request }) => {
       const res = await request.get("/admin/dashboard", { maxRedirects: 0 });
       const status = res.status();
