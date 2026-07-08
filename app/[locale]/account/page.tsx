@@ -128,11 +128,15 @@ export default function AccountPage() {
 
   const isZh = locale === "zh";
   const tierLabel =
-    auth?.pro || auth?.tier === "pro"
-      ? t("planPro")
-      : auth?.tier === "pay_per_use"
-        ? t("planPayPerUse")
-        : t("planFree");
+    auth?.tier === "team"
+      ? t("planTeam")
+      : auth?.pro || auth?.tier === "pro"
+        ? t("planPro")
+        : auth?.tier === "pay_per_use"
+          ? t("planAddOn")
+          : t("planFree");
+
+  const showAddOnCta = quota != null && quota.remaining === 0;
 
   return (
     <>
@@ -198,8 +202,8 @@ export default function AccountPage() {
                     <dd>
                       {quota.inTrialPeriod
                         ? t("trialActive")
-                        : quota.remaining === -1
-                          ? t("unlimited")
+                        : quota.remaining === 0
+                          ? t("quotaExhausted")
                           : t("scansRemaining", { count: quota.remaining })}
                     </dd>
                   </div>
@@ -225,12 +229,14 @@ export default function AccountPage() {
                   >
                     {t("upgradePro")}
                   </Link>
-                  <Link
-                    href={`/${locale}/pricing?plan=boost`}
-                    className="btn btn-outline flex-1 text-center"
-                  >
-                    {t("upgradePayPerUse")}
-                  </Link>
+                  {showAddOnCta && (
+                    <Link
+                      href={`/${locale}/pricing?plan=boost`}
+                      className="btn btn-outline flex-1 text-center"
+                    >
+                      {t("upgradeAddOn")}
+                    </Link>
+                  )}
                 </div>
                 <Link
                   href={`/${locale}/pricing`}

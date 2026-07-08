@@ -11,15 +11,15 @@ export interface TopupPlanConfig {
 export const TOPUP_PLANS: Record<TopupPlan, TopupPlanConfig> = {
   pro: {
     plan: "pro",
-    amountCents: 4900,
-    creditsAmount: 30,
-    label: "专业版 · 30 份额度",
+    amountCents: 19900,
+    creditsAmount: 10,
+    label: "专业版 · 10 份/周期",
   },
   boost: {
     plan: "boost",
-    amountCents: 2900,
+    amountCents: 3900,
     creditsAmount: 1,
-    label: "单次加油包 · 1 份额度",
+    label: "加油包 · +1 份（当前周期）",
   },
 };
 

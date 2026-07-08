@@ -312,18 +312,19 @@
     "profile": "账户信息",
     "email": "邮箱",
     "plan": "当前方案",
-    "planFree": "免费版",
+    "planFree": "试用版",
     "planPro": "专业版",
-    "planPayPerUse": "按次付费",
-    "proUntil": "专业版有效期至",
-    "scanQuota": "扫描额度",
-    "trialActive": "试用期内不限次数",
-    "unlimited": "不限次数",
-    "scansRemaining": "本月剩余 {count} 次",
-    "upgradeTitle": "升级专业版",
-    "upgradeBody": "解锁深度分析、报告历史保存、修订对照稿导出等专业功能。",
-    "upgradePro": "订阅专业版",
-    "upgradePayPerUse": "按次购买",
+    "planTeam": "团队版",
+    "planAddOn": "加油包额度",
+    "proUntil": "订阅续期日",
+    "scanQuota": "周期配额",
+    "trialActive": "试用配额生效中",
+    "scansRemaining": "本计费周期剩余 {count} 份",
+    "quotaExhausted": "本周期配额已用尽 — 可在定价页购买加油包",
+    "upgradeTitle": "升级方案",
+    "upgradeBody": "专业版与团队版含 Word 导出、优先队列与云端报告历史。",
+    "upgradePro": "查看专业版 / 团队版",
+    "upgradeAddOn": "购买加油包",
     "upgradeSuccess": "升级成功！专业版已激活。",
     "viewPricing": "查看全部价格方案",
     "proFeatures": "专业版功能",
@@ -677,108 +678,72 @@
   },
   "pricing": {
     "label": "定价",
-    "title": "按用量选择方案",
-    "subtitle": "注册即送 3 份深度审查 · 按需升级",
+    "title": "面向法律专业人士的分级方案",
+    "subtitle": "配额在订阅周年日零点重置（非自然月）",
     "disclaimer": "所有方案均提供 AI 决策支持，不构成法律意见。重大合同仍建议咨询执业律师。",
-    "deliverablesTitle": "每份审查均包含",
-    "deliverables": [
-      "18 种场景专业审查",
-      "决策摘要（签 / 改后签 / 不建议签）",
-      "风险评分与条款标注",
-      "逐条审阅与修改建议",
-      "谈判优先级排序"
-    ],
-    "footnote": "加油包额度永久有效直至使用。支付完成后额度自动到账。",
-    "matrix": {
-      "title": "功能对比",
-      "featureCol": "功能",
-      "plans": {
-        "experience": "体验版",
-        "pro": "专业版",
-        "boost": "加油包"
-      },
-      "rows": [
-        {
-          "label": "审查份数",
-          "experience": "注册送 3 份",
-          "pro": "30 份/月",
-          "boost": "1 份/次"
-        },
-        {
-          "label": "合同长度上限",
-          "experience": "2 万字",
-          "pro": "8 万字",
-          "boost": "8 万字"
-        },
-        {
-          "label": "AI 分析深度",
-          "experience": "深度审查",
-          "pro": "深度审查",
-          "boost": "深度审查"
-        },
-        {
-          "label": "Word 修订稿导出",
-          "experience": "—",
-          "pro": "✓",
-          "boost": "✓"
-        },
-        {
-          "label": "云端报告历史",
-          "experience": "—",
-          "pro": "✓",
-          "boost": "—"
-        }
-      ]
-    },
-    "experience": {
-      "name": "体验版",
-      "price": "¥0",
-      "period": "",
-      "audience": "新用户试用",
-      "note": "注册即可开始",
+    "billingToggle": "计费周期",
+    "currencyToggle": "货币",
+    "annual": "年付",
+    "monthly": "月付",
+    "resetNote": "配额在订阅周年日零点重置。",
+    "processing": "处理中…",
+    "footnote": "加油包仅对当前计费周期有效。年付较月付节省 15%。",
+    "trial": {
+      "name": "试用版",
+      "audience": "验证需求",
+      "quota": "1 份合同 / 计费周期",
       "highlights": [
-        "🎁 注册即送3份深度审查",
-        "✅ 单次最多 2 万字合同",
-        "✅ 完整风险报告与修改建议",
-        "⏤ 不含 Word 修订稿导出"
+        "✅ 基础 AI 风险审查",
+        "✅ 决策摘要与条款标注",
+        "⏤ 不可导出 Word"
       ],
       "cta": "免费开始"
     },
     "pro": {
       "name": "专业版",
       "badge": "推荐",
-      "price": "¥49",
-      "period": "/月",
-      "audience": "法务、创业者、频繁审合同",
-      "note": "按月订阅 · 微信支付",
+      "audience": "独立律师、顾问",
+      "quota": "10 份合同 / 计费周期",
       "highlights": [
-        "✅ 每月 30 份深度审查",
-        "✅ 8 万字上限",
-        "✅ Word 修订稿导出",
+        "✅ Word 批注导出",
+        "✅ 优先审查队列",
         "✅ 云端报告历史"
       ],
       "cta": "立即订阅"
     },
-    "boost": {
-      "name": "⚡ 单次加油包",
-      "badge": "按次",
-      "price": "¥29",
-      "period": "/份",
-      "audience": "偶尔一份重要合同",
-      "note": "不订阅 · 永久有效",
+    "team": {
+      "name": "团队版",
+      "audience": "小型律所、法务团队",
+      "quota": "30 份合同 / 计费周期（共享）",
       "highlights": [
-        "✅ 永久有效，用完再买",
-        "✅ 8 万字深度审查",
-        "✅ Word 修订稿导出"
+        "✅ 团队共享配额",
+        "✅ 管理后台",
+        "✅ 全员 Word 导出"
       ],
-      "cta": "购买加油包"
+      "cta": "立即订阅"
     },
-    "subscribed": {
-      "title": "您已订阅专业版",
-      "desc": "每月 30 份深度审查 · 8 万字上限 · Word 修订稿 · 云端报告历史",
-      "managePrefix": "需要管理订阅？前往",
-      "manageLink": "Stripe 管理后台",
-      "manageSuffix": "查看账单、更新支付方式或取消订阅。"
+    "enterprise": {
+      "name": "企业版",
+      "audience": "中大型机构",
+      "note": "定制配额、SSO 与采购流程。请联系销售 — 无自助购买入口。"
+    },
+    "addOn": {
+      "badge": "加油包",
+      "name": "额外 1 份",
+      "note": "仅当前计费周期有效",
+      "cta": "购买加油包",
+      "hidden": "配额用尽后将显示加油包购买入口。"
+    },
+    "enterpriseForm": {
+      "intro": "请说明预计用量、席位与采购需求，我们将在一个工作日内回复。",
+      "name": "姓名",
+      "email": "工作邮箱",
+      "company": "公司 / 律所",
+      "message": "请描述您的需求",
+      "submit": "联系销售",
+      "sending": "发送中…",
+      "success": "已收到，我们会尽快与您联系。",
+      "error": "发送失败，请发邮件至 support@clausecheck.cc"
     }
   },
   "payment": {

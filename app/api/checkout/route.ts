@@ -35,18 +35,24 @@ const CURRENCIES: Record<string, CurrencyMeta> = {
 
 /* ---------- 价格表（product × currency） ---------- */
 interface PriceConfig {
-  amount: number; // 最小货币单位（分）
+  amount: number;
   name: string;
   mode: "subscription" | "payment";
+  interval?: "month" | "year";
 }
 
-const PRICES: Record<string, PriceConfig> = {
-  "pro_monthly:cny": { amount: 4900, name: "ClauseCheck 专业版 · 月付", mode: "subscription" },
-  "pro_monthly:usd": { amount: 690, name: "ClauseCheck Pro · Monthly", mode: "subscription" },
-  "pro_monthly:sgd": { amount: 890, name: "ClauseCheck Pro · Monthly", mode: "subscription" },
-  "pay_per_use:cny": { amount: 1700, name: "ClauseCheck 按次使用", mode: "payment" },
-  "pay_per_use:usd": { amount: 190, name: "ClauseCheck Pay-per-use", mode: "payment" },
-  "pay_per_use:sgd": { amount: 290, name: "ClauseCheck Pay-per-use", mode: "payment" },
+const PRICES: Record<string, PriceConfig & { interval?: "month" | "year" }> = {
+  "pro_monthly:usd": { amount: 2900, name: "ClauseCheck Pro · Monthly", mode: "subscription", interval: "month" },
+  "pro_annual:usd": { amount: 29580, name: "ClauseCheck Pro · Annual", mode: "subscription", interval: "year" },
+  "team_monthly:usd": { amount: 7900, name: "ClauseCheck Team · Monthly", mode: "subscription", interval: "month" },
+  "team_annual:usd": { amount: 80580, name: "ClauseCheck Team · Annual", mode: "subscription", interval: "year" },
+  "pro_monthly:cny": { amount: 19900, name: "ClauseCheck 专业版 · 月付", mode: "subscription", interval: "month" },
+  "pro_annual:cny": { amount: 202980, name: "ClauseCheck 专业版 · 年付", mode: "subscription", interval: "year" },
+  "team_monthly:cny": { amount: 49900, name: "ClauseCheck 团队版 · 月付", mode: "subscription", interval: "month" },
+  "team_annual:cny": { amount: 508980, name: "ClauseCheck 团队版 · 年付", mode: "subscription", interval: "year" },
+  "pay_per_use:usd": { amount: 500, name: "ClauseCheck Add-on (+1 review)", mode: "payment" },
+  "pay_per_use:cny": { amount: 3900, name: "ClauseCheck 加油包 (+1 份)", mode: "payment" },
+  "pay_per_use:sgd": { amount: 700, name: "ClauseCheck Add-on", mode: "payment" },
 };
 
 export async function POST(req: NextRequest) {
@@ -90,7 +96,11 @@ export async function POST(req: NextRequest) {
             product_data: { name: price.name },
             unit_amount: price.amount,
             ...(price.mode === "subscription"
-              ? { recurring: { interval: "month" as const } }
+              ? {
+                  recurring: {
+                    interval: (price.interval ?? "month") as "month" | "year",
+                  },
+                }
               : {}),
           },
           quantity: 1,

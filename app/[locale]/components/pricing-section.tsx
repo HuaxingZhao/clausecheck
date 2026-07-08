@@ -2,252 +2,227 @@
 
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-
-type PlanKey = "experience" | "pro" | "boost";
-
-interface MatrixRow {
-  label: string;
-  experience: string;
-  pro: string;
-  boost: string;
-}
-
-const MATRIX_PLAN_KEYS: PlanKey[] = ["experience", "pro", "boost"];
-
-function CellValue({ value }: { value: string }) {
-  const v = value.trim();
-  if (v === "✓" || v === "yes") {
-    return (
-      <span className="pricing-matrix-yes" aria-label="included">
-        ✓
-      </span>
-    );
-  }
-  if (v === "—" || v === "-" || v === "no") {
-    return <span className="pricing-matrix-no">—</span>;
-  }
-  return <span className="pricing-matrix-text">{value}</span>;
-}
+import { usePricingStore, canPurchaseAddOn } from "@/stores/pricingStore";
+import { usePricingQuotaSync } from "@/hooks/use-pricing-quota-sync";
+import { useSubscriptionCheckout } from "@/hooks/use-subscription-checkout";
+import { formatAddOnPrice, formatPlanPrice } from "@/lib/pricing/currency";
+import type { Currency } from "@/lib/pricing/plans";
+import ContactSalesForm from "./contact-sales-form";
 
 interface PricingSectionProps {
   locale: string;
-  isPro: boolean;
   scrollTo?: (id: string) => void;
   compact?: boolean;
-  onPayPlan?: (plan: "pro" | "boost") => void;
-  payingPlan?: "pro" | "boost" | null;
+  onAddOn?: () => void;
+  onRequireAuth?: () => void;
+  payingPlan?: "pro" | "team" | "boost" | null;
 }
 
 export default function PricingSection({
   locale,
-  isPro,
   scrollTo,
   compact = false,
-  onPayPlan,
+  onAddOn,
+  onRequireAuth,
   payingPlan = null,
 }: PricingSectionProps) {
   const router = useRouter();
-  const t = useTranslations();
+  const t = useTranslations("pricing");
+  usePricingQuotaSync(locale);
 
-  const matrixRows = t.raw("pricing.matrix.rows") as MatrixRow[];
-  const matrixPlans = t.raw("pricing.matrix.plans") as Record<PlanKey, string>;
-  const deliverables = t.raw("pricing.deliverables") as string[];
+  const billingCycle = usePricingStore((s) => s.billingCycle);
+  const currency = usePricingStore((s) => s.currency);
+  const usedQuota = usePricingStore((s) => s.usedQuota);
+  const quotaLimit = usePricingStore((s) => s.quotaLimit);
+  const setBillingCycle = usePricingStore((s) => s.setBillingCycle);
+  const setCurrency = usePricingStore((s) => s.setCurrency);
+  const setSelectedPlan = usePricingStore((s) => s.setSelectedPlan);
 
-  const handlePaidPlan = (plan: "pro" | "boost") => {
-    if (onPayPlan) {
-      onPayPlan(plan);
-    } else {
-      router.push(`/${locale}/pricing?plan=${plan}`);
+  const checkout = useSubscriptionCheckout(locale);
+  const showAddOn = canPurchaseAddOn({ usedQuota, quotaLimit });
+
+  const proPrice = formatPlanPrice("pro", currency, billingCycle);
+  const teamPrice = formatPlanPrice("team", currency, billingCycle);
+
+  async function handleSubscribe(plan: "pro" | "team") {
+    setSelectedPlan(plan);
+    try {
+      await checkout(plan, billingCycle, currency);
+    } catch {
+      onRequireAuth?.();
     }
-  };
+  }
 
-  const planCards: Array<{
-    key: PlanKey;
-    featured?: boolean;
-    boost?: boolean;
-    price: string;
-    period: string;
-    onAction: () => void;
-    ctaClass: string;
-  }> = [
-    {
-      key: "experience",
-      price: t("pricing.experience.price"),
-      period: t("pricing.experience.period"),
-      onAction: () => {
-        if (scrollTo) scrollTo("upload");
-        else router.push(`/${locale}#upload`);
-      },
-      ctaClass: "btn btn-outline w-full",
-    },
-    {
-      key: "pro",
-      featured: true,
-      price: t("pricing.pro.price"),
-      period: t("pricing.pro.period"),
-      onAction: () => handlePaidPlan("pro"),
-      ctaClass: "btn btn-primary w-full",
-    },
-    {
-      key: "boost",
-      boost: true,
-      price: t("pricing.boost.price"),
-      period: t("pricing.boost.period"),
-      onAction: () => handlePaidPlan("boost"),
-      ctaClass: "btn btn-outline w-full",
-    },
-  ];
+  function handleTrial() {
+    setSelectedPlan("trial");
+    if (scrollTo) scrollTo("upload");
+    else router.push(`/${locale}#upload`);
+  }
+
+  function handleAddOn() {
+    if (!showAddOn) return;
+    if (quotaLimit > usedQuota) return;
+    onAddOn?.();
+  }
 
   return (
     <section id="pricing" className="py-20 bg-paper-dark/40">
       <div className="max-w-6xl mx-auto px-6">
-        <div className="text-center max-w-2xl mx-auto mb-10">
-          <div className="section-label">{t("pricing.label")}</div>
-          <h2 className="mb-3">{t("pricing.title")}</h2>
-          <p className="text-ink-light mb-4">{t("pricing.subtitle")}</p>
+        <div className="text-center max-w-2xl mx-auto mb-8">
+          <div className="section-label">{t("label")}</div>
+          <h2 className="mb-3">{t("title")}</h2>
+          <p className="text-ink-light mb-4">{t("subtitle")}</p>
           {!compact && (
-            <p className="text-sm text-ink-muted font-sans leading-relaxed">
-              {t("pricing.disclaimer")}
-            </p>
+            <p className="text-sm text-ink-muted font-sans leading-relaxed">{t("disclaimer")}</p>
           )}
         </div>
 
-        {!compact && (
-          <div className="pricing-deliverables mb-10">
-            <p className="text-xs font-sans font-semibold uppercase tracking-wide text-ink-muted mb-3 text-center">
-              {t("pricing.deliverablesTitle")}
-            </p>
-            <ul className="flex flex-wrap justify-center gap-x-4 gap-y-2">
-              {deliverables.map((item) => (
-                <li key={item} className="text-sm text-ink-light font-sans">
-                  ✓ {item}
-                </li>
+        {/* Billing + currency controls */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10 font-sans">
+          <div className="currency-switcher" role="group" aria-label={t("billingToggle")}>
+            <button
+              type="button"
+              className={`currency-btn ${billingCycle === "annual" ? "active" : ""}`}
+              onClick={() => setBillingCycle("annual")}
+            >
+              {t("annual")} <span className="text-accent text-xs ml-1">-15%</span>
+            </button>
+            <button
+              type="button"
+              className={`currency-btn ${billingCycle === "monthly" ? "active" : ""}`}
+              onClick={() => setBillingCycle("monthly")}
+            >
+              {t("monthly")}
+            </button>
+          </div>
+          <div className="currency-switcher" role="group" aria-label={t("currencyToggle")}>
+            {(["USD", "CNY"] as Currency[]).map((c) => (
+              <button
+                key={c}
+                type="button"
+                className={`currency-btn ${currency === c ? "active" : ""}`}
+                onClick={() => setCurrency(c)}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <p className="text-center text-xs text-ink-muted font-sans mb-8">{t("resetNote")}</p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+          {/* Trial */}
+          <div className="pricing-card pricing-card-v2">
+            <h3 className="text-xl mb-1">{t("trial.name")}</h3>
+            <p className="text-xs text-ink-muted mb-3 font-sans">{t("trial.audience")}</p>
+            <div className="text-4xl font-light font-sans mb-1">
+              {currency === "USD" ? "$0" : "¥0"}
+            </div>
+            <p className="text-sm text-ink-light font-sans mb-4">{t("trial.quota")}</p>
+            <ul className="space-y-2 text-sm text-ink-light font-sans mb-6 flex-1">
+              {(t.raw("trial.highlights") as string[]).map((h) => (
+                <li key={h}>{h}</li>
               ))}
             </ul>
+            <button type="button" className="btn btn-outline w-full" onClick={handleTrial}>
+              {t("trial.cta")}
+            </button>
           </div>
-        )}
 
-        {isPro ? (
-          <div className="max-w-xl mx-auto">
-            <div className="pricing-card featured text-center !scale-100 hover:!scale-[1.02]">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <svg
-                  width="22"
-                  height="22"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-accent"
-                >
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                <h3 className="text-xl">{t("pricing.subscribed.title")}</h3>
-              </div>
-              <p className="text-sm text-ink-light mb-5 font-sans leading-relaxed">
-                {t("pricing.subscribed.desc")}
-              </p>
+          {/* Pro */}
+          <div className="pricing-card pricing-card-v2 featured">
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <h3 className="text-xl">{t("pro.name")}</h3>
+              <span className="pricing-badge">{t("pro.badge")}</span>
             </div>
-          </div>
-        ) : (
-          <>
-            {!compact && (
-              <div className="pricing-matrix-wrap mb-10">
-                <h3 className="text-center font-sans font-semibold text-ink mb-4">
-                  {t("pricing.matrix.title")}
-                </h3>
-                <div className="pricing-matrix-scroll">
-                  <table className="pricing-matrix">
-                    <thead>
-                      <tr>
-                        <th scope="col">{t("pricing.matrix.featureCol")}</th>
-                        {MATRIX_PLAN_KEYS.map((plan) => (
-                          <th key={plan} scope="col">
-                            {matrixPlans[plan]}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {matrixRows.map((row) => (
-                        <tr key={row.label}>
-                          <th scope="row">{row.label}</th>
-                          {MATRIX_PLAN_KEYS.map((plan) => (
-                            <td key={plan}>
-                              <CellValue value={row[plan]} />
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+            <p className="text-xs text-ink-muted mb-3 font-sans">{t("pro.audience")}</p>
+            <div className="text-4xl font-light font-sans mb-0">
+              {proPrice.main}
+              <span className="text-lg text-ink-muted">{proPrice.period}</span>
+            </div>
+            {proPrice.sub && (
+              <p className="text-xs text-ink-muted font-sans mb-3">{proPrice.sub}</p>
             )}
+            <p className="text-sm text-ink-light font-sans mb-4">{t("pro.quota")}</p>
+            <ul className="space-y-2 text-sm text-ink-light font-sans mb-6 flex-1">
+              {(t.raw("pro.highlights") as string[]).map((h) => (
+                <li key={h}>{h}</li>
+              ))}
+            </ul>
+            <button
+              type="button"
+              className="btn btn-primary w-full"
+              disabled={payingPlan === "pro"}
+              onClick={() => void handleSubscribe("pro")}
+            >
+              {payingPlan === "pro" ? t("processing") : t("pro.cta")}
+            </button>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              {planCards.map((card) => {
-                const planKey = card.key;
-                const highlights = t.raw(`pricing.${planKey}.highlights`) as string[];
-                return (
-                  <div
-                    key={planKey}
-                    className={`pricing-card pricing-card-v2 ${card.featured ? "featured" : ""} ${card.boost ? "pricing-card-boost" : ""}`}
-                  >
-                    <div className="flex items-start justify-between gap-2 mb-1">
-                      <h3 className="text-xl">{t(`pricing.${planKey}.name`)}</h3>
-                      {card.featured && (
-                        <span className="pricing-badge">{t("pricing.pro.badge")}</span>
-                      )}
-                      {card.boost && (
-                        <span className="pricing-badge pricing-badge-boost">
-                          {t("pricing.boost.badge")}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-ink-muted mb-1 font-sans">
-                      {t(`pricing.${planKey}.audience`)}
-                    </p>
-                    <p className="text-xs text-ink-light mb-4 font-sans">
-                      {t(`pricing.${planKey}.note`)}
-                    </p>
-                    <div className="text-4xl font-light font-sans mb-5">
-                      {card.price}
-                      <span className="text-lg text-ink-muted">{card.period}</span>
-                    </div>
-                    <ul className="space-y-2.5 mb-6 text-sm text-ink-light font-sans">
-                      {highlights.map((feat) => (
-                        <li key={feat}>{feat}</li>
-                      ))}
-                    </ul>
-                    <button
-                      type="button"
-                      onClick={card.onAction}
-                      disabled={
-                        payingPlan != null &&
-                        (planKey === "pro" || planKey === "boost") &&
-                        payingPlan === planKey
-                      }
-                      className={`${card.ctaClass} ${
-                        payingPlan === planKey ? "opacity-70 cursor-wait" : ""
-                      }`}
-                    >
-                      {payingPlan === planKey && (planKey === "pro" || planKey === "boost")
-                        ? t("payment.processing")
-                        : t(`pricing.${planKey}.cta`)}
-                    </button>
-                  </div>
-                );
-              })}
+          {/* Team */}
+          <div className="pricing-card pricing-card-v2">
+            <h3 className="text-xl mb-1">{t("team.name")}</h3>
+            <p className="text-xs text-ink-muted mb-3 font-sans">{t("team.audience")}</p>
+            <div className="text-4xl font-light font-sans mb-0">
+              {teamPrice.main}
+              <span className="text-lg text-ink-muted">{teamPrice.period}</span>
             </div>
+            {teamPrice.sub && (
+              <p className="text-xs text-ink-muted font-sans mb-3">{teamPrice.sub}</p>
+            )}
+            <p className="text-sm text-ink-light font-sans mb-4">{t("team.quota")}</p>
+            <ul className="space-y-2 text-sm text-ink-light font-sans mb-6 flex-1">
+              {(t.raw("team.highlights") as string[]).map((h) => (
+                <li key={h}>{h}</li>
+              ))}
+            </ul>
+            <button
+              type="button"
+              className="btn btn-outline w-full"
+              disabled={payingPlan === "team"}
+              onClick={() => void handleSubscribe("team")}
+            >
+              {payingPlan === "team" ? t("processing") : t("team.cta")}
+            </button>
+          </div>
 
-            <p className="text-xs text-center text-ink-muted font-sans leading-relaxed max-w-3xl mx-auto">
-              {t("pricing.footnote")}
-            </p>
-          </>
+          {/* Enterprise — contact only */}
+          <div className="pricing-card pricing-card-v2 xl:col-span-1">
+            <h3 className="text-xl mb-1">{t("enterprise.name")}</h3>
+            <p className="text-xs text-ink-muted mb-3 font-sans">{t("enterprise.audience")}</p>
+            <p className="text-sm text-ink-light font-sans mb-4 flex-1">{t("enterprise.note")}</p>
+            <ContactSalesForm />
+          </div>
+        </div>
+
+        {/* Add-on — only when quota exhausted */}
+        {showAddOn && (
+          <div className="pricing-card pricing-card-boost max-w-xl mx-auto text-center">
+            <span className="pricing-badge pricing-badge-boost mb-2 inline-block">
+              {t("addOn.badge")}
+            </span>
+            <h3 className="text-lg font-sans font-semibold mb-1">{t("addOn.name")}</h3>
+            <p className="text-sm text-ink-light font-sans mb-3">{t("addOn.note")}</p>
+            <p className="text-3xl font-light font-sans mb-4">{formatAddOnPrice(currency)}</p>
+            <button
+              type="button"
+              className="btn btn-primary w-full sm:w-auto"
+              disabled={payingPlan === "boost" || !onAddOn}
+              onClick={handleAddOn}
+            >
+              {payingPlan === "boost" ? t("processing") : t("addOn.cta")}
+            </button>
+          </div>
         )}
+
+        {!showAddOn && quotaLimit > 0 && usedQuota < quotaLimit && (
+          <p className="text-center text-xs text-ink-muted font-sans mt-4">{t("addOn.hidden")}</p>
+        )}
+
+        <p className="text-xs text-center text-ink-muted font-sans leading-relaxed max-w-3xl mx-auto mt-8">
+          {t("footnote")}
+        </p>
       </div>
     </section>
   );

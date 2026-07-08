@@ -18,6 +18,8 @@ import CreditsRemainingBadge from "./components/credits-remaining-badge";
 import WechatPayModal from "./components/wechat-pay-modal";
 import { useCredits } from "@/hooks/use-credits";
 import { useTopupPayment } from "@/hooks/use-topup-payment";
+import { usePricingStore } from "@/stores/pricingStore";
+import { stripeCurrencyKey } from "@/lib/pricing/plans";
 import { stashPendingInviteCode } from "@/lib/invite/client-fingerprint";
 
 export default function Home() {
@@ -43,10 +45,38 @@ export default function Home() {
   const resultsRef = useRef<HTMLElement>(null);
   const { invalidate: invalidateCredits } = useCredits();
 
+  const [payingPlan, setPayingPlan] = useState<"pro" | "team" | "boost" | null>(null);
+  const currency = usePricingStore((s) => s.currency);
+
   const payment = useTopupPayment({
     locale,
     onRequireAuth: () => setAuthOpen(true),
   });
+
+  const handleAddOn = useCallback(async () => {
+    setPayingPlan("boost");
+    try {
+      if (currency === "CNY") {
+        await payment.startPayment("boost");
+        return;
+      }
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          priceId: "pay_per_use",
+          currency: stripeCurrencyKey(currency),
+          successUrl: `${window.location.origin}/${locale}/account?checkout=success`,
+          cancelUrl: window.location.href,
+        }),
+      });
+      const data = (await res.json()) as { url?: string };
+      if (data.url) window.location.href = data.url;
+    } finally {
+      setPayingPlan(null);
+    }
+  }, [currency, locale, payment]);
 
   const refreshServerQuota = useCallback(async () => {
     try {
@@ -674,18 +704,18 @@ export default function Home() {
           refining={refining}
           onDownload={handleDownloadPdf}
           scrollTo={scrollTo}
-          onUpgradePro={() => void payment.startPayment("pro")}
-          onPayPerUse={() => void payment.startPayment("boost")}
+          onUpgradePro={() => scrollTo("pricing")}
+          onPayPerUse={() => void handleAddOn()}
           sectionRef={resultsRef}
         />
       )}
 
       <PricingSection
         locale={locale}
-        isPro={isProUser}
         scrollTo={scrollTo}
-        onPayPlan={(plan) => void payment.startPayment(plan)}
-        payingPlan={payment.payingPlan}
+        onAddOn={() => void handleAddOn()}
+        onRequireAuth={() => setAuthOpen(true)}
+        payingPlan={payingPlan ?? payment.payingPlan}
       />
 
       <WechatPayModal

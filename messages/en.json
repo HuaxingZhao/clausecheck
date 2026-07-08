@@ -312,18 +312,19 @@
     "profile": "Profile",
     "email": "Email",
     "plan": "Current plan",
-    "planFree": "Free",
+    "planFree": "Trial",
     "planPro": "Pro",
-    "planPayPerUse": "Pay per use",
-    "proUntil": "Pro active until",
-    "scanQuota": "Scan quota",
-    "trialActive": "Unlimited during trial",
-    "unlimited": "Unlimited",
-    "scansRemaining": "{count} scans left this month",
-    "upgradeTitle": "Upgrade to Pro",
-    "upgradeBody": "Unlock deep analysis, saved report history, and revision workbook export.",
-    "upgradePro": "Subscribe to Pro",
-    "upgradePayPerUse": "Buy one scan",
+    "planTeam": "Team",
+    "planAddOn": "Add-on credit",
+    "proUntil": "Subscription renews",
+    "scanQuota": "Cycle quota",
+    "trialActive": "Trial quota active",
+    "scansRemaining": "{count} reviews left this billing cycle",
+    "quotaExhausted": "Cycle quota used — add-on available on pricing page",
+    "upgradeTitle": "Upgrade your plan",
+    "upgradeBody": "Pro and Team include Word export, priority queue, and cloud report history.",
+    "upgradePro": "View Pro & Team",
+    "upgradeAddOn": "Buy add-on",
     "upgradeSuccess": "Upgrade complete! Pro is now active.",
     "viewPricing": "View all pricing",
     "proFeatures": "Pro features",
@@ -677,108 +678,72 @@
   },
   "pricing": {
     "label": "Pricing",
-    "title": "Choose what fits",
-    "subtitle": "3 free deep reviews on signup · upgrade when you need more",
+    "title": "Plans for legal professionals",
+    "subtitle": "Subscription quotas reset on your billing anniversary — not calendar month",
     "disclaimer": "All plans provide AI decision support, not legal advice. Consult a licensed attorney for high-stakes contracts.",
-    "deliverablesTitle": "Every review includes",
-    "deliverables": [
-      "18 scenario-specific review templates",
-      "Decision summary (sign / sign with changes / do not sign)",
-      "Risk score & flagged clauses",
-      "Clause-by-clause review & edit suggestions",
-      "Negotiation priority ranking"
-    ],
-    "footnote": "Boost credits never expire until used. Balance updates automatically after payment.",
-    "matrix": {
-      "title": "Compare plans",
-      "featureCol": "Feature",
-      "plans": {
-        "experience": "Trial",
-        "pro": "Pro",
-        "boost": "Boost"
-      },
-      "rows": [
-        {
-          "label": "Reviews",
-          "experience": "3 on signup",
-          "pro": "30 / month",
-          "boost": "1 per pack"
-        },
-        {
-          "label": "Contract length",
-          "experience": "20,000 chars",
-          "pro": "80,000 chars",
-          "boost": "80,000 chars"
-        },
-        {
-          "label": "AI depth",
-          "experience": "Deep review",
-          "pro": "Deep review",
-          "boost": "Deep review"
-        },
-        {
-          "label": "Word workbook export",
-          "experience": "—",
-          "pro": "✓",
-          "boost": "✓"
-        },
-        {
-          "label": "Cloud report history",
-          "experience": "—",
-          "pro": "✓",
-          "boost": "—"
-        }
-      ]
-    },
-    "experience": {
+    "billingToggle": "Billing cycle",
+    "currencyToggle": "Currency",
+    "annual": "Annual",
+    "monthly": "Monthly",
+    "resetNote": "Quotas reset at midnight on your subscription anniversary date.",
+    "processing": "Processing…",
+    "footnote": "Add-on reviews apply to the current billing cycle only. Annual plans save 15% vs monthly.",
+    "trial": {
       "name": "Trial",
-      "price": "¥0",
-      "period": "",
-      "audience": "New users",
-      "note": "Start after signup",
+      "audience": "Validate before you commit",
+      "quota": "1 contract / billing cycle",
       "highlights": [
-        "🎁 3 deep reviews on signup",
-        "✅ Up to 20,000 characters each",
-        "✅ Full report & edit suggestions",
-        "⏤ No Word workbook export"
+        "✅ Core AI risk review",
+        "✅ Decision summary & flagged clauses",
+        "⏤ No Word export"
       ],
-      "cta": "Start Free"
+      "cta": "Start free"
     },
     "pro": {
       "name": "Pro",
-      "badge": "Recommended",
-      "price": "¥49",
-      "period": "/mo",
-      "audience": "Legal teams & frequent reviewers",
-      "note": "Monthly · WeChat Pay",
+      "badge": "Popular",
+      "audience": "Solo lawyers & consultants",
+      "quota": "10 contracts / billing cycle",
       "highlights": [
-        "✅ 30 deep reviews per month",
-        "✅ 80,000 character limit",
-        "✅ Word workbook export",
+        "✅ Word annotated export",
+        "✅ Priority review queue",
         "✅ Cloud report history"
       ],
-      "cta": "Subscribe now"
+      "cta": "Subscribe"
     },
-    "boost": {
-      "name": "⚡ Single boost",
-      "badge": "One-time",
-      "price": "¥29",
-      "period": "/review",
-      "audience": "One important contract",
-      "note": "No subscription · never expires",
+    "team": {
+      "name": "Team",
+      "audience": "Small firms & legal ops",
+      "quota": "30 contracts / billing cycle (shared)",
       "highlights": [
-        "✅ Never expires until used",
-        "✅ 80,000 character deep review",
-        "✅ Word workbook export"
+        "✅ Shared team quota",
+        "✅ Admin dashboard",
+        "✅ Word export for all seats"
       ],
-      "cta": "Buy boost pack"
+      "cta": "Subscribe"
     },
-    "subscribed": {
-      "title": "You're on Pro",
-      "desc": "30 reviews/month · 80,000 chars · Word workbook · cloud history",
-      "managePrefix": "Manage subscription in",
-      "manageLink": "Stripe billing portal",
-      "manageSuffix": "to view invoices, update payment, or cancel."
+    "enterprise": {
+      "name": "Enterprise",
+      "audience": "Mid-size & large organizations",
+      "note": "Custom volume, SSO, and procurement. Contact our sales team — no self-serve checkout."
+    },
+    "addOn": {
+      "badge": "Add-on",
+      "name": "Extra review",
+      "note": "+1 contract for the current billing cycle only",
+      "cta": "Buy add-on",
+      "hidden": "Add-on purchases appear when your cycle quota is fully used."
+    },
+    "enterpriseForm": {
+      "intro": "Tell us about volume, seats, and procurement needs — we'll respond within one business day.",
+      "name": "Name",
+      "email": "Work email",
+      "company": "Company / firm",
+      "message": "Tell us about your needs",
+      "submit": "Contact sales",
+      "sending": "Sending…",
+      "success": "Thanks — we'll be in touch shortly.",
+      "error": "Could not send. Please email support@clausecheck.cc"
     }
   },
   "payment": {
