@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { checkoutPriceId, stripeCurrencyKey, type BillingCycle, type Currency } from "@/lib/pricing/plans";
+import { checkoutPriceId, stripeCurrencyKey, type BillingCycle, type Currency } from "@/lib/pricing.config";
 
 export function useSubscriptionCheckout(locale: string) {
   return useCallback(

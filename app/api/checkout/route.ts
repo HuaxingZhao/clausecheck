@@ -1,83 +1,104 @@
 /**
  * POST /api/checkout
  *
- * 创建 Stripe Checkout Session，返回重定向 URL。
- * 支持多币种：CNY (¥), USD ($), SGD (S$)
- *
- * 价格：
- *   - pro_monthly: ¥49 | $6.9 | S$8.9
- *   - pay_per_use:  ¥17 | $1.9 | S$2.9
+ * Stripe Checkout Session redirect (legacy fallback).
+ * Prices derived from lib/pricing.config.ts — do not hardcode here.
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { getSessionFromRequest } from "@/lib/auth/session";
+import {
+  addOnTotalPrice,
+  annualBilledTotal,
+  checkoutPriceId,
+  monthlyUnitPrice,
+  stripeCurrencyKey,
+  toStripeCents,
+  type BillingCycle,
+  type Currency,
+  type PaidPlanId,
+} from "@/lib/pricing.config";
 
-/* ---------- Stripe 实例 ---------- */
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
   apiVersion: "2025-02-24.acacia" as any,
 });
 
-/* ---------- 货币元数据 ---------- */
-type CurrencyCode = "cny" | "usd" | "sgd";
+type CheckoutPriceId =
+  | ReturnType<typeof checkoutPriceId>
+  | "pay_per_use";
 
-interface CurrencyMeta {
-  symbol: string;
-  locale: string;
-  stripeCurrency: CurrencyCode;
-}
-
-const CURRENCIES: Record<string, CurrencyMeta> = {
-  cny: { symbol: "¥", locale: "zh-CN", stripeCurrency: "cny" },
-  usd: { symbol: "$", locale: "en-US", stripeCurrency: "usd" },
-  sgd: { symbol: "S$", locale: "en-SG", stripeCurrency: "sgd" },
-};
-
-/* ---------- 价格表（product × currency） ---------- */
-interface PriceConfig {
-  amount: number;
+interface ResolvedPrice {
+  amountCents: number;
   name: string;
   mode: "subscription" | "payment";
   interval?: "month" | "year";
 }
 
-const PRICES: Record<string, PriceConfig & { interval?: "month" | "year" }> = {
-  "pro_monthly:usd": { amount: 2900, name: "ClauseCheck Pro · Monthly", mode: "subscription", interval: "month" },
-  "pro_annual:usd": { amount: 29580, name: "ClauseCheck Pro · Annual", mode: "subscription", interval: "year" },
-  "team_monthly:usd": { amount: 7900, name: "ClauseCheck Team · Monthly", mode: "subscription", interval: "month" },
-  "team_annual:usd": { amount: 80580, name: "ClauseCheck Team · Annual", mode: "subscription", interval: "year" },
-  "pro_monthly:cny": { amount: 19900, name: "ClauseCheck 专业版 · 月付", mode: "subscription", interval: "month" },
-  "pro_annual:cny": { amount: 202980, name: "ClauseCheck 专业版 · 年付", mode: "subscription", interval: "year" },
-  "team_monthly:cny": { amount: 49900, name: "ClauseCheck 团队版 · 月付", mode: "subscription", interval: "month" },
-  "team_annual:cny": { amount: 508980, name: "ClauseCheck 团队版 · 年付", mode: "subscription", interval: "year" },
-  "pay_per_use:usd": { amount: 500, name: "ClauseCheck Add-on (+1 review)", mode: "payment" },
-  "pay_per_use:cny": { amount: 3900, name: "ClauseCheck 加油包 (+1 份)", mode: "payment" },
-  "pay_per_use:sgd": { amount: 700, name: "ClauseCheck Add-on", mode: "payment" },
-};
+function resolvePrice(
+  priceId: CheckoutPriceId,
+  currency: Currency,
+  packs = 1
+): ResolvedPrice | null {
+  if (priceId === "pay_per_use") {
+    const amount = addOnTotalPrice(packs, currency);
+    return {
+      amountCents: toStripeCents(amount, currency),
+      name: currency === "CNY" ? "ClauseCheck 加油包" : "ClauseCheck Add-on",
+      mode: "payment",
+    };
+  }
+
+  const match = priceId.match(/^(pro|team)_(monthly|annual)$/);
+  if (!match) return null;
+
+  const plan = match[1] as PaidPlanId;
+  const cycle = match[2] as BillingCycle;
+  const isZh = currency === "CNY";
+  const planLabel = plan === "pro" ? (isZh ? "专业版" : "Pro") : isZh ? "团队版" : "Team";
+  const cycleLabel =
+    cycle === "annual" ? (isZh ? "年付" : "Annual") : isZh ? "月付" : "Monthly";
+
+  if (cycle === "annual") {
+    const amount = annualBilledTotal(plan, currency);
+    return {
+      amountCents: toStripeCents(amount, currency),
+      name: `ClauseCheck ${planLabel} · ${cycleLabel}`,
+      mode: "subscription",
+      interval: "year",
+    };
+  }
+
+  const amount = monthlyUnitPrice(plan, currency, "monthly");
+  return {
+    amountCents: toStripeCents(amount, currency),
+    name: `ClauseCheck ${planLabel} · ${cycleLabel}`,
+    mode: "subscription",
+    interval: "month",
+  };
+}
 
 export async function POST(req: NextRequest) {
   try {
-    const { priceId, currency, successUrl, cancelUrl } = await req.json();
+    const { priceId, currency: rawCurrency, successUrl, cancelUrl, packs } =
+      await req.json();
 
-    const currencyKey = (currency || "cny") as string;
-    const compositeKey = `${priceId}:${currencyKey}`;
-    const price = PRICES[compositeKey];
+    const currencyKey = (rawCurrency || "usd") as string;
+    const currency: Currency = currencyKey === "cny" ? "CNY" : "USD";
+    const compositeKey = priceId as CheckoutPriceId;
+    const price = resolvePrice(compositeKey, currency, packs ?? 1);
 
     if (!price) {
       return NextResponse.json(
-        { error: `无效的价格类型: ${compositeKey}` },
+        { error: `Invalid price: ${compositeKey}:${currencyKey}` },
         { status: 400 }
       );
     }
 
     if (!process.env.STRIPE_SECRET_KEY) {
-      return NextResponse.json(
-        { error: "Stripe 未配置。请在 .env 中设置 STRIPE_SECRET_KEY" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Stripe not configured" }, { status: 500 });
     }
 
-    const cur = CURRENCIES[currencyKey];
     const base = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
     const session = await getSessionFromRequest(req);
     const successPath = successUrl || `${base}?checkout=success`;
@@ -92,15 +113,11 @@ export async function POST(req: NextRequest) {
       line_items: [
         {
           price_data: {
-            currency: cur.stripeCurrency,
+            currency: stripeCurrencyKey(currency),
             product_data: { name: price.name },
-            unit_amount: price.amount,
+            unit_amount: price.amountCents,
             ...(price.mode === "subscription"
-              ? {
-                  recurring: {
-                    interval: (price.interval ?? "month") as "month" | "year",
-                  },
-                }
+              ? { recurring: { interval: price.interval ?? "month" } }
               : {}),
           },
           quantity: 1,
@@ -108,15 +125,13 @@ export async function POST(req: NextRequest) {
       ],
       success_url: successWithSession,
       cancel_url: cancelUrl || `${base}?checkout=cancelled`,
-      metadata: { priceId: compositeKey },
+      metadata: { priceId: `${compositeKey}:${currencyKey}` },
     });
 
     return NextResponse.json({ url: stripeSession.url });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Stripe checkout error:", err);
-    return NextResponse.json(
-      { error: err.message || "创建支付会话失败" },
-      { status: 500 }
-    );
+    const message = err instanceof Error ? err.message : "Checkout failed";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -1,30 +1,42 @@
 "use client";
 
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { usePricingStore, canPurchaseAddOn } from "@/stores/pricingStore";
+import { usePricingStore, canPurchaseAddOn } from "@/stores/usePricingStore";
 import { usePricingQuotaSync } from "@/hooks/use-pricing-quota-sync";
-import { useSubscriptionCheckout } from "@/hooks/use-subscription-checkout";
-import { formatAddOnPrice, formatPlanPrice } from "@/lib/pricing/currency";
-import type { Currency } from "@/lib/pricing/plans";
-import ContactSalesForm from "./contact-sales-form";
+import PricingToggle from "./pricing/PricingToggle";
+import CurrencySelector from "./pricing/CurrencySelector";
+import PlanCard from "./pricing/PlanCard";
+import QuotaMeter from "./pricing/QuotaMeter";
+import AddOnModal from "./pricing/AddOnModal";
+import ContactSalesForm from "./pricing/ContactSalesForm";
+import PaymentGateway from "./pricing/PaymentGateway";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import type { PaidPlanId } from "@/lib/pricing.config";
 
-interface PricingSectionProps {
+export interface PricingSectionProps {
   locale: string;
   scrollTo?: (id: string) => void;
   compact?: boolean;
-  onAddOn?: () => void;
   onRequireAuth?: () => void;
   payingPlan?: "pro" | "team" | "boost" | null;
+  /** Parent can register a function to open the add-on modal (e.g. from results page). */
+  registerAddOnOpener?: (open: () => void) => void;
 }
 
 export default function PricingSection({
   locale,
   scrollTo,
   compact = false,
-  onAddOn,
   onRequireAuth,
   payingPlan = null,
+  registerAddOnOpener,
 }: PricingSectionProps) {
   const router = useRouter();
   const t = useTranslations("pricing");
@@ -34,24 +46,24 @@ export default function PricingSection({
   const currency = usePricingStore((s) => s.currency);
   const usedQuota = usePricingStore((s) => s.usedQuota);
   const quotaLimit = usePricingStore((s) => s.quotaLimit);
+  const resetDate = usePricingStore((s) => s.resetDate);
   const setBillingCycle = usePricingStore((s) => s.setBillingCycle);
   const setCurrency = usePricingStore((s) => s.setCurrency);
   const setSelectedPlan = usePricingStore((s) => s.setSelectedPlan);
 
-  const checkout = useSubscriptionCheckout(locale);
-  const showAddOn = canPurchaseAddOn({ usedQuota, quotaLimit });
+  const [addOnOpen, setAddOnOpen] = useState(false);
+  const [checkoutPlan, setCheckoutPlan] = useState<PaidPlanId | null>(null);
 
-  const proPrice = formatPlanPrice("pro", currency, billingCycle);
-  const teamPrice = formatPlanPrice("team", currency, billingCycle);
+  const showAddOnEntry = canPurchaseAddOn({ usedQuota, quotaLimit });
 
-  async function handleSubscribe(plan: "pro" | "team") {
-    setSelectedPlan(plan);
-    try {
-      await checkout(plan, billingCycle, currency);
-    } catch {
-      onRequireAuth?.();
-    }
-  }
+  const handleAddOnOpen = useCallback(() => {
+    if (!showAddOnEntry) return;
+    setAddOnOpen(true);
+  }, [showAddOnEntry]);
+
+  useEffect(() => {
+    registerAddOnOpener?.(handleAddOnOpen);
+  }, [registerAddOnOpener, handleAddOnOpen]);
 
   function handleTrial() {
     setSelectedPlan("trial");
@@ -59,10 +71,13 @@ export default function PricingSection({
     else router.push(`/${locale}#upload`);
   }
 
-  function handleAddOn() {
-    if (!showAddOn) return;
-    if (quotaLimit > usedQuota) return;
-    onAddOn?.();
+  function handleSubscribe(plan: "pro" | "team" | "trial") {
+    if (plan === "trial") {
+      handleTrial();
+      return;
+    }
+    setSelectedPlan(plan);
+    setCheckoutPlan(plan);
   }
 
   return (
@@ -77,118 +92,58 @@ export default function PricingSection({
           )}
         </div>
 
-        {/* Billing + currency controls */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10 font-sans">
-          <div className="currency-switcher" role="group" aria-label={t("billingToggle")}>
-            <button
-              type="button"
-              className={`currency-btn ${billingCycle === "annual" ? "active" : ""}`}
-              onClick={() => setBillingCycle("annual")}
-            >
-              {t("annual")} <span className="text-accent text-xs ml-1">-15%</span>
-            </button>
-            <button
-              type="button"
-              className={`currency-btn ${billingCycle === "monthly" ? "active" : ""}`}
-              onClick={() => setBillingCycle("monthly")}
-            >
-              {t("monthly")}
-            </button>
-          </div>
-          <div className="currency-switcher" role="group" aria-label={t("currencyToggle")}>
-            {(["USD", "CNY"] as Currency[]).map((c) => (
-              <button
-                key={c}
-                type="button"
-                className={`currency-btn ${currency === c ? "active" : ""}`}
-                onClick={() => setCurrency(c)}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
+        <div className="flex flex-col lg:flex-row items-center justify-center gap-6 mb-8">
+          <PricingToggle
+            billingCycle={billingCycle}
+            onBillingCycleChange={setBillingCycle}
+          />
+          <CurrencySelector
+            currency={currency}
+            billingCycle={billingCycle}
+            onCurrencyChange={setCurrency}
+            onBillingCycleChange={setBillingCycle}
+          />
+        </div>
+
+        <div className="max-w-md mx-auto mb-8">
+          <QuotaMeter
+            usedQuota={usedQuota}
+            quotaLimit={quotaLimit}
+            resetDate={resetDate}
+            onAddOnRequest={showAddOnEntry ? handleAddOnOpen : undefined}
+          />
         </div>
 
         <p className="text-center text-xs text-ink-muted font-sans mb-8">{t("resetNote")}</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
-          {/* Trial */}
-          <div className="pricing-card pricing-card-v2">
-            <h3 className="text-xl mb-1">{t("trial.name")}</h3>
-            <p className="text-xs text-ink-muted mb-3 font-sans">{t("trial.audience")}</p>
-            <div className="text-4xl font-light font-sans mb-1">
-              {currency === "USD" ? "$0" : "¥0"}
-            </div>
-            <p className="text-sm text-ink-light font-sans mb-4">{t("trial.quota")}</p>
-            <ul className="space-y-2 text-sm text-ink-light font-sans mb-6 flex-1">
-              {(t.raw("trial.highlights") as string[]).map((h) => (
-                <li key={h}>{h}</li>
-              ))}
-            </ul>
-            <button type="button" className="btn btn-outline w-full" onClick={handleTrial}>
-              {t("trial.cta")}
-            </button>
-          </div>
-
-          {/* Pro */}
-          <div className="pricing-card pricing-card-v2 featured">
-            <div className="flex items-start justify-between gap-2 mb-1">
-              <h3 className="text-xl">{t("pro.name")}</h3>
-              <span className="pricing-badge">{t("pro.badge")}</span>
-            </div>
-            <p className="text-xs text-ink-muted mb-3 font-sans">{t("pro.audience")}</p>
-            <div className="text-4xl font-light font-sans mb-0">
-              {proPrice.main}
-              <span className="text-lg text-ink-muted">{proPrice.period}</span>
-            </div>
-            {proPrice.sub && (
-              <p className="text-xs text-ink-muted font-sans mb-3">{proPrice.sub}</p>
-            )}
-            <p className="text-sm text-ink-light font-sans mb-4">{t("pro.quota")}</p>
-            <ul className="space-y-2 text-sm text-ink-light font-sans mb-6 flex-1">
-              {(t.raw("pro.highlights") as string[]).map((h) => (
-                <li key={h}>{h}</li>
-              ))}
-            </ul>
-            <button
-              type="button"
-              className="btn btn-primary w-full"
-              disabled={payingPlan === "pro"}
-              onClick={() => void handleSubscribe("pro")}
-            >
-              {payingPlan === "pro" ? t("processing") : t("pro.cta")}
-            </button>
-          </div>
-
-          {/* Team */}
-          <div className="pricing-card pricing-card-v2">
-            <h3 className="text-xl mb-1">{t("team.name")}</h3>
-            <p className="text-xs text-ink-muted mb-3 font-sans">{t("team.audience")}</p>
-            <div className="text-4xl font-light font-sans mb-0">
-              {teamPrice.main}
-              <span className="text-lg text-ink-muted">{teamPrice.period}</span>
-            </div>
-            {teamPrice.sub && (
-              <p className="text-xs text-ink-muted font-sans mb-3">{teamPrice.sub}</p>
-            )}
-            <p className="text-sm text-ink-light font-sans mb-4">{t("team.quota")}</p>
-            <ul className="space-y-2 text-sm text-ink-light font-sans mb-6 flex-1">
-              {(t.raw("team.highlights") as string[]).map((h) => (
-                <li key={h}>{h}</li>
-              ))}
-            </ul>
-            <button
-              type="button"
-              className="btn btn-outline w-full"
-              disabled={payingPlan === "team"}
-              onClick={() => void handleSubscribe("team")}
-            >
-              {payingPlan === "team" ? t("processing") : t("team.cta")}
-            </button>
-          </div>
-
-          {/* Enterprise — contact only */}
-          <div className="pricing-card pricing-card-v2 xl:col-span-1">
+          <PlanCard
+            planId="trial"
+            currency={currency}
+            billingCycle={billingCycle}
+            locale={locale}
+            onSelect={handleSubscribe}
+          />
+          <PlanCard
+            planId="pro"
+            currency={currency}
+            billingCycle={billingCycle}
+            locale={locale}
+            featured
+            loading={payingPlan === "pro"}
+            disabled={!!checkoutPlan}
+            onSelect={handleSubscribe}
+          />
+          <PlanCard
+            planId="team"
+            currency={currency}
+            billingCycle={billingCycle}
+            locale={locale}
+            loading={payingPlan === "team"}
+            disabled={!!checkoutPlan}
+            onSelect={handleSubscribe}
+          />
+          <div className="pricing-card pricing-card-v2 flex flex-col">
             <h3 className="text-xl mb-1">{t("enterprise.name")}</h3>
             <p className="text-xs text-ink-muted mb-3 font-sans">{t("enterprise.audience")}</p>
             <p className="text-sm text-ink-light font-sans mb-4 flex-1">{t("enterprise.note")}</p>
@@ -196,27 +151,20 @@ export default function PricingSection({
           </div>
         </div>
 
-        {/* Add-on — only when quota exhausted */}
-        {showAddOn && (
-          <div className="pricing-card pricing-card-boost max-w-xl mx-auto text-center">
-            <span className="pricing-badge pricing-badge-boost mb-2 inline-block">
-              {t("addOn.badge")}
-            </span>
-            <h3 className="text-lg font-sans font-semibold mb-1">{t("addOn.name")}</h3>
-            <p className="text-sm text-ink-light font-sans mb-3">{t("addOn.note")}</p>
-            <p className="text-3xl font-light font-sans mb-4">{formatAddOnPrice(currency)}</p>
+        {showAddOnEntry && (
+          <div className="text-center mb-4">
             <button
               type="button"
-              className="btn btn-primary w-full sm:w-auto"
-              disabled={payingPlan === "boost" || !onAddOn}
-              onClick={handleAddOn}
+              className="btn btn-primary"
+              disabled={payingPlan === "boost"}
+              onClick={handleAddOnOpen}
             >
               {payingPlan === "boost" ? t("processing") : t("addOn.cta")}
             </button>
           </div>
         )}
 
-        {!showAddOn && quotaLimit > 0 && usedQuota < quotaLimit && (
+        {!showAddOnEntry && quotaLimit > 0 && usedQuota < quotaLimit && (
           <p className="text-center text-xs text-ink-muted font-sans mt-4">{t("addOn.hidden")}</p>
         )}
 
@@ -224,6 +172,39 @@ export default function PricingSection({
           {t("footnote")}
         </p>
       </div>
+
+      <AddOnModal
+        open={addOnOpen}
+        onOpenChange={setAddOnOpen}
+        currency={currency}
+        locale={locale}
+        onRequireAuth={onRequireAuth}
+      />
+
+      <Dialog open={!!checkoutPlan} onOpenChange={(open) => !open && setCheckoutPlan(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {checkoutPlan ? t(`${checkoutPlan}.name`) : t("title")}
+            </DialogTitle>
+          </DialogHeader>
+          {checkoutPlan && (
+            <PaymentGateway
+              purchaseType="subscription"
+              plan={checkoutPlan}
+              currency={currency}
+              billingCycle={billingCycle}
+              locale={locale}
+              onSuccess={() => setCheckoutPlan(null)}
+              onRequireAuth={() => {
+                setCheckoutPlan(null);
+                onRequireAuth?.();
+              }}
+              onCancel={() => setCheckoutPlan(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

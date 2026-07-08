@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { usePricingStore } from "@/stores/pricingStore";
+import { usePricingStore } from "@/stores/usePricingStore";
 import { useCredits } from "@/hooks/use-credits";
 import { detectCurrencyFromLocale } from "@/lib/pricing/currency";
 

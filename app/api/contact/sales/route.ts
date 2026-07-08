@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 const salesSchema = z.object({
-  name: z.string().min(1).max(120),
-  email: z.string().email().max(200),
   company: z.string().min(1).max(200),
+  email: z.string().email().max(200),
+  teamSize: z.string().min(1).max(80),
   message: z.string().min(10).max(4000),
+  /** Legacy field — optional for backward compatibility */
+  name: z.string().max(120).optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -16,7 +18,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
 
-    const { name, email, company, message } = parsed.data;
+    const { company, email, teamSize, message, name } = parsed.data;
+    const contactName = name?.trim() || company;
     const apiKey = process.env.RESEND_API_KEY?.trim();
     const from = process.env.EMAIL_FROM?.trim();
     const to = process.env.ADMIN_EMAILS?.split(",")[0]?.trim();
@@ -32,8 +35,8 @@ export async function POST(req: NextRequest) {
           from,
           to: [to],
           reply_to: email,
-          subject: `[ClauseCheck Enterprise] ${company} — ${name}`,
-          text: `Name: ${name}\nEmail: ${email}\nCompany: ${company}\n\n${message}`,
+          subject: `[ClauseCheck Enterprise] ${company} — ${contactName}`,
+          text: `Company: ${company}\nEmail: ${email}\nTeam size: ${teamSize}\n\n${message}`,
         }),
       });
       if (!res.ok) {
@@ -42,9 +45,9 @@ export async function POST(req: NextRequest) {
       }
     } else {
       console.info("Enterprise sales lead (email not configured):", {
-        name,
-        email,
         company,
+        email,
+        teamSize,
         message: message.slice(0, 200),
       });
     }

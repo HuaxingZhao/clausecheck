@@ -685,6 +685,8 @@
     "currencyToggle": "货币",
     "annual": "年付",
     "monthly": "月付",
+    "savingsBadge": "省{percent}%",
+    "cnyWalletNote": "人民币年付或加油包支持微信/支付宝；月付订阅仅支持银行卡。",
     "resetNote": "配额在订阅周年日零点重置。",
     "processing": "处理中…",
     "footnote": "加油包仅对当前计费周期有效。年付较月付节省 15%。",
@@ -732,13 +734,40 @@
       "name": "额外 1 份",
       "note": "仅当前计费周期有效",
       "cta": "购买加油包",
-      "hidden": "配额用尽后将显示加油包购买入口。"
+      "hidden": "配额用尽后将显示加油包购买入口。",
+      "modalTitle": "购买加油包",
+      "modalDesc": "每份加油包为当前计费周期增加文档审阅配额。"
+    },
+    "quota": {
+      "title": "文档审阅配额",
+      "used": "已用 {used} / {limit}",
+      "resetsOn": "将于 {date} 重置",
+      "warning80": "本周期配额已使用 80% 以上。",
+      "exhausted": "本周期配额已用尽。",
+      "buyAddOn": "购买加油包 →"
+    },
+    "payment": {
+      "loading": "正在加载支付表单…",
+      "processing": "处理中…",
+      "payNow": "立即支付",
+      "cancel": "取消",
+      "disclaimer": "支付由 Stripe 处理。ClauseCheck 提供 AI 决策支持，不构成法律意见。",
+      "cnyMonthlyWalletBlock": "微信/支付宝仅支持年付或一次性加油包。请切换为年付以使用钱包支付。",
+      "switchToAnnual": "切换为年付",
+      "errors": {
+        "generic": "支付失败，请重试。",
+        "declined": "银行卡被拒绝，请更换支付方式。",
+        "qrExpired": "二维码已过期，请重新发起支付。",
+        "insufficientFunds": "余额不足，请更换支付方式。",
+        "quotaNotExhausted": "仅在本周期配额用尽后可购买加油包。"
+      }
     },
     "enterpriseForm": {
       "intro": "请说明预计用量、席位与采购需求，我们将在一个工作日内回复。",
-      "name": "姓名",
       "email": "工作邮箱",
       "company": "公司 / 律所",
+      "teamSize": "团队规模",
+      "teamSizePlaceholder": "例如 25 人",
       "message": "请描述您的需求",
       "submit": "联系销售",
       "sending": "发送中…",

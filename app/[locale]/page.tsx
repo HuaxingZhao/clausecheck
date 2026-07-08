@@ -15,11 +15,7 @@ import AuthPanel from "./components/auth-panel";
 import ScenarioPicker from "./components/scenario-picker";
 import WordLimitModal from "./components/word-limit-modal";
 import CreditsRemainingBadge from "./components/credits-remaining-badge";
-import WechatPayModal from "./components/wechat-pay-modal";
 import { useCredits } from "@/hooks/use-credits";
-import { useTopupPayment } from "@/hooks/use-topup-payment";
-import { usePricingStore } from "@/stores/pricingStore";
-import { stripeCurrencyKey } from "@/lib/pricing/plans";
 import { stashPendingInviteCode } from "@/lib/invite/client-fingerprint";
 
 export default function Home() {
@@ -43,40 +39,13 @@ export default function Home() {
   const [quotaHint, setQuotaHint] = useState<string | null>(null);
   const [wordLimitOpen, setWordLimitOpen] = useState(false);
   const resultsRef = useRef<HTMLElement>(null);
+  const openAddOnRef = useRef<(() => void) | null>(null);
   const { invalidate: invalidateCredits } = useCredits();
 
-  const [payingPlan, setPayingPlan] = useState<"pro" | "team" | "boost" | null>(null);
-  const currency = usePricingStore((s) => s.currency);
-
-  const payment = useTopupPayment({
-    locale,
-    onRequireAuth: () => setAuthOpen(true),
-  });
-
-  const handleAddOn = useCallback(async () => {
-    setPayingPlan("boost");
-    try {
-      if (currency === "CNY") {
-        await payment.startPayment("boost");
-        return;
-      }
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          priceId: "pay_per_use",
-          currency: stripeCurrencyKey(currency),
-          successUrl: `${window.location.origin}/${locale}/account?checkout=success`,
-          cancelUrl: window.location.href,
-        }),
-      });
-      const data = (await res.json()) as { url?: string };
-      if (data.url) window.location.href = data.url;
-    } finally {
-      setPayingPlan(null);
-    }
-  }, [currency, locale, payment]);
+  const handlePayPerUse = useCallback(() => {
+    scrollTo("pricing");
+    window.setTimeout(() => openAddOnRef.current?.(), 300);
+  }, []);
 
   const refreshServerQuota = useCallback(async () => {
     try {
@@ -705,7 +674,7 @@ export default function Home() {
           onDownload={handleDownloadPdf}
           scrollTo={scrollTo}
           onUpgradePro={() => scrollTo("pricing")}
-          onPayPerUse={() => void handleAddOn()}
+          onPayPerUse={() => handlePayPerUse()}
           sectionRef={resultsRef}
         />
       )}
@@ -713,20 +682,10 @@ export default function Home() {
       <PricingSection
         locale={locale}
         scrollTo={scrollTo}
-        onAddOn={() => void handleAddOn()}
+        registerAddOnOpener={(open) => {
+          openAddOnRef.current = open;
+        }}
         onRequireAuth={() => setAuthOpen(true)}
-        payingPlan={payingPlan ?? payment.payingPlan}
-      />
-
-      <WechatPayModal
-        open={payment.modalOpen}
-        plan={payment.activePlan ?? payment.pendingPlan}
-        status={payment.modalStatus}
-        qrCodeUrl={payment.qrCodeUrl}
-        orderId={payment.orderId}
-        errorMessage={payment.errorMessage}
-        onClose={payment.closeModal}
-        onRetry={payment.retryPayment}
       />
 
       <WordLimitModal
@@ -747,7 +706,7 @@ export default function Home() {
 
       {toast && (
         <div className="toast">
-          <span>{payment.toast ?? toast}</span>
+          <span>{toast}</span>
         </div>
       )}
 
@@ -759,9 +718,6 @@ export default function Home() {
         onSuccess={() => {
           setAuthOpen(false);
           void refreshAuth();
-          if (payment.pendingPlan) {
-            void payment.startPayment(payment.pendingPlan);
-          }
         }}
       />
     </>

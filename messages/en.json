@@ -685,6 +685,8 @@
     "currencyToggle": "Currency",
     "annual": "Annual",
     "monthly": "Monthly",
+    "savingsBadge": "-{percent}%",
+    "cnyWalletNote": "WeChat Pay and Alipay are available for annual billing and add-on purchases in CNY. Monthly subscriptions accept card only.",
     "resetNote": "Quotas reset at midnight on your subscription anniversary date.",
     "processing": "Processing…",
     "footnote": "Add-on reviews apply to the current billing cycle only. Annual plans save 15% vs monthly.",
@@ -732,13 +734,40 @@
       "name": "Extra review",
       "note": "+1 contract for the current billing cycle only",
       "cta": "Buy add-on",
-      "hidden": "Add-on purchases appear when your cycle quota is fully used."
+      "hidden": "Add-on purchases appear when your cycle quota is fully used.",
+      "modalTitle": "Purchase add-on packs",
+      "modalDesc": "Each pack adds document review quota for the current billing cycle only."
+    },
+    "quota": {
+      "title": "Document review quota",
+      "used": "{used} / {limit} used",
+      "resetsOn": "Resets on {date}",
+      "warning80": "You have used 80% or more of your cycle quota.",
+      "exhausted": "Cycle quota fully used.",
+      "buyAddOn": "Buy add-on packs →"
+    },
+    "payment": {
+      "loading": "Loading payment form…",
+      "processing": "Processing…",
+      "payNow": "Pay now",
+      "cancel": "Cancel",
+      "disclaimer": "Payments are processed by Stripe. ClauseCheck provides AI decision support, not legal advice.",
+      "cnyMonthlyWalletBlock": "WeChat Pay and Alipay require annual billing or a one-time add-on purchase. Switch to annual to use wallet payment.",
+      "switchToAnnual": "Switch to annual billing",
+      "errors": {
+        "generic": "Payment failed. Please try again.",
+        "declined": "Your card was declined. Try another payment method.",
+        "qrExpired": "The QR code expired. Please retry payment.",
+        "insufficientFunds": "Insufficient funds. Please use another payment method.",
+        "quotaNotExhausted": "Add-on purchases are available only when your cycle quota is fully used."
+      }
     },
     "enterpriseForm": {
       "intro": "Tell us about volume, seats, and procurement needs — we'll respond within one business day.",
-      "name": "Name",
       "email": "Work email",
       "company": "Company / firm",
+      "teamSize": "Team size",
+      "teamSizePlaceholder": "e.g. 25 seats",
       "message": "Tell us about your needs",
       "submit": "Contact sales",
       "sending": "Sending…",
