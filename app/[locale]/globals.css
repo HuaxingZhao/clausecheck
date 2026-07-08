@@ -1126,6 +1126,58 @@
   .currency-btn.active {
     @apply bg-white text-ink shadow-sm;
   }
+  .pricing-deliverables {
+    @apply rounded-2xl border border-border/40 bg-white/60 px-6 py-5;
+  }
+  .pricing-matrix-wrap {
+    @apply rounded-2xl border border-border/50 bg-white shadow-sm overflow-hidden;
+    padding: 1.25rem 1rem 1rem;
+  }
+  .pricing-matrix-scroll {
+    @apply overflow-x-auto -mx-1 px-1;
+  }
+  .pricing-matrix {
+    @apply w-full min-w-[640px] text-sm font-sans border-collapse;
+  }
+  .pricing-matrix th,
+  .pricing-matrix td {
+    @apply px-3 py-2.5 text-left align-middle border-b border-border/40;
+  }
+  .pricing-matrix thead th {
+    @apply text-xs font-semibold uppercase tracking-wide text-ink-muted bg-paper-dark/50;
+  }
+  .pricing-matrix tbody th[scope="row"] {
+    @apply font-medium text-ink whitespace-nowrap;
+  }
+  .pricing-matrix tbody tr:last-child th,
+  .pricing-matrix tbody tr:last-child td {
+    @apply border-b-0;
+  }
+  .pricing-matrix-yes {
+    @apply inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-50 text-green-700 font-semibold;
+  }
+  .pricing-matrix-no {
+    @apply text-ink-muted;
+  }
+  .pricing-matrix-text {
+    @apply text-ink-light text-xs leading-snug;
+  }
+  .pricing-card-v2 {
+    @apply flex flex-col;
+  }
+  .pricing-badge {
+    @apply shrink-0 text-[10px] font-sans font-semibold uppercase tracking-wide
+           px-2 py-0.5 rounded-full bg-accent/15 text-accent-dark;
+  }
+  .pricing-team-strip {
+    @apply rounded-2xl border border-border/50 bg-white p-6 shadow-sm;
+  }
+  .pricing-team-copy {
+    @apply flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4;
+  }
+  .pricing-team-features {
+    @apply grid grid-cols-1 sm:grid-cols-2 gap-2 mb-5 text-sm text-ink-light font-sans;
+  }
 
   /* ── FAQ ── */
   .faq-item {

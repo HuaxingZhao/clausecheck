@@ -9,10 +9,33 @@ interface PricingSectionProps {
   locale: string;
   isPro: boolean;
   scrollTo: (id: string) => void;
-  onCheckout: (
-    priceId: "pro_monthly" | "pay_per_use" | "team_monthly",
-    currency: CurrencyKey
-  ) => void;
+  onCheckout: (priceId: "pro_monthly" | "pay_per_use", currency: CurrencyKey) => void;
+}
+
+type MatrixPlanKey = "free" | "payPerUse" | "pro";
+
+interface MatrixRow {
+  label: string;
+  free: string;
+  payPerUse: string;
+  pro: string;
+}
+
+const MATRIX_PLAN_KEYS: MatrixPlanKey[] = ["free", "payPerUse", "pro"];
+
+function CellValue({ value }: { value: string }) {
+  const v = value.trim();
+  if (v === "✓" || v === "yes") {
+    return (
+      <span className="pricing-matrix-yes" aria-label="included">
+        ✓
+      </span>
+    );
+  }
+  if (v === "—" || v === "-" || v === "no") {
+    return <span className="pricing-matrix-no">—</span>;
+  }
+  return <span className="pricing-matrix-text">{value}</span>;
 }
 
 export default function PricingSection({
@@ -35,30 +58,74 @@ export default function PricingSection({
     flag: string;
   };
 
-  const freeFeatures = t.raw("pricing.free.features") as string[];
-  const proFeatures = t.raw("pricing.pro.features") as string[];
-  const payFeatures = t.raw("pricing.payPerUse.features") as string[];
-  const teamFeatures = t.raw("pricing.team.features") as string[];
-  const teamPrice = isZh
-    ? t("pricing.team.priceCny")
-    : enCurrency === "sgd"
-      ? t("pricing.team.priceSgd")
-      : t("pricing.team.priceUsd");
-  const teamPeriod = t("pricing.team.period");
+  const matrixRows = t.raw("pricing.matrix.rows") as MatrixRow[];
+  const matrixPlans = t.raw("pricing.matrix.plans") as Record<MatrixPlanKey, string>;
+  const deliverables = t.raw("pricing.deliverables") as string[];
+
+  const planCards: Array<{
+    key: MatrixPlanKey;
+    featured?: boolean;
+    price: string;
+    period: string;
+    onAction: () => void;
+    ctaClass: string;
+  }> = [
+    {
+      key: "free",
+      price: cur.free.price,
+      period: cur.free.period,
+      onAction: () => scrollTo("upload"),
+      ctaClass: "btn btn-outline w-full",
+    },
+    {
+      key: "pro",
+      featured: true,
+      price: cur.pro.price,
+      period: cur.pro.period,
+      onAction: () => onCheckout("pro_monthly", currency),
+      ctaClass: "btn btn-primary w-full",
+    },
+    {
+      key: "payPerUse",
+      price: cur.payPerUse.price,
+      period: cur.payPerUse.period,
+      onAction: () => onCheckout("pay_per_use", currency),
+      ctaClass: "btn btn-outline w-full",
+    },
+  ];
 
   return (
-    <section id="pricing" className="py-20">
-      <div className="max-w-5xl mx-auto px-6">
-        <div className="section-label text-center">{t("pricing.label")}</div>
-        <h2 className="text-center mb-4">{t("pricing.title")}</h2>
-        <p className="text-center text-ink-light mb-8">{t("pricing.subtitle")}</p>
+    <section id="pricing" className="py-20 bg-paper-dark/40">
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="text-center max-w-2xl mx-auto mb-10">
+          <div className="section-label">{t("pricing.label")}</div>
+          <h2 className="mb-3">{t("pricing.title")}</h2>
+          <p className="text-ink-light mb-4">{t("pricing.subtitle")}</p>
+          <p className="text-sm text-ink-muted font-sans leading-relaxed">
+            {t("pricing.disclaimer")}
+          </p>
+        </div>
+
+        <div className="pricing-deliverables mb-10">
+          <p className="text-xs font-sans font-semibold uppercase tracking-wide text-ink-muted mb-3 text-center">
+            {t("pricing.deliverablesTitle")}
+          </p>
+          <ul className="flex flex-wrap justify-center gap-x-4 gap-y-2">
+            {deliverables.map((item) => (
+              <li key={item} className="text-sm text-ink-light font-sans">
+                ✓ {item}
+              </li>
+            ))}
+          </ul>
+        </div>
 
         {!isZh && (
-          <div className="flex justify-center mb-10">
+          <div className="flex justify-center mb-8">
             <div className="currency-switcher">
               {enCurrencies.map((c) => (
                 <button
                   key={c}
+                  type="button"
                   onClick={() => setEnCurrency(c)}
                   className={`currency-btn ${enCurrency === c ? "active" : ""}`}
                 >
@@ -71,7 +138,7 @@ export default function PricingSection({
         )}
 
         {isPro ? (
-          <div className="md:col-span-3 max-w-xl mx-auto w-full">
+          <div className="max-w-xl mx-auto">
             <div className="pricing-card featured text-center !scale-100 hover:!scale-[1.02]">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <svg
@@ -107,91 +174,81 @@ export default function PricingSection({
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-            <div className="pricing-card">
-              <h3 className="text-xl mb-1">{t("pricing.free.name")}</h3>
-              <p className="text-xs text-ink-muted mb-4 font-sans">{t("pricing.free.note")}</p>
-              <div className="text-4xl font-light font-sans mb-5">
-                {cur.free.price}
-                <span className="text-lg text-ink-muted">{cur.free.period}</span>
+          <>
+            <div className="pricing-matrix-wrap mb-10">
+              <h3 className="text-center font-sans font-semibold text-ink mb-4">
+                {t("pricing.matrix.title")}
+              </h3>
+              <div className="pricing-matrix-scroll">
+                <table className="pricing-matrix">
+                  <thead>
+                    <tr>
+                      <th scope="col">{t("pricing.matrix.featureCol")}</th>
+                      {MATRIX_PLAN_KEYS.map((plan) => (
+                        <th key={plan} scope="col">
+                          {matrixPlans[plan]}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {matrixRows.map((row) => (
+                      <tr key={row.label}>
+                        <th scope="row">{row.label}</th>
+                        {MATRIX_PLAN_KEYS.map((plan) => (
+                          <td key={plan}>
+                            <CellValue value={row[plan]} />
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              <ul className="space-y-3 mb-6 text-sm text-ink-light">
-                {freeFeatures.map((feat, i) => (
-                  <li key={i}>{feat}</li>
-                ))}
-              </ul>
-              <button onClick={() => scrollTo("upload")} className="btn btn-outline w-full">
-                {t("pricing.free.cta")}
-              </button>
             </div>
 
-            <div className="pricing-card featured">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-xl">{t("pricing.pro.name")}</h3>
-                <span className="text-xs bg-accent/20 text-[#8B3A0E] px-2 py-0.5 rounded-full font-sans">
-                  {t("pricing.pro.badge")}
-                </span>
-              </div>
-              <p className="text-xs text-ink-muted mb-4 font-sans">{t("pricing.pro.note")}</p>
-              <div className="text-4xl font-light font-sans mb-5">
-                {cur.pro.price}
-                <span className="text-lg text-ink-muted">{cur.pro.period}</span>
-              </div>
-              <ul className="space-y-3 mb-6 text-sm text-ink-light">
-                {proFeatures.map((feat, i) => (
-                  <li key={i}>{feat}</li>
-                ))}
-              </ul>
-              <button
-                onClick={() => onCheckout("pro_monthly", currency)}
-                className="btn btn-primary w-full"
-              >
-                {t("pricing.pro.cta")}
-              </button>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              {planCards.map((card) => {
+                const planKey = card.key;
+                const highlights = t.raw(`pricing.${planKey}.highlights`) as string[];
+                return (
+                  <div
+                    key={planKey}
+                    className={`pricing-card pricing-card-v2 ${card.featured ? "featured" : ""}`}
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <h3 className="text-xl">{t(`pricing.${planKey}.name`)}</h3>
+                      {card.featured && (
+                        <span className="pricing-badge">{t("pricing.pro.badge")}</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-ink-muted mb-1 font-sans">
+                      {t(`pricing.${planKey}.audience`)}
+                    </p>
+                    <p className="text-xs text-ink-light mb-4 font-sans">
+                      {t(`pricing.${planKey}.note`)}
+                    </p>
+                    <div className="text-4xl font-light font-sans mb-5">
+                      {card.price}
+                      <span className="text-lg text-ink-muted">{card.period}</span>
+                    </div>
+                    <ul className="space-y-2.5 mb-6 text-sm text-ink-light font-sans">
+                      {highlights.map((feat) => (
+                        <li key={feat}>{feat}</li>
+                      ))}
+                    </ul>
+                    <button type="button" onClick={card.onAction} className={card.ctaClass}>
+                      {t(`pricing.${planKey}.cta`)}
+                    </button>
+                  </div>
+                );
+              })}
             </div>
 
-            <div className="pricing-card">
-              <h3 className="text-xl mb-1">{t("pricing.payPerUse.name")}</h3>
-              <p className="text-xs text-ink-muted mb-4 font-sans">
-                {t("pricing.payPerUse.note")}
-              </p>
-              <div className="text-4xl font-light font-sans mb-5">
-                {cur.payPerUse.price}
-                <span className="text-lg text-ink-muted">{cur.payPerUse.period}</span>
-              </div>
-              <ul className="space-y-3 mb-6 text-sm text-ink-light">
-                {payFeatures.map((feat, i) => (
-                  <li key={i}>{feat}</li>
-                ))}
-              </ul>
-              <button
-                onClick={() => onCheckout("pay_per_use", currency)}
-                className="btn btn-outline w-full"
-              >
-                {cur.payPerUse.price} {t("pricing.payPerUse.cta")}
-              </button>
-            </div>
-
-            <div className="pricing-card">
-              <h3 className="text-xl mb-1">{t("pricing.team.name")}</h3>
-              <p className="text-xs text-ink-muted mb-4 font-sans">{t("pricing.team.note")}</p>
-              <div className="text-4xl font-light font-sans mb-5">
-                {teamPrice}
-                <span className="text-lg text-ink-muted">{teamPeriod}</span>
-              </div>
-              <ul className="space-y-3 mb-6 text-sm text-ink-light">
-                {teamFeatures.map((feat, i) => (
-                  <li key={i}>{feat}</li>
-                ))}
-              </ul>
-              <button
-                onClick={() => onCheckout("team_monthly", currency)}
-                className="btn btn-outline w-full"
-              >
-                {t("pricing.team.cta")}
-              </button>
-            </div>
-          </div>
+            <p className="text-xs text-center text-ink-muted font-sans leading-relaxed max-w-3xl mx-auto">
+              {t("pricing.footnote")}
+            </p>
+          </>
         )}
       </div>
     </section>

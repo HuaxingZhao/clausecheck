@@ -192,7 +192,7 @@
     "expandSection": "Expand",
     "collapseSection": "Collapse",
     "upgradeCta": "Upgrade to Pro · Deep Analysis →",
-    "upgradeHint": "Pro includes unlimited text length, batch scanning, and PDF report export",
+    "upgradeHint": "Pro unlocks up to 80,000 characters, deep analysis, and cloud report history",
     "dimensionsTitle": "📊 Risk by Dimension",
     "dimensionsHint": "Higher score = greater risk in that dimension. Focus on red areas first.",
     "dimensionFairness": "Contract Fairness",
@@ -649,92 +649,139 @@
   },
   "pricing": {
     "label": "Pricing",
-    "title": "Simple & Transparent",
-    "subtitle": "3-day free trial · Cancel anytime",
+    "title": "Choose what fits",
+    "subtitle": "3-day free trial · No card required · Cancel anytime",
+    "disclaimer": "All plans provide AI decision support, not legal advice. Consult a licensed attorney for high-stakes contracts.",
+    "deliverablesTitle": "Every scan includes",
+    "deliverables": [
+      "18 scenario-specific review templates",
+      "Decision summary (sign / sign with changes / do not sign)",
+      "Risk score & flagged clauses",
+      "Clause-by-clause review & edit suggestions",
+      "Negotiation priority ranking"
+    ],
+    "footnote": "Pay-per-scan credits never expire until used. Pro is billed securely via Stripe — cancel anytime in the billing portal.",
     "currencyLabel": "Currency",
     "currencies": {
       "cny": {
         "label": "CNY ¥",
         "flag": "🇨🇳",
-        "free": { "price": "¥0", "period": "/month" },
+        "free": { "price": "¥0", "period": "" },
         "pro": { "price": "¥49", "period": "/month" },
-        "payPerUse": { "price": "¥19", "period": "/scan" }
+        "payPerUse": { "price": "¥17", "period": "/scan" }
       },
       "usd": {
         "label": "USD $",
         "flag": "🇺🇸",
-        "free": { "price": "$0", "period": "/month" },
-        "pro": { "price": "$6.9", "period": "/month" },
-        "payPerUse": { "price": "$2.9", "period": "/scan" }
+        "free": { "price": "$0", "period": "" },
+        "pro": { "price": "$6.9", "period": "/mo" },
+        "payPerUse": { "price": "$1.9", "period": "/scan" }
       },
       "sgd": {
         "label": "SGD S$",
         "flag": "🇸🇬",
-        "free": { "price": "S$0", "period": "/month" },
-        "pro": { "price": "S$8.9", "period": "/month" },
-        "payPerUse": { "price": "S$3.9", "period": "/scan" }
+        "free": { "price": "S$0", "period": "" },
+        "pro": { "price": "S$8.9", "period": "/mo" },
+        "payPerUse": { "price": "S$2.9", "period": "/scan" }
       }
+    },
+    "matrix": {
+      "title": "Compare plans",
+      "featureCol": "Feature",
+      "plans": {
+        "free": "Free",
+        "payPerUse": "Pay-per-scan",
+        "pro": "Pro"
+      },
+      "rows": [
+        {
+          "label": "Scans",
+          "free": "Unlimited trial · then 3/mo",
+          "payPerUse": "1 per purchase",
+          "pro": "Unlimited"
+        },
+        {
+          "label": "Contract length",
+          "free": "12,000 chars",
+          "payPerUse": "80,000 chars",
+          "pro": "80,000 chars"
+        },
+        {
+          "label": "AI depth",
+          "free": "Standard",
+          "payPerUse": "Deep",
+          "pro": "Deep"
+        },
+        {
+          "label": "PDF report download",
+          "free": "✓",
+          "payPerUse": "✓",
+          "pro": "✓"
+        },
+        {
+          "label": "Cloud report history",
+          "free": "—",
+          "payPerUse": "—",
+          "pro": "✓"
+        },
+        {
+          "label": "Revision workbook (Word)",
+          "free": "—",
+          "payPerUse": "✓",
+          "pro": "✓"
+        },
+        {
+          "label": "Negotiation email export",
+          "free": "✓",
+          "payPerUse": "✓",
+          "pro": "✓"
+        }
+      ]
     },
     "free": {
       "name": "Free",
+      "audience": "Occasional small contracts",
       "note": "3-day trial · No card required",
-      "features": [
+      "highlights": [
         "✅ Unlimited scans during trial",
-        "✅ Full risk assessment",
-        "✅ Clause-by-clause suggestions",
-        "✅ Negotiation priorities",
+        "✅ Standard AI + full online report",
+        "✅ Clause review & edit suggestions",
         "⏤ 3 scans/month after trial",
-        "⏤ No report export after trial"
+        "⏤ Up to 12,000 characters each",
+        "⏤ No cloud history or Word workbook"
       ],
       "cta": "Start Free"
     },
     "pro": {
       "name": "Pro",
       "badge": "Recommended",
-      "note": "For legal teams & founders · Card required",
-      "features": [
+      "audience": "Legal teams, founders, frequent reviews",
+      "note": "Monthly subscription · Card required · Cancel anytime",
+      "highlights": [
         "✅ Unlimited scans",
-        "✅ Deep AI analysis",
-        "✅ No text length limit",
-        "✅ PDF report export",
-        "✅ Batch scanning",
-        "✅ Priority email support"
+        "✅ Deep AI analysis (up to 80,000 chars)",
+        "✅ PDF reports + cloud history",
+        "✅ Revision workbook (.docx) export",
+        "✅ Refinement pass & cross-check"
       ],
       "cta": "Subscribe"
     },
     "payPerUse": {
       "name": "Pay-per-scan",
-      "note": "No subscription · Card required",
-      "features": [
-        "✅ One full scan",
-        "✅ Complete risk report",
-        "✅ Clause suggestions",
-        "✅ PDF report export",
-        "✅ No subscription",
-        "⏤ No batch scanning"
+      "audience": "One important contract, no subscription",
+      "note": "Pay once · Card required",
+      "highlights": [
+        "✅ One full deep scan",
+        "✅ Up to 80,000 characters",
+        "✅ PDF report download",
+        "✅ Revision workbook (.docx) export",
+        "⏤ No cloud report history"
       ],
       "cta": "Scan once"
     },
-    "team": {
-      "name": "Team",
-      "note": "Up to 5 seats · Shared report history",
-      "priceCny": "¥199",
-      "priceUsd": "$29",
-      "priceSgd": "S$39",
-      "period": "/month",
-      "features": [
-        "✅ Everything in Pro",
-        "✅ 5 team members",
-        "✅ Shared report library",
-        "✅ Invite by email",
-        "✅ Team owner billing",
-        "✅ Priority support"
-      ],
-      "cta": "Start Team plan"
-    },
     "subscribed": {
       "title": "You're on Pro",
-      "desc": "Unlimited scans · Deep AI analysis · No length limit · Report export · Batch scanning · Priority support",
+      "desc": "Unlimited scans · Deep AI · Up to 80,000 chars · PDF & cloud history · Revision workbook export",
       "managePrefix": "Manage subscription in",
       "manageLink": "Stripe billing portal",
       "manageSuffix": "to view invoices, update payment, or cancel."
@@ -790,7 +837,7 @@
       },
       {
         "q": "What are the Free tier limits?",
-        "a": "5 free scans per month, up to 12,000 characters each. Includes risk scoring and clause flagging, but no PDF export. Perfect for everyday contracts."
+        "a": "After sign-up you get a 3-day unlimited trial. After that, 3 scans per month, up to 12,000 characters each, with standard AI analysis. Full online reports and PDF download are included; cloud history and Word revision workbook export require Pro or pay-per-scan."
       },
       {
         "q": "How long does a scan take?",

@@ -379,7 +379,7 @@ export default function Home() {
   }
 
   async function handleCheckout(
-    priceId: "pro_monthly" | "pay_per_use" | "team_monthly",
+    priceId: "pro_monthly" | "pay_per_use",
     currency: "cny" | "usd" | "sgd"
   ) {
     trackEvent("checkout_started", { priceId, currency });
