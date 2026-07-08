@@ -14,7 +14,11 @@ export async function loginUserRedirect(
   const norm = email.trim().toLowerCase();
   const user = await upsertUser(norm, {});
   if (creditsSystemEnabled()) {
-    await bootstrapNewUserCredits(user.id);
+    try {
+      await bootstrapNewUserCredits(user.id);
+    } catch (err) {
+      console.error("bootstrapNewUserCredits after OAuth login:", err);
+    }
   }
   const sessionToken = await createSessionToken({ sub: user.id, email: user.email });
   const path = redirectPath || `/${locale}/account?auth=success`;

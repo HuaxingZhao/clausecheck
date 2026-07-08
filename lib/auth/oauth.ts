@@ -7,8 +7,14 @@ function secret(): Uint8Array {
   return new TextEncoder().encode(getAuthSecret());
 }
 
+/**
+ * OAuth redirect_uri 必须与用户当前访问的域名一致（不能强制用 NEXT_PUBLIC_URL）。
+ * 否则在 www.clausecheck.cc 登录会跳到 vercel.app 回调，Cookie 无法写回主域名。
+ */
 export function getOAuthBaseUrl(origin?: string): string {
-  return process.env.NEXT_PUBLIC_URL || origin || "http://localhost:3000";
+  const normalizedOrigin = origin?.replace(/\/$/, "");
+  if (normalizedOrigin) return normalizedOrigin;
+  return (process.env.NEXT_PUBLIC_URL || "http://localhost:3000").replace(/\/$/, "");
 }
 
 export async function signOAuthState(locale: string, provider: OAuthProvider): Promise<string> {

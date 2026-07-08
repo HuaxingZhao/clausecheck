@@ -68,17 +68,17 @@ export async function bootstrapNewUserCredits(userId: string): Promise<void> {
   const sql = getSql();
   await sql.begin(async (tx) => {
     const existing = await tx`
-      SELECT 1 FROM public.user_credits WHERE user_id = ${userId}::uuid LIMIT 1
+      SELECT 1 FROM public.user_credits WHERE user_id = ${userId} LIMIT 1
     `;
     if (existing.length > 0) return;
 
     await tx`
       INSERT INTO public.user_credits (user_id, balance)
-      VALUES (${userId}::uuid, 3)
+      VALUES (${userId}, 3)
     `;
     await tx`
       INSERT INTO public.credit_transactions (user_id, amount, type)
-      VALUES (${userId}::uuid, 3, 'register')
+      VALUES (${userId}, 3, 'register')
     `;
   });
 }
