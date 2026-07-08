@@ -50,7 +50,14 @@
     "scanningText": "AI is reviewing your contract clause by clause…",
     "rescan": "🔄 Rescan",
     "errorFormat": "Only PDF / DOCX / TXT files supported",
-    "errorSize": "File must be under 10MB"
+    "errorSize": "File must be under 10MB",
+    "creditsRemaining": "{count} credits left",
+    "creditsLogin": "Sign in to see credits",
+    "creditsLoading": "Loading credits…",
+    "wordLimitModalTitle": "Document too long",
+    "wordLimitModalBody": "This document exceeds the 20,000-character trial limit. Upgrade to Pro for up to 80,000 characters of deep review.",
+    "wordLimitModalClose": "Got it",
+    "viewPricing": "View pricing"
   },
   "scenarios": {
     "label": "Contract type",
@@ -322,7 +329,28 @@
     "proFeatures": "Pro features",
     "proFeaturesBody": "You have Pro — save reports and export revision workbooks.",
     "viewReports": "Report history",
-    "viewRevisions": "Revisions"
+    "viewRevisions": "Revisions",
+    "inviteFriends": "Invite friends for credits"
+  },
+  "invite": {
+    "label": "Invite friends",
+    "title": "Invite friends — 3 credits each",
+    "subtitle": "Share your personal link. When a friend signs up, you both receive 3 deep-analysis credits.",
+    "backHome": "Back to home",
+    "loading": "Loading invite details…",
+    "linkTitle": "Your invite link",
+    "copyLink": "Copy link",
+    "copied": "Link copied",
+    "copyFailed": "Copy failed — please select and copy manually",
+    "codeLabel": "Code",
+    "usesRemaining": "{count} of {max} redemptions left",
+    "progressTitle": "Your progress",
+    "progressSummary": "Invited {invites} · earned {credits} credits",
+    "progressHint": "Earn 3 scan credits for each successful referral.",
+    "shareTitle": "Share message",
+    "shareTemplate": "I use ClauseCheck to review contracts — sign up for 3 free deep scans, plus 3 more with my link: {url}",
+    "copyShare": "Copy message",
+    "shareCopied": "Message copied"
   },
   "reports": {
     "label": "Pro",
@@ -650,9 +678,9 @@
   "pricing": {
     "label": "Pricing",
     "title": "Choose what fits",
-    "subtitle": "3-day free trial · No card required · Cancel anytime",
+    "subtitle": "3 free deep reviews on signup · upgrade when you need more",
     "disclaimer": "All plans provide AI decision support, not legal advice. Consult a licensed attorney for high-stakes contracts.",
-    "deliverablesTitle": "Every scan includes",
+    "deliverablesTitle": "Every review includes",
     "deliverables": [
       "18 scenario-specific review templates",
       "Decision summary (sign / sign with changes / do not sign)",
@@ -660,132 +688,123 @@
       "Clause-by-clause review & edit suggestions",
       "Negotiation priority ranking"
     ],
-    "footnote": "Pay-per-scan credits never expire until used. Pro is billed securely via Stripe — cancel anytime in the billing portal.",
-    "currencyLabel": "Currency",
-    "currencies": {
-      "cny": {
-        "label": "CNY ¥",
-        "flag": "🇨🇳",
-        "free": { "price": "¥0", "period": "" },
-        "pro": { "price": "¥49", "period": "/month" },
-        "payPerUse": { "price": "¥17", "period": "/scan" }
-      },
-      "usd": {
-        "label": "USD $",
-        "flag": "🇺🇸",
-        "free": { "price": "$0", "period": "" },
-        "pro": { "price": "$6.9", "period": "/mo" },
-        "payPerUse": { "price": "$1.9", "period": "/scan" }
-      },
-      "sgd": {
-        "label": "SGD S$",
-        "flag": "🇸🇬",
-        "free": { "price": "S$0", "period": "" },
-        "pro": { "price": "S$8.9", "period": "/mo" },
-        "payPerUse": { "price": "S$2.9", "period": "/scan" }
-      }
-    },
+    "footnote": "Boost credits never expire until used. Balance updates automatically after payment.",
     "matrix": {
       "title": "Compare plans",
       "featureCol": "Feature",
       "plans": {
-        "free": "Free",
-        "payPerUse": "Pay-per-scan",
-        "pro": "Pro"
+        "experience": "Trial",
+        "pro": "Pro",
+        "boost": "Boost"
       },
       "rows": [
         {
-          "label": "Scans",
-          "free": "Unlimited trial · then 3/mo",
-          "payPerUse": "1 per purchase",
-          "pro": "Unlimited"
+          "label": "Reviews",
+          "experience": "3 on signup",
+          "pro": "30 / month",
+          "boost": "1 per pack"
         },
         {
           "label": "Contract length",
-          "free": "12,000 chars",
-          "payPerUse": "80,000 chars",
-          "pro": "80,000 chars"
+          "experience": "20,000 chars",
+          "pro": "80,000 chars",
+          "boost": "80,000 chars"
         },
         {
           "label": "AI depth",
-          "free": "Standard",
-          "payPerUse": "Deep",
-          "pro": "Deep"
+          "experience": "Deep review",
+          "pro": "Deep review",
+          "boost": "Deep review"
         },
         {
-          "label": "PDF report download",
-          "free": "✓",
-          "payPerUse": "✓",
-          "pro": "✓"
+          "label": "Word workbook export",
+          "experience": "—",
+          "pro": "✓",
+          "boost": "✓"
         },
         {
           "label": "Cloud report history",
-          "free": "—",
-          "payPerUse": "—",
-          "pro": "✓"
-        },
-        {
-          "label": "Revision workbook (Word)",
-          "free": "—",
-          "payPerUse": "✓",
-          "pro": "✓"
-        },
-        {
-          "label": "Negotiation email export",
-          "free": "✓",
-          "payPerUse": "✓",
-          "pro": "✓"
+          "experience": "—",
+          "pro": "✓",
+          "boost": "—"
         }
       ]
     },
-    "free": {
-      "name": "Free",
-      "audience": "Occasional small contracts",
-      "note": "3-day trial · No card required",
+    "experience": {
+      "name": "Trial",
+      "price": "¥0",
+      "period": "",
+      "audience": "New users",
+      "note": "Start after signup",
       "highlights": [
-        "✅ Unlimited scans during trial",
-        "✅ Standard AI + full online report",
-        "✅ Clause review & edit suggestions",
-        "⏤ 3 scans/month after trial",
-        "⏤ Up to 12,000 characters each",
-        "⏤ No cloud history or Word workbook"
+        "🎁 3 deep reviews on signup",
+        "✅ Up to 20,000 characters each",
+        "✅ Full report & edit suggestions",
+        "⏤ No Word workbook export"
       ],
       "cta": "Start Free"
     },
     "pro": {
       "name": "Pro",
       "badge": "Recommended",
-      "audience": "Legal teams, founders, frequent reviews",
-      "note": "Monthly subscription · Card required · Cancel anytime",
+      "price": "¥49",
+      "period": "/mo",
+      "audience": "Legal teams & frequent reviewers",
+      "note": "Monthly · WeChat Pay",
       "highlights": [
-        "✅ Unlimited scans",
-        "✅ Deep AI analysis (up to 80,000 chars)",
-        "✅ PDF reports + cloud history",
-        "✅ Revision workbook (.docx) export",
-        "✅ Refinement pass & cross-check"
+        "✅ 30 deep reviews per month",
+        "✅ 80,000 character limit",
+        "✅ Word workbook export",
+        "✅ Cloud report history"
       ],
-      "cta": "Subscribe"
+      "cta": "Subscribe now"
     },
-    "payPerUse": {
-      "name": "Pay-per-scan",
-      "audience": "One important contract, no subscription",
-      "note": "Pay once · Card required",
+    "boost": {
+      "name": "⚡ Single boost",
+      "badge": "One-time",
+      "price": "¥29",
+      "period": "/review",
+      "audience": "One important contract",
+      "note": "No subscription · never expires",
       "highlights": [
-        "✅ One full deep scan",
-        "✅ Up to 80,000 characters",
-        "✅ PDF report download",
-        "✅ Revision workbook (.docx) export",
-        "⏤ No cloud report history"
+        "✅ Never expires until used",
+        "✅ 80,000 character deep review",
+        "✅ Word workbook export"
       ],
-      "cta": "Scan once"
+      "cta": "Buy boost pack"
     },
     "subscribed": {
       "title": "You're on Pro",
-      "desc": "Unlimited scans · Deep AI · Up to 80,000 chars · PDF & cloud history · Revision workbook export",
+      "desc": "30 reviews/month · 80,000 chars · Word workbook · cloud history",
       "managePrefix": "Manage subscription in",
       "manageLink": "Stripe billing portal",
       "manageSuffix": "to view invoices, update payment, or cancel."
     }
+  },
+  "payment": {
+    "processing": "Processing…",
+    "modalTitle": "WeChat Pay · {plan}",
+    "planPro": "Pro",
+    "planBoost": "Single boost",
+    "creating": "Creating order…",
+    "scanHint": "Scan with WeChat to pay",
+    "qrAlt": "WeChat Pay QR code",
+    "polling": "Waiting for payment",
+    "success": "Payment received, refreshing balance…",
+    "timeout": "Payment timed out (5 min). Please retry.",
+    "errorGeneric": "Payment failed. Check your network and retry.",
+    "retry": "Retry payment",
+    "cancel": "Cancel",
+    "close": "Close"
+  },
+  "waitlist": {
+    "label": "Waitlist",
+    "title": "Opening soon",
+    "subtitle": "You selected {plan}. We're finishing checkout and activation.",
+    "body": "Join the waitlist to get notified at launch. You can keep using trial credits in the meantime.",
+    "planPro": "Pro",
+    "planBoost": "Single boost",
+    "backPricing": "Back to pricing"
   },
   "pricingZh": {
     "label": "定价",

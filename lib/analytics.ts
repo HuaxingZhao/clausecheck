@@ -13,7 +13,12 @@ export type AnalyticsEvent =
   | "report_pdf_download"
   | "review_opened"
   | "review_export_email"
-  | "review_export_workbook";
+  | "review_export_workbook"
+  | "review_started"
+  | "review_completed"
+  | "payment_success"
+  | "export_failed"
+  | "invite_redeemed";
 
 export function trackEvent(
   name: AnalyticsEvent,

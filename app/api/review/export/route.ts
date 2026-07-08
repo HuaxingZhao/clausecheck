@@ -3,18 +3,24 @@ import { getSessionFromRequest } from "@/lib/auth/session";
 import { resolveTierForRequest } from "@/lib/billing/entitlements";
 import { generateRevisionWorkbookDocx } from "@/lib/revision-workbook-docx";
 import type { ContractChange } from "@/lib/types";
+import { reportExportFailure } from "@/lib/monitoring";
 
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
+  let monitorUserId: string | null = null;
+  let monitorCharCount = 0;
+
   try {
     const session = await getSessionFromRequest(req);
+    monitorUserId = session?.sub ?? null;
     const tier = await resolveTierForRequest(session?.sub ?? null);
     const isPro = tier === "pro" || tier === "pay_per_use";
 
     const body = await req.json();
     const locale = body.locale === "en" ? "en" : "zh";
     const contractText = String(body.contractText ?? "").trim();
+    monitorCharCount = contractText.length;
     const fileName = body.fileName ? String(body.fileName) : null;
     const changes: ContractChange[] = Array.isArray(body.changes) ? body.changes : [];
 
@@ -65,6 +71,12 @@ export async function POST(req: NextRequest) {
     });
   } catch (err: unknown) {
     console.error("review/export error:", err);
+    reportExportFailure(err, {
+      user_id: monitorUserId,
+      plan_type: "pro",
+      document_word_count: monitorCharCount || null,
+      route: "/api/review/export",
+    });
     const message = err instanceof Error ? err.message : "Export failed";
     return NextResponse.json({ error: message }, { status: 500 });
   }

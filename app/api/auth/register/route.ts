@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { findUserByEmail, getPasswordHash, setPasswordHash, upsertUser } from "@/lib/db/store";
 import { hashPassword, validatePassword } from "@/lib/auth/password";
 import { jsonWithSession } from "@/lib/auth/session-response";
+import { creditsSystemEnabled } from "@/lib/credits/user-credits";
+import {
+  bootstrapNewUserCredits,
+  InviteRedeemError,
+  redeemInviteCode,
+} from "@/lib/invite/codes";
+import { getClientIp, hashGuardKey, normalizeInviteCode } from "@/lib/invite/request-meta";
+import { trackBusinessEvent } from "@/lib/monitoring";
 
 function msg(locale: string, zh: string, en: string) {
   return locale === "en" ? en : zh;
@@ -9,7 +17,8 @@ function msg(locale: string, zh: string, en: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password, confirmPassword, locale } = await req.json();
+    const { email, password, confirmPassword, locale, inviteCode, deviceFingerprint } =
+      await req.json();
     const loc = locale === "en" ? "en" : "zh";
 
     if (!email || typeof email !== "string" || !email.includes("@")) {
@@ -48,7 +57,44 @@ export async function POST(req: NextRequest) {
     const user = existing ?? (await upsertUser(norm, {}));
     await setPasswordHash(norm, hashPassword(password));
 
-    return jsonWithSession(user.id, user.email, { registered: !existing });
+    const isNewUser = !existing;
+    let inviteRedeemed = false;
+    let inviteError: string | null = null;
+
+    if (isNewUser && creditsSystemEnabled()) {
+      await bootstrapNewUserCredits(user.id);
+
+      const code = normalizeInviteCode(inviteCode);
+      if (code && typeof deviceFingerprint === "string" && deviceFingerprint.length >= 8) {
+        try {
+          await redeemInviteCode({
+            code,
+            redeemerUserId: user.id,
+            deviceKey: hashGuardKey(deviceFingerprint),
+            ipKey: hashGuardKey(getClientIp(req)),
+          });
+          inviteRedeemed = true;
+          void trackBusinessEvent({
+            event: "invite_redeemed",
+            route: "/api/auth/register",
+            user_id: user.id,
+          });
+        } catch (err: unknown) {
+          if (err instanceof InviteRedeemError) {
+            inviteError = err.code;
+          } else {
+            console.error("register invite redeem error:", err);
+            inviteError = "REDEEM_FAILED";
+          }
+        }
+      }
+    }
+
+    return jsonWithSession(user.id, user.email, {
+      registered: isNewUser,
+      invite_redeemed: inviteRedeemed,
+      invite_error: inviteError,
+    });
   } catch (err: unknown) {
     console.error("register error:", err);
     return NextResponse.json({ error: "Registration failed" }, { status: 500 });

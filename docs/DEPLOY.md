@@ -24,6 +24,13 @@
 npm run deploy:prep
 ```
 
+**P0 数据库迁移（必须先于代码部署）：** 见 [docs/DEPLOY_OPEN_ITEMS.md](./DEPLOY_OPEN_ITEMS.md) 与 [docs/CONSUME_CREDIT_MIGRATION.md](./CONSUME_CREDIT_MIGRATION.md)
+
+```bash
+# SQL 执行后验证（需 DATABASE_URL）
+npm run db:verify-consume-credit
+```
+
 ---
 
 ## 1. 创建 Postgres（推荐 Neon，免费 tier）

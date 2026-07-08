@@ -1,27 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
-type CurrencyKey = "cny" | "usd" | "sgd";
-
-interface PricingSectionProps {
-  locale: string;
-  isPro: boolean;
-  scrollTo: (id: string) => void;
-  onCheckout: (priceId: "pro_monthly" | "pay_per_use", currency: CurrencyKey) => void;
-}
-
-type MatrixPlanKey = "free" | "payPerUse" | "pro";
+type PlanKey = "experience" | "pro" | "boost";
 
 interface MatrixRow {
   label: string;
-  free: string;
-  payPerUse: string;
+  experience: string;
   pro: string;
+  boost: string;
 }
 
-const MATRIX_PLAN_KEYS: MatrixPlanKey[] = ["free", "payPerUse", "pro"];
+const MATRIX_PLAN_KEYS: PlanKey[] = ["experience", "pro", "boost"];
 
 function CellValue({ value }: { value: string }) {
   const v = value.trim();
@@ -38,58 +29,71 @@ function CellValue({ value }: { value: string }) {
   return <span className="pricing-matrix-text">{value}</span>;
 }
 
+interface PricingSectionProps {
+  locale: string;
+  isPro: boolean;
+  scrollTo?: (id: string) => void;
+  compact?: boolean;
+  onPayPlan?: (plan: "pro" | "boost") => void;
+  payingPlan?: "pro" | "boost" | null;
+}
+
 export default function PricingSection({
   locale,
   isPro,
   scrollTo,
-  onCheckout,
+  compact = false,
+  onPayPlan,
+  payingPlan = null,
 }: PricingSectionProps) {
+  const router = useRouter();
   const t = useTranslations();
-  const isZh = locale === "zh";
-  const [enCurrency, setEnCurrency] = useState<"usd" | "sgd">("usd");
-  const currency: CurrencyKey = isZh ? "cny" : enCurrency;
-  const enCurrencies = ["usd", "sgd"] as const;
-
-  const cur = t.raw(`pricing.currencies.${currency}`) as {
-    free: { price: string; period: string };
-    pro: { price: string; period: string };
-    payPerUse: { price: string; period: string };
-    label: string;
-    flag: string;
-  };
 
   const matrixRows = t.raw("pricing.matrix.rows") as MatrixRow[];
-  const matrixPlans = t.raw("pricing.matrix.plans") as Record<MatrixPlanKey, string>;
+  const matrixPlans = t.raw("pricing.matrix.plans") as Record<PlanKey, string>;
   const deliverables = t.raw("pricing.deliverables") as string[];
 
+  const handlePaidPlan = (plan: "pro" | "boost") => {
+    if (onPayPlan) {
+      onPayPlan(plan);
+    } else {
+      router.push(`/${locale}/waitlist?plan=${plan}`);
+    }
+  };
+
   const planCards: Array<{
-    key: MatrixPlanKey;
+    key: PlanKey;
     featured?: boolean;
+    boost?: boolean;
     price: string;
     period: string;
     onAction: () => void;
     ctaClass: string;
   }> = [
     {
-      key: "free",
-      price: cur.free.price,
-      period: cur.free.period,
-      onAction: () => scrollTo("upload"),
+      key: "experience",
+      price: t("pricing.experience.price"),
+      period: t("pricing.experience.period"),
+      onAction: () => {
+        if (scrollTo) scrollTo("upload");
+        else router.push(`/${locale}#upload`);
+      },
       ctaClass: "btn btn-outline w-full",
     },
     {
       key: "pro",
       featured: true,
-      price: cur.pro.price,
-      period: cur.pro.period,
-      onAction: () => onCheckout("pro_monthly", currency),
+      price: t("pricing.pro.price"),
+      period: t("pricing.pro.period"),
+      onAction: () => handlePaidPlan("pro"),
       ctaClass: "btn btn-primary w-full",
     },
     {
-      key: "payPerUse",
-      price: cur.payPerUse.price,
-      period: cur.payPerUse.period,
-      onAction: () => onCheckout("pay_per_use", currency),
+      key: "boost",
+      boost: true,
+      price: t("pricing.boost.price"),
+      period: t("pricing.boost.period"),
+      onAction: () => handlePaidPlan("boost"),
       ctaClass: "btn btn-outline w-full",
     },
   ];
@@ -101,39 +105,25 @@ export default function PricingSection({
           <div className="section-label">{t("pricing.label")}</div>
           <h2 className="mb-3">{t("pricing.title")}</h2>
           <p className="text-ink-light mb-4">{t("pricing.subtitle")}</p>
-          <p className="text-sm text-ink-muted font-sans leading-relaxed">
-            {t("pricing.disclaimer")}
-          </p>
+          {!compact && (
+            <p className="text-sm text-ink-muted font-sans leading-relaxed">
+              {t("pricing.disclaimer")}
+            </p>
+          )}
         </div>
 
-        <div className="pricing-deliverables mb-10">
-          <p className="text-xs font-sans font-semibold uppercase tracking-wide text-ink-muted mb-3 text-center">
-            {t("pricing.deliverablesTitle")}
-          </p>
-          <ul className="flex flex-wrap justify-center gap-x-4 gap-y-2">
-            {deliverables.map((item) => (
-              <li key={item} className="text-sm text-ink-light font-sans">
-                ✓ {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {!isZh && (
-          <div className="flex justify-center mb-8">
-            <div className="currency-switcher">
-              {enCurrencies.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => setEnCurrency(c)}
-                  className={`currency-btn ${enCurrency === c ? "active" : ""}`}
-                >
-                  <span className="mr-1.5">{t(`pricing.currencies.${c}.flag`)}</span>
-                  {t(`pricing.currencies.${c}.label`)}
-                </button>
+        {!compact && (
+          <div className="pricing-deliverables mb-10">
+            <p className="text-xs font-sans font-semibold uppercase tracking-wide text-ink-muted mb-3 text-center">
+              {t("pricing.deliverablesTitle")}
+            </p>
+            <ul className="flex flex-wrap justify-center gap-x-4 gap-y-2">
+              {deliverables.map((item) => (
+                <li key={item} className="text-sm text-ink-light font-sans">
+                  ✓ {item}
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
         )}
 
@@ -159,53 +149,43 @@ export default function PricingSection({
               <p className="text-sm text-ink-light mb-5 font-sans leading-relaxed">
                 {t("pricing.subscribed.desc")}
               </p>
-              <p className="text-xs text-ink-muted font-sans leading-relaxed">
-                {t("pricing.subscribed.managePrefix")}{" "}
-                <a
-                  href="https://billing.stripe.com/p/login/dRm3cveQW6Bg6Gz7xh00000"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-accent underline hover:text-[#8B3A0E] transition-colors"
-                >
-                  {t("pricing.subscribed.manageLink")}
-                </a>{" "}
-                {t("pricing.subscribed.manageSuffix")}
-              </p>
             </div>
           </div>
         ) : (
           <>
-            <div className="pricing-matrix-wrap mb-10">
-              <h3 className="text-center font-sans font-semibold text-ink mb-4">
-                {t("pricing.matrix.title")}
-              </h3>
-              <div className="pricing-matrix-scroll">
-                <table className="pricing-matrix">
-                  <thead>
-                    <tr>
-                      <th scope="col">{t("pricing.matrix.featureCol")}</th>
-                      {MATRIX_PLAN_KEYS.map((plan) => (
-                        <th key={plan} scope="col">
-                          {matrixPlans[plan]}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {matrixRows.map((row) => (
-                      <tr key={row.label}>
-                        <th scope="row">{row.label}</th>
+            {!compact && (
+              <div className="pricing-matrix-wrap mb-10">
+                <h3 className="text-center font-sans font-semibold text-ink mb-4">
+                  {t("pricing.matrix.title")}
+                </h3>
+                <div className="pricing-matrix-scroll">
+                  <table className="pricing-matrix">
+                    <thead>
+                      <tr>
+                        <th scope="col">{t("pricing.matrix.featureCol")}</th>
                         {MATRIX_PLAN_KEYS.map((plan) => (
-                          <td key={plan}>
-                            <CellValue value={row[plan]} />
-                          </td>
+                          <th key={plan} scope="col">
+                            {matrixPlans[plan]}
+                          </th>
                         ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {matrixRows.map((row) => (
+                        <tr key={row.label}>
+                          <th scope="row">{row.label}</th>
+                          {MATRIX_PLAN_KEYS.map((plan) => (
+                            <td key={plan}>
+                              <CellValue value={row[plan]} />
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               {planCards.map((card) => {
@@ -214,12 +194,17 @@ export default function PricingSection({
                 return (
                   <div
                     key={planKey}
-                    className={`pricing-card pricing-card-v2 ${card.featured ? "featured" : ""}`}
+                    className={`pricing-card pricing-card-v2 ${card.featured ? "featured" : ""} ${card.boost ? "pricing-card-boost" : ""}`}
                   >
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <h3 className="text-xl">{t(`pricing.${planKey}.name`)}</h3>
                       {card.featured && (
                         <span className="pricing-badge">{t("pricing.pro.badge")}</span>
+                      )}
+                      {card.boost && (
+                        <span className="pricing-badge pricing-badge-boost">
+                          {t("pricing.boost.badge")}
+                        </span>
                       )}
                     </div>
                     <p className="text-xs text-ink-muted mb-1 font-sans">
@@ -237,8 +222,21 @@ export default function PricingSection({
                         <li key={feat}>{feat}</li>
                       ))}
                     </ul>
-                    <button type="button" onClick={card.onAction} className={card.ctaClass}>
-                      {t(`pricing.${planKey}.cta`)}
+                    <button
+                      type="button"
+                      onClick={card.onAction}
+                      disabled={
+                        payingPlan != null &&
+                        (planKey === "pro" || planKey === "boost") &&
+                        payingPlan === planKey
+                      }
+                      className={`${card.ctaClass} ${
+                        payingPlan === planKey ? "opacity-70 cursor-wait" : ""
+                      }`}
+                    >
+                      {payingPlan === planKey && (planKey === "pro" || planKey === "boost")
+                        ? t("payment.processing")
+                        : t(`pricing.${planKey}.cta`)}
                     </button>
                   </div>
                 );

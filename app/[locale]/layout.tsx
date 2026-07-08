@@ -35,7 +35,7 @@ function Footer({ locale }: { locale: string }) {
         <Link href={`/${locale}#how`} className="hover:text-gray-700 transition-colors">
           {isZh ? "怎么用" : "How it works"}
         </Link>
-        <Link href={`/${locale}#pricing`} className="hover:text-gray-700 transition-colors">
+        <Link href={`/${locale}/pricing`} className="hover:text-gray-700 transition-colors">
           {isZh ? "定价" : "Pricing"}
         </Link>
         <Link href={`/${locale}#faq`} className="hover:text-gray-700 transition-colors">
@@ -72,15 +72,11 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale === "zh" ? "zh-CN" : "en"}>
-      <body className={displaySerif.variable}>
-        <NextIntlClientProvider messages={messages}>
-          <div className="flex flex-col min-h-screen">
-            <main className="flex-1">{children}</main>
-            <Footer locale={locale} />
-          </div>
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <NextIntlClientProvider messages={messages}>
+      <div className={`flex flex-col min-h-screen ${displaySerif.variable}`}>
+        <main className="flex-1">{children}</main>
+        <Footer locale={locale} />
+      </div>
+    </NextIntlClientProvider>
   );
 }

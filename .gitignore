@@ -16,3 +16,6 @@ data/*.rtf
 scripts/.verify-p0-cookies.txt
 scripts/.verify-p0-backup/
 scripts/.verify-p0-webhook.log
+/test-results/
+/playwright-report/
+/blob-report/

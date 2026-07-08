@@ -13,6 +13,10 @@ import PricingSection from "./components/pricing-section";
 import SiteNav from "./components/site-nav";
 import AuthPanel from "./components/auth-panel";
 import ScenarioPicker from "./components/scenario-picker";
+import WordLimitModal from "./components/word-limit-modal";
+import CreditsRemainingBadge from "./components/credits-remaining-badge";
+import { useCredits } from "@/hooks/use-credits";
+import { stashPendingInviteCode } from "@/lib/invite/client-fingerprint";
 
 export default function Home() {
   const t = useTranslations();
@@ -33,7 +37,9 @@ export default function Home() {
   const [authOpen, setAuthOpen] = useState(false);
   const [scenario, setScenario] = useState<ContractScenarioId>(DEFAULT_SCENARIO_ID);
   const [quotaHint, setQuotaHint] = useState<string | null>(null);
+  const [wordLimitOpen, setWordLimitOpen] = useState(false);
   const resultsRef = useRef<HTMLElement>(null);
+  const { invalidate: invalidateCredits } = useCredits();
 
   const refreshServerQuota = useCallback(async () => {
     try {
@@ -127,6 +133,12 @@ export default function Home() {
             }
           })
           .catch(() => {});
+      }
+
+      const inviteCode = params.get("invite");
+      if (inviteCode) {
+        stashPendingInviteCode(inviteCode);
+        window.history.replaceState({}, "", window.location.pathname);
       }
 
       if (params.get("checkout") === "success") {
@@ -274,12 +286,26 @@ export default function Home() {
         | ScanError;
 
       if (!res.ok) {
-        const errData = data as ScanError & { code?: string };
+        const errData = data as ScanError & {
+          code?: string;
+          error?: string;
+          message?: string;
+        };
+        if (res.status === 413 && errData.error === "WORD_LIMIT_EXCEEDED") {
+          setWordLimitOpen(true);
+          setScanStage(0);
+          setLoading(false);
+          clearTimeout(stageTimer);
+          return;
+        }
         if (errData.code === "QUOTA_EXCEEDED") {
           trackEvent("scan_quota_blocked", { tier: "free" });
           await refreshServerQuota();
         }
-        throw new Error(errData.error || "Scan failed");
+        if (res.status === 402 && errData.error === "INSUFFICIENT_CREDITS") {
+          await invalidateCredits();
+        }
+        throw new Error(errData.error || errData.message || "Scan failed");
       }
 
       const {
@@ -297,6 +323,7 @@ export default function Home() {
       trackEvent("scan_completed", { scenario, flags: scanResult.flags?.length ?? 0 });
       saveReportToHistory(scanResult, file.name);
       await refreshServerQuota();
+      await invalidateCredits();
 
       window.setTimeout(() => {
         resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -562,15 +589,18 @@ export default function Home() {
               )}
             </label>
 
-            <button
-              type="submit"
-              disabled={!file || loading}
-              className={`btn btn-primary w-full mt-6 btn-lg ${
-                !file || loading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-            >
-              {loading ? t("upload.scanning") : t("upload.scanButton")}
-            </button>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-6">
+              <CreditsRemainingBadge />
+              <button
+                type="submit"
+                disabled={!file || loading}
+                className={`btn btn-primary w-full sm:w-auto sm:min-w-[200px] btn-lg ${
+                  !file || loading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                {loading ? t("upload.scanning") : t("upload.scanButton")}
+              </button>
+            </div>
 
             {error && (
               <p className="text-red-600 text-sm mt-4 text-center font-sans">{error}</p>
@@ -643,11 +673,12 @@ export default function Home() {
         />
       )}
 
-      <PricingSection
+      <PricingSection locale={locale} isPro={isProUser} scrollTo={scrollTo} />
+
+      <WordLimitModal
+        open={wordLimitOpen}
         locale={locale}
-        isPro={isProUser}
-        scrollTo={scrollTo}
-        onCheckout={handleCheckout}
+        onClose={() => setWordLimitOpen(false)}
       />
 
       <section id="faq" className="py-20 bg-paper-dark">

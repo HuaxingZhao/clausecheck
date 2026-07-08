@@ -2,6 +2,8 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { upsertUser } from "../db/store";
 import { createSessionToken, sessionCookieOptions, SESSION_COOKIE } from "./session";
+import { creditsSystemEnabled } from "@/lib/credits/user-credits";
+import { bootstrapNewUserCredits } from "@/lib/invite/codes";
 
 export async function loginUserRedirect(
   email: string,
@@ -11,6 +13,9 @@ export async function loginUserRedirect(
 ): Promise<NextResponse> {
   const norm = email.trim().toLowerCase();
   const user = await upsertUser(norm, {});
+  if (creditsSystemEnabled()) {
+    await bootstrapNewUserCredits(user.id);
+  }
   const sessionToken = await createSessionToken({ sub: user.id, email: user.email });
   const path = redirectPath || `/${locale}/account?auth=success`;
   const res = NextResponse.redirect(new URL(path, req.url));

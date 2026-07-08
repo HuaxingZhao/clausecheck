@@ -6,6 +6,11 @@ import Link from "next/link";
 import AuthPanel from "../components/auth-panel";
 import SiteNav from "../components/site-nav";
 import type { ServerQuotaStatus } from "@/lib/quota";
+import {
+  clearPendingInviteCode,
+  getOrCreateDeviceFingerprint,
+  readPendingInviteCode,
+} from "@/lib/invite/client-fingerprint";
 
 interface AuthMe {
   authenticated: boolean;
@@ -63,6 +68,34 @@ export default function AccountPage() {
     const id = window.setTimeout(() => setToast(null), 4000);
     return () => window.clearTimeout(id);
   }, [toast]);
+
+  useEffect(() => {
+    if (!auth?.authenticated) return;
+    const code = readPendingInviteCode();
+    if (!code) return;
+
+    void (async () => {
+      try {
+        const res = await fetch(`/api/invite/redeem?locale=${locale}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            code,
+            device_fingerprint: getOrCreateDeviceFingerprint(),
+          }),
+        });
+        if (res.ok) {
+          clearPendingInviteCode();
+          setToast(locale === "zh" ? "邀请奖励已到账！" : "Invite bonus applied!");
+        } else if (res.status === 409 || res.status === 400) {
+          clearPendingInviteCode();
+        }
+      } catch {
+        /* non-blocking */
+      }
+    })();
+  }, [auth?.authenticated, locale]);
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -191,6 +224,13 @@ export default function AccountPage() {
                   </div>
                 )}
               </dl>
+            </div>
+
+            <div className="account-card">
+              <h2 className="font-sans font-semibold text-lg mb-2">{t("inviteFriends")}</h2>
+              <Link href={`/${locale}/invite`} className="btn btn-outline text-sm">
+                {t("inviteFriends")} →
+              </Link>
             </div>
 
             {!auth.pro && (

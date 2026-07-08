@@ -50,7 +50,14 @@
     "scanningText": "AI 正在逐条分析你的合同……",
     "rescan": "🔄 重新扫描",
     "errorFormat": "仅支持 PDF / DOCX / TXT 文件",
-    "errorSize": "文件不能超过 10MB"
+    "errorSize": "文件不能超过 10MB",
+    "creditsRemaining": "剩余 {count} 份",
+    "creditsLogin": "登录查看额度",
+    "creditsLoading": "额度加载中…",
+    "wordLimitModalTitle": "文档超出字数限制",
+    "wordLimitModalBody": "文档超出体验版2万字限制，升级专业版即可解锁8万字深度审查",
+    "wordLimitModalClose": "我知道了",
+    "viewPricing": "查看定价"
   },
   "scenarios": {
     "label": "合同类型",
@@ -322,7 +329,28 @@
     "proFeatures": "专业版功能",
     "proFeaturesBody": "您已开通专业版，可保存报告并导出修订稿。",
     "viewReports": "报告历史",
-    "viewRevisions": "修订记录"
+    "viewRevisions": "修订记录",
+    "inviteFriends": "邀请好友得额度"
+  },
+  "invite": {
+    "label": "邀请好友",
+    "title": "邀请好友，双方各得 3 份额度",
+    "subtitle": "分享你的专属链接，好友注册后你们各获得 3 份深度分析额度。",
+    "backHome": "返回首页",
+    "loading": "加载邀请信息…",
+    "linkTitle": "你的专属邀请链接",
+    "copyLink": "复制链接",
+    "copied": "链接已复制",
+    "copyFailed": "复制失败，请手动选择复制",
+    "codeLabel": "邀请码",
+    "usesRemaining": "剩余可用 {count}/{max} 次",
+    "progressTitle": "邀请进度",
+    "progressSummary": "已邀请 {invites} 人，获得 {credits} 份额度",
+    "progressHint": "每成功邀请 1 位新用户，您将获得 3 份扫描额度。",
+    "shareTitle": "分享文案",
+    "shareTemplate": "我用 ClauseCheck 审查合同，注册送 3 份深度分析，用我的链接你也送 3 份：{url}",
+    "copyShare": "复制分享文案",
+    "shareCopied": "分享文案已复制"
   },
   "reports": {
     "label": "专业版",
@@ -650,9 +678,9 @@
   "pricing": {
     "label": "定价",
     "title": "按用量选择方案",
-    "subtitle": "3 天免费试用 · 无需绑卡 · 随时取消订阅",
+    "subtitle": "注册即送 3 份深度审查 · 按需升级",
     "disclaimer": "所有方案均提供 AI 决策支持，不构成法律意见。重大合同仍建议咨询执业律师。",
-    "deliverablesTitle": "每次扫描均包含",
+    "deliverablesTitle": "每份审查均包含",
     "deliverables": [
       "18 种场景专业审查",
       "决策摘要（签 / 改后签 / 不建议签）",
@@ -660,132 +688,123 @@
       "逐条审阅与修改建议",
       "谈判优先级排序"
     ],
-    "footnote": "按次购买后 1 次扫描额度永久有效，直至使用。专业版通过 Stripe 安全结算，可随时在账单门户取消。",
-    "currencyLabel": "货币",
-    "currencies": {
-      "cny": {
-        "label": "CNY ¥",
-        "flag": "🇨🇳",
-        "free": { "price": "¥0", "period": "" },
-        "pro": { "price": "¥49", "period": "/月" },
-        "payPerUse": { "price": "¥17", "period": "/次" }
-      },
-      "usd": {
-        "label": "USD $",
-        "flag": "🇺🇸",
-        "free": { "price": "$0", "period": "" },
-        "pro": { "price": "$6.9", "period": "/mo" },
-        "payPerUse": { "price": "$1.9", "period": "/scan" }
-      },
-      "sgd": {
-        "label": "SGD S$",
-        "flag": "🇸🇬",
-        "free": { "price": "S$0", "period": "" },
-        "pro": { "price": "S$8.9", "period": "/mo" },
-        "payPerUse": { "price": "S$2.9", "period": "/scan" }
-      }
-    },
+    "footnote": "加油包额度永久有效直至使用。支付完成后额度自动到账。",
     "matrix": {
       "title": "功能对比",
       "featureCol": "功能",
       "plans": {
-        "free": "免费版",
-        "payPerUse": "按次",
-        "pro": "专业版"
+        "experience": "体验版",
+        "pro": "专业版",
+        "boost": "加油包"
       },
       "rows": [
         {
-          "label": "扫描次数",
-          "free": "试用无限 · 之后 3 次/月",
-          "payPerUse": "1 次/购买",
-          "pro": "无限"
+          "label": "审查份数",
+          "experience": "注册送 3 份",
+          "pro": "30 份/月",
+          "boost": "1 份/次"
         },
         {
           "label": "合同长度上限",
-          "free": "12,000 字",
-          "payPerUse": "80,000 字",
-          "pro": "80,000 字"
+          "experience": "2 万字",
+          "pro": "8 万字",
+          "boost": "8 万字"
         },
         {
           "label": "AI 分析深度",
-          "free": "标准分析",
-          "payPerUse": "深度分析",
-          "pro": "深度分析"
+          "experience": "深度审查",
+          "pro": "深度审查",
+          "boost": "深度审查"
         },
         {
-          "label": "PDF 报告下载",
-          "free": "✓",
-          "payPerUse": "✓",
-          "pro": "✓"
+          "label": "Word 修订稿导出",
+          "experience": "—",
+          "pro": "✓",
+          "boost": "✓"
         },
         {
           "label": "云端报告历史",
-          "free": "—",
-          "payPerUse": "—",
-          "pro": "✓"
-        },
-        {
-          "label": "修订对照稿（Word）",
-          "free": "—",
-          "payPerUse": "✓",
-          "pro": "✓"
-        },
-        {
-          "label": "谈判邮件导出",
-          "free": "✓",
-          "payPerUse": "✓",
-          "pro": "✓"
+          "experience": "—",
+          "pro": "✓",
+          "boost": "—"
         }
       ]
     },
-    "free": {
-      "name": "免费版",
-      "audience": "偶尔审一份小合同",
-      "note": "3 天试用 · 无需绑卡",
+    "experience": {
+      "name": "体验版",
+      "price": "¥0",
+      "period": "",
+      "audience": "新用户试用",
+      "note": "注册即可开始",
       "highlights": [
-        "✅ 试用期内无限扫描",
-        "✅ 标准 AI 分析 + 完整报告",
-        "✅ 逐条审阅与修改建议",
-        "⏤ 试用后 3 次/月",
-        "⏤ 单次最多 12,000 字",
-        "⏤ 不含云端历史与 Word 修订稿"
+        "🎁 注册即送3份深度审查",
+        "✅ 单次最多 2 万字合同",
+        "✅ 完整风险报告与修改建议",
+        "⏤ 不含 Word 修订稿导出"
       ],
       "cta": "免费开始"
     },
     "pro": {
       "name": "专业版",
       "badge": "推荐",
+      "price": "¥49",
+      "period": "/月",
       "audience": "法务、创业者、频繁审合同",
-      "note": "按月订阅 · 需绑卡 · 随时取消",
+      "note": "按月订阅 · 微信支付",
       "highlights": [
-        "✅ 无限次扫描",
-        "✅ 深度 AI 分析（最长 80,000 字）",
-        "✅ PDF 报告 + 云端历史",
-        "✅ 修订对照稿 Word 导出",
-        "✅ 交叉校验与建议优化"
+        "✅ 每月 30 份深度审查",
+        "✅ 8 万字上限",
+        "✅ Word 修订稿导出",
+        "✅ 云端报告历史"
       ],
-      "cta": "开始订阅"
+      "cta": "立即订阅"
     },
-    "payPerUse": {
-      "name": "按次使用",
+    "boost": {
+      "name": "⚡ 单次加油包",
+      "badge": "按次",
+      "price": "¥29",
+      "period": "/份",
       "audience": "偶尔一份重要合同",
-      "note": "不订阅 · 用一次付一次 · 需绑卡",
+      "note": "不订阅 · 永久有效",
       "highlights": [
-        "✅ 1 次完整深度扫描",
-        "✅ 最长 80,000 字合同",
-        "✅ PDF 报告下载",
-        "✅ 修订对照稿 Word 导出",
-        "⏤ 不含云端报告历史"
+        "✅ 永久有效，用完再买",
+        "✅ 8 万字深度审查",
+        "✅ Word 修订稿导出"
       ],
-      "cta": "扫一次"
+      "cta": "购买加油包"
     },
     "subscribed": {
       "title": "您已订阅专业版",
-      "desc": "无限次扫描 · 深度 AI 分析 · 最长 80,000 字 · PDF 与云端历史 · 修订对照稿导出",
+      "desc": "每月 30 份深度审查 · 8 万字上限 · Word 修订稿 · 云端报告历史",
       "managePrefix": "需要管理订阅？前往",
       "manageLink": "Stripe 管理后台",
       "manageSuffix": "查看账单、更新支付方式或取消订阅。"
     }
+  },
+  "payment": {
+    "processing": "处理中…",
+    "modalTitle": "微信支付 · {plan}",
+    "planPro": "专业版",
+    "planBoost": "单次加油包",
+    "creating": "正在创建订单…",
+    "scanHint": "请使用微信扫一扫完成支付",
+    "qrAlt": "微信支付二维码",
+    "polling": "等待支付确认",
+    "success": "支付成功，正在刷新额度…",
+    "timeout": "支付超时（5 分钟），请重试",
+    "errorGeneric": "支付失败，请检查网络后重试",
+    "retry": "重新支付",
+    "cancel": "取消",
+    "close": "关闭"
+  },
+  "waitlist": {
+    "label": "等候名单",
+    "title": "即将开放",
+    "subtitle": "您选择了「{plan}」，我们正在完善支付与开通流程。",
+    "body": "留下等候即可在正式开放时优先通知。当前可先使用体验版额度扫描合同。",
+    "planPro": "专业版",
+    "planBoost": "单次加油包",
+    "backPricing": "返回定价"
   },
   "faq": {
     "label": "常见问题",

@@ -2,6 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
+import {
+  getOrCreateDeviceFingerprint,
+  readPendingInviteCode,
+  clearPendingInviteCode,
+} from "@/lib/invite/client-fingerprint";
 
 type AuthMode = "login" | "register";
 
@@ -53,7 +58,14 @@ export default function AuthPanel({
       const body =
         mode === "login"
           ? { email, password, locale }
-          : { email, password, confirmPassword, locale };
+          : {
+              email,
+              password,
+              confirmPassword,
+              locale,
+              inviteCode: readPendingInviteCode() ?? undefined,
+              deviceFingerprint: getOrCreateDeviceFingerprint(),
+            };
 
       const res = await fetch(endpoint, {
         method: "POST",
@@ -63,6 +75,11 @@ export default function AuthPanel({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
+
+      // Server already attempted invite redeem; clear pending code either way.
+      if (mode === "register") {
+        clearPendingInviteCode();
+      }
 
       onSuccess?.();
       window.location.href = `/${locale}/account?auth=success`;

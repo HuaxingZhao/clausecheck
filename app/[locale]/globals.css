@@ -1178,6 +1178,32 @@
   .pricing-team-features {
     @apply grid grid-cols-1 sm:grid-cols-2 gap-2 mb-5 text-sm text-ink-light font-sans;
   }
+  .pricing-card-boost {
+    @apply border-dashed border-amber-400/50 bg-gradient-to-b from-amber-50/40 to-white;
+  }
+  .pricing-badge-boost {
+    @apply bg-amber-100 text-amber-900;
+  }
+  .credits-remaining-badge {
+    @apply inline-flex items-center text-sm font-sans text-ink-light px-3 py-1.5 rounded-full
+           bg-paper-dark/80 border border-border/50;
+  }
+  .credits-remaining-muted {
+    @apply text-ink-muted;
+  }
+  .credits-remaining-loading {
+    @apply text-ink-muted animate-pulse;
+  }
+  .word-limit-modal-backdrop {
+    @apply fixed inset-0 z-50 flex items-center justify-center p-4
+           bg-ink/40 backdrop-blur-sm;
+  }
+  .word-limit-modal {
+    @apply w-full max-w-md rounded-2xl bg-white p-6 shadow-xl border border-border/50;
+  }
+  .wechat-pay-modal {
+    @apply w-full max-w-md rounded-2xl bg-white p-6 shadow-xl border border-border/50;
+  }
 
   /* ── FAQ ── */
   .faq-item {

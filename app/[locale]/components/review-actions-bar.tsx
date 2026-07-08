@@ -6,6 +6,7 @@ import type { LockedReviewItem, ScanResult } from "@/lib/types";
 import { lockedItemsToChanges } from "@/lib/review-to-changes";
 import { buildNegotiationEmail, downloadTextFile } from "@/lib/negotiation-email";
 import { trackEvent } from "@/lib/analytics";
+import { captureClientBusinessEvent } from "@/lib/monitoring/client";
 
 type RiskLevel = "high" | "medium" | "low";
 const RISK_LEVELS: RiskLevel[] = ["high", "medium", "low"];
@@ -124,6 +125,11 @@ export default function ReviewActionsBar({
       trackEvent("review_export_workbook", { count: changes.length, locale });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Export failed";
+      captureClientBusinessEvent("export_failed", {
+        locale,
+        document_word_count: contractText.length,
+        file_size_bytes: sourceFile?.size ?? null,
+      });
       alert(msg);
     } finally {
       setExporting(false);
