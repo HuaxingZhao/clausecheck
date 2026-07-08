@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
       userId,
       plan,
       paymentMethod: payment_method,
+      requestOrigin: req.nextUrl.origin,
     });
 
     return NextResponse.json({

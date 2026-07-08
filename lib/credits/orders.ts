@@ -34,11 +34,18 @@ function rowToOrder(r: Record<string, unknown>): CreditOrder {
   };
 }
 
-export function buildWechatPaymentUrl(orderId: string, amountCents: number): string {
-  const base = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
+export function buildWechatPaymentUrl(
+  orderId: string,
+  amountCents: number,
+  requestOrigin?: string
+): string {
+  const base = (requestOrigin || process.env.NEXT_PUBLIC_URL || "http://localhost:3000").replace(
+    /\/$/,
+    ""
+  );
   const mockBase = process.env.WECHAT_PAY_QR_BASE;
   if (mockBase) {
-    return `${mockBase.replace(/\/$/, "")}?order_id=${orderId}&amount=${amountCents}`;
+    return `${mockBase.replace(/\/$/, "")}?order_id=${orderId}&amount_cents=${amountCents}`;
   }
   return `${base}/api/webhooks/payment/mock-qr?order_id=${orderId}&amount_cents=${amountCents}`;
 }
@@ -47,6 +54,7 @@ export async function createPendingOrder(input: {
   userId: string;
   plan: TopupPlan;
   paymentMethod: "wechat";
+  requestOrigin?: string;
 }): Promise<CreditOrder> {
   if (!usePostgres()) {
     throw new Error("DATABASE_URL not configured");
@@ -55,7 +63,7 @@ export async function createPendingOrder(input: {
   const cfg = getTopupPlan(input.plan);
   const sql = getSql();
   const orderId = crypto.randomUUID();
-  const paymentUrl = buildWechatPaymentUrl(orderId, cfg.amountCents);
+  const paymentUrl = buildWechatPaymentUrl(orderId, cfg.amountCents, input.requestOrigin);
 
   const rows = await sql`
     INSERT INTO public.orders (
