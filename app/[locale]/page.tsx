@@ -15,7 +15,9 @@ import AuthPanel from "./components/auth-panel";
 import ScenarioPicker from "./components/scenario-picker";
 import WordLimitModal from "./components/word-limit-modal";
 import CreditsRemainingBadge from "./components/credits-remaining-badge";
+import WechatPayModal from "./components/wechat-pay-modal";
 import { useCredits } from "@/hooks/use-credits";
+import { useTopupPayment } from "@/hooks/use-topup-payment";
 import { stashPendingInviteCode } from "@/lib/invite/client-fingerprint";
 
 export default function Home() {
@@ -40,6 +42,11 @@ export default function Home() {
   const [wordLimitOpen, setWordLimitOpen] = useState(false);
   const resultsRef = useRef<HTMLElement>(null);
   const { invalidate: invalidateCredits } = useCredits();
+
+  const payment = useTopupPayment({
+    locale,
+    onRequireAuth: () => setAuthOpen(true),
+  });
 
   const refreshServerQuota = useCallback(async () => {
     try {
@@ -667,13 +674,30 @@ export default function Home() {
           refining={refining}
           onDownload={handleDownloadPdf}
           scrollTo={scrollTo}
-          onUpgradePro={() => handleCheckout("pro_monthly", locale === "zh" ? "cny" : "usd")}
-          onPayPerUse={() => handleCheckout("pay_per_use", locale === "zh" ? "cny" : "usd")}
+          onUpgradePro={() => void payment.startPayment("pro")}
+          onPayPerUse={() => void payment.startPayment("boost")}
           sectionRef={resultsRef}
         />
       )}
 
-      <PricingSection locale={locale} isPro={isProUser} scrollTo={scrollTo} />
+      <PricingSection
+        locale={locale}
+        isPro={isProUser}
+        scrollTo={scrollTo}
+        onPayPlan={(plan) => void payment.startPayment(plan)}
+        payingPlan={payment.payingPlan}
+      />
+
+      <WechatPayModal
+        open={payment.modalOpen}
+        plan={payment.activePlan ?? payment.pendingPlan}
+        status={payment.modalStatus}
+        qrCodeUrl={payment.qrCodeUrl}
+        orderId={payment.orderId}
+        errorMessage={payment.errorMessage}
+        onClose={payment.closeModal}
+        onRetry={payment.retryPayment}
+      />
 
       <WordLimitModal
         open={wordLimitOpen}
@@ -693,7 +717,7 @@ export default function Home() {
 
       {toast && (
         <div className="toast">
-          <span>{toast}</span>
+          <span>{payment.toast ?? toast}</span>
         </div>
       )}
 
@@ -702,6 +726,13 @@ export default function Home() {
         onClose={() => setAuthOpen(false)}
         locale={locale}
         initialEmail={authUser?.email || getProEmail() || ""}
+        onSuccess={() => {
+          setAuthOpen(false);
+          void refreshAuth();
+          if (payment.pendingPlan) {
+            void payment.startPayment(payment.pendingPlan);
+          }
+        }}
       />
     </>
   );

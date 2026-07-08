@@ -32,6 +32,15 @@ export default function PricingPage() {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const plan = params.get("plan");
+    if (plan !== "pro" && plan !== "boost") return;
+    window.history.replaceState({}, "", `/${locale}/pricing`);
+    void payment.startPayment(plan);
+  }, [locale, payment.startPayment]);
+
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
     setAuthUser(null);

@@ -102,24 +102,6 @@ export default function AccountPage() {
     window.location.href = `/${locale}`;
   }
 
-  async function handleCheckout(
-    priceId: "pro_monthly" | "pay_per_use",
-    currency: "cny" | "usd" | "sgd"
-  ) {
-    const res = await fetch("/api/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        priceId,
-        currency,
-        successUrl: `${window.location.origin}/${locale}/account?checkout=success`,
-        cancelUrl: window.location.href,
-      }),
-    });
-    const data = await res.json();
-    if (data.url) window.location.href = data.url;
-  }
-
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -145,7 +127,6 @@ export default function AccountPage() {
   }, [locale, refresh, t]);
 
   const isZh = locale === "zh";
-  const currency = isZh ? "cny" : "usd";
   const tierLabel =
     auth?.pro || auth?.tier === "pro"
       ? t("planPro")
@@ -238,23 +219,21 @@ export default function AccountPage() {
                 <h2 className="font-sans font-semibold text-lg mb-2">{t("upgradeTitle")}</h2>
                 <p className="text-sm text-ink-light mb-6">{t("upgradeBody")}</p>
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <button
-                    type="button"
-                    className="btn btn-primary flex-1"
-                    onClick={() => handleCheckout("pro_monthly", currency)}
+                  <Link
+                    href={`/${locale}/pricing?plan=pro`}
+                    className="btn btn-primary flex-1 text-center"
                   >
                     {t("upgradePro")}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-outline flex-1"
-                    onClick={() => handleCheckout("pay_per_use", currency)}
+                  </Link>
+                  <Link
+                    href={`/${locale}/pricing?plan=boost`}
+                    className="btn btn-outline flex-1 text-center"
                   >
                     {t("upgradePayPerUse")}
-                  </button>
+                  </Link>
                 </div>
                 <Link
-                  href={`/${locale}#pricing`}
+                  href={`/${locale}/pricing`}
                   className="inline-block text-sm text-accent hover:text-accent-dark mt-4 font-sans"
                 >
                   {t("viewPricing")} →

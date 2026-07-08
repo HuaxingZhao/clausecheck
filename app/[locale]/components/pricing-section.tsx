@@ -57,7 +57,7 @@ export default function PricingSection({
     if (onPayPlan) {
       onPayPlan(plan);
     } else {
-      router.push(`/${locale}/waitlist?plan=${plan}`);
+      router.push(`/${locale}/pricing?plan=${plan}`);
     }
   };
 
