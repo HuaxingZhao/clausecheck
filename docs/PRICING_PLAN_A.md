@@ -46,23 +46,17 @@ Banned UI copy: *token*, *unlimited*, *credits* → use **文档审阅配额 / �
 
 All checkout uses **Stripe Payment Element** (`PaymentGateway`). Methods are filtered server-side via `getPaymentMethodTypes()` in `pricing.config.ts`.
 
-### USD
+### USD / CNY subscriptions
 
-| Purchase | Billing | Allowed methods |
-|----------|---------|-----------------|
-| Pro / Team subscription | Monthly | Card, Link, US bank transfer |
-| Pro subscription | Annual | Card, Link, US bank transfer |
-| Add-on packs | One-time | Card, Link, US bank transfer |
+| Purchase | Billing | Server-side types | Payment Element |
+|----------|---------|-------------------|-----------------|
+| Pro subscription | Monthly / Annual | `card` only | Apple Pay, Google Pay, Link, WeChat, etc. when **enabled in [Stripe Dashboard](https://dashboard.stripe.com/settings/payment_methods)** |
 
-### CNY
+We intentionally do **not** pass `us_bank_account`, `wechat_pay`, or `alipay` in subscription `payment_settings` unless your Stripe account has them activated — otherwise checkout fails with “payment method type is invalid”.
 
-| Purchase | Billing | Allowed methods |
-|----------|---------|-----------------|
-| Pro subscription | **Monthly** | **Card only** |
-| Pro subscription | **Annual** | Card, **WeChat Pay** (Alipay: add-on only) |
-| Add-on packs | One-time | Card, **WeChat Pay**, **Alipay** |
+### CNY add-ons
 
-**Monthly CNY + wallet:** WeChat/Alipay are not offered on monthly subscriptions. Users may pay monthly with card, or switch to **annual** billing to use WeChat/Alipay. The currency selector shows this note; add-ons always allow wallet methods in CNY.
+One-time add-ons use `automatic_payment_methods` on PaymentIntent — Stripe shows whatever is enabled on your account.
 
 ### Client quota gate
 

@@ -142,28 +142,20 @@ export function allowsWechatAlipay(
 }
 
 /**
- * Payment method types allowed by Stripe for subscription `payment_settings`.
- * Note: `alipay` is NOT valid on subscriptions — only on one-time PaymentIntents.
+ * Subscription checkout — card only by default.
+ * Apple Pay / Google Pay / Link / WeChat appear in Payment Element when enabled in Stripe Dashboard.
+ * Do not pass us_bank_account / wechat_pay here unless your account has them activated.
  */
 export function getSubscriptionPaymentMethodTypes(
-  currency: Currency,
-  cycle: BillingCycle
+  _currency: Currency,
+  _cycle: BillingCycle
 ): string[] {
-  if (currency === "USD") {
-    return ["card", "link", "us_bank_account"];
-  }
-  if (cycle === "annual") {
-    return ["card", "wechat_pay"];
-  }
   return ["card"];
 }
 
-/** Payment method types for one-time add-on PaymentIntents. */
-export function getAddOnPaymentMethodTypes(currency: Currency): string[] {
-  if (currency === "USD") {
-    return ["card", "link", "us_bank_account"];
-  }
-  return ["card", "wechat_pay", "alipay"];
+/** @deprecated Add-ons use automatic_payment_methods in create-intent. */
+export function getAddOnPaymentMethodTypes(_currency: Currency): string[] {
+  return ["card"];
 }
 
 export function getPaymentMethodTypes(

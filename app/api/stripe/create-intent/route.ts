@@ -6,7 +6,6 @@ import {
   addOnTotalPrice,
   annualBilledTotal,
   checkoutPriceId,
-  getAddOnPaymentMethodTypes,
   getSubscriptionPaymentMethodTypes,
   isCheckoutEnabled,
   monthlyUnitPrice,
@@ -118,13 +117,12 @@ export async function POST(req: NextRequest) {
 
     if (body.purchaseType === "addon") {
       const amount = addOnTotalPrice(body.packs, currency);
-      const paymentMethodTypes = getAddOnPaymentMethodTypes(currency);
 
       const intent = await stripe.paymentIntents.create({
         amount: toStripeCents(amount, currency),
         currency: stripeCurrency,
         customer: customerId,
-        payment_method_types: paymentMethodTypes,
+        automatic_payment_methods: { enabled: true },
         metadata: {
           purchaseType: "addon",
           packs: String(body.packs),
@@ -137,7 +135,6 @@ export async function POST(req: NextRequest) {
         purchaseType: "addon",
         amount,
         currency,
-        paymentMethodTypes,
       });
     }
 

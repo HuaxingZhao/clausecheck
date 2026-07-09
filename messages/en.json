@@ -686,7 +686,7 @@
     "annual": "Annual",
     "monthly": "Monthly",
     "savingsBadge": "-{percent}%",
-    "cnyWalletNote": "WeChat Pay is available for annual Pro subscriptions and add-on purchases in CNY. Alipay is available for add-ons only. Monthly subscriptions accept card only.",
+    "cnyWalletNote": "Card is always available. WeChat Pay and other local methods appear when enabled in your Stripe account settings.",
     "comingSoonBadge": "Coming soon",
     "placeholderClose": "Close",
     "resetNote": "Quotas reset at midnight on your subscription anniversary date.",
