@@ -28,7 +28,7 @@ async function getCustomerLockedCurrency(
  */
 export async function resolveStripeCustomer(
   stripe: Stripe,
-  params: { userId: string; email: string; currency: StripeBillingCurrency }
+  params: { userId: string; email?: string | null; phone?: string | null; currency: StripeBillingCurrency }
 ): Promise<string> {
   try {
     const search = await stripe.customers.search({
@@ -40,33 +40,36 @@ export async function resolveStripeCustomer(
     /* Customer Search may be unavailable — fall back to list */
   }
 
-  const byEmail = await stripe.customers.list({ email: params.email, limit: 20 });
+  if (params.email) {
+    const byEmail = await stripe.customers.list({ email: params.email, limit: 20 });
 
-  for (const customer of byEmail.data) {
-    if (
-      customer.metadata?.userId === params.userId &&
-      customer.metadata?.currency === params.currency
-    ) {
-      return customer.id;
+    for (const customer of byEmail.data) {
+      if (
+        customer.metadata?.userId === params.userId &&
+        customer.metadata?.currency === params.currency
+      ) {
+        return customer.id;
+      }
     }
-  }
 
-  for (const customer of byEmail.data) {
-    const locked = await getCustomerLockedCurrency(stripe, customer.id);
-    if (locked === null || locked === params.currency) {
-      await stripe.customers.update(customer.id, {
-        metadata: {
-          ...customer.metadata,
-          userId: params.userId,
-          currency: params.currency,
-        },
-      });
-      return customer.id;
+    for (const customer of byEmail.data) {
+      const locked = await getCustomerLockedCurrency(stripe, customer.id);
+      if (locked === null || locked === params.currency) {
+        await stripe.customers.update(customer.id, {
+          metadata: {
+            ...customer.metadata,
+            userId: params.userId,
+            currency: params.currency,
+          },
+        });
+        return customer.id;
+      }
     }
   }
 
   const created = await stripe.customers.create({
-    email: params.email,
+    ...(params.email ? { email: params.email } : {}),
+    ...(params.phone ? { phone: params.phone } : {}),
     metadata: {
       userId: params.userId,
       currency: params.currency,

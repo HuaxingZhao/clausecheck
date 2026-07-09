@@ -16,6 +16,7 @@ export async function GET() {
   return NextResponse.json({
     authenticated: true,
     email: user.email,
+    phone: user.phoneE164,
     pro,
     tier,
     team: team ? { id: team.id, name: team.name, isOwner: isTeamOwner } : null,

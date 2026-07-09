@@ -44,17 +44,17 @@ export async function resolveAuthorizedScanTier(req: NextRequest): Promise<Omit<
   if (session?.sub) {
     const ent = await getUserEntitlements(session.sub);
     if (ent.pro) {
-      return { tier: "pro", userId: session.sub, email: session.email };
+      return { tier: "pro", userId: session.sub, email: session.email || null };
     }
-    if (ent.payPerUseCredits > 0 || (await hasPayPerUseCredit(session.email))) {
-      return { tier: "pay_per_use", userId: session.sub, email: session.email };
+    if (ent.payPerUseCredits > 0 || (session.email && (await hasPayPerUseCredit(session.email)))) {
+      return { tier: "pay_per_use", userId: session.sub, email: session.email || null };
     }
   }
 
   return {
     tier: "free",
     userId: session?.sub ?? null,
-    email: session?.email ?? null,
+    email: session?.email || null,
   };
 }
 

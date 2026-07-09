@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { findUserByEmail, getPasswordHash } from "@/lib/db/store";
 import { validatePassword, verifyPassword } from "@/lib/auth/password";
 import { jsonWithSession } from "@/lib/auth/session-response";
+import { writeAuditLog } from "@/lib/db/audit-log";
+import { getClientIp } from "@/lib/invite/request-meta";
 
 function msg(locale: string, zh: string, en: string) {
   return locale === "en" ? en : zh;
@@ -43,6 +45,14 @@ export async function POST(req: NextRequest) {
         { status: 401 }
       );
     }
+
+    await writeAuditLog({
+      userId: user.id,
+      action: "auth.login",
+      meta: { method: "email" },
+      ip: getClientIp(req),
+      userAgent: req.headers.get("user-agent"),
+    });
 
     return jsonWithSession(user.id, user.email);
   } catch (err: unknown) {

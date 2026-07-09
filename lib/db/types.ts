@@ -16,7 +16,11 @@ export interface Team {
 
 export interface User {
   id: string;
-  email: string;
+  /** Nullable for phone-only accounts. */
+  email: string | null;
+  phoneE164: string | null;
+  phoneVerifiedAt: string | null;
+  supabaseUserId: string | null;
   stripeCustomerId: string | null;
   subscriptionStatus: SubscriptionStatus;
   proUntil: string | null;

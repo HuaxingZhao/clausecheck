@@ -10,7 +10,12 @@ function normalizeEmail(email: string) {
 function rowToUser(r: Record<string, unknown>): User {
   return {
     id: r.id as string,
-    email: r.email as string,
+    email: (r.email as string | null) ?? null,
+    phoneE164: (r.phone_e164 as string | null) ?? null,
+    phoneVerifiedAt: r.phone_verified_at
+      ? new Date(r.phone_verified_at as string).toISOString()
+      : null,
+    supabaseUserId: (r.supabase_user_id as string | null) ?? null,
     stripeCustomerId: (r.stripe_customer_id as string) ?? null,
     subscriptionStatus: (r.subscription_status as User["subscriptionStatus"]) ?? "none",
     proUntil: r.pro_until ? new Date(r.pro_until as string).toISOString() : null,
@@ -53,6 +58,63 @@ export async function findUserByEmail(email: string): Promise<User | null> {
   await ensureSchema();
   const rows = await getSql()`SELECT * FROM users WHERE email = ${normalizeEmail(email)} LIMIT 1`;
   return rows[0] ? rowToUser(rows[0]) : null;
+}
+
+export async function findUserByPhone(phoneE164: string): Promise<User | null> {
+  await ensureSchema();
+  const rows = await getSql()`
+    SELECT * FROM users WHERE phone_e164 = ${phoneE164} LIMIT 1`;
+  return rows[0] ? rowToUser(rows[0]) : null;
+}
+
+export async function findUserBySupabaseId(supabaseUserId: string): Promise<User | null> {
+  await ensureSchema();
+  const rows = await getSql()`
+    SELECT * FROM users WHERE supabase_user_id = ${supabaseUserId} LIMIT 1`;
+  return rows[0] ? rowToUser(rows[0]) : null;
+}
+
+/** Create or update a phone-verified user; returns local ClauseCheck user. */
+export async function upsertPhoneUser(input: {
+  phoneE164: string;
+  supabaseUserId: string;
+}): Promise<{ user: User; created: boolean }> {
+  await ensureSchema();
+  const db = getSql();
+  const now = new Date().toISOString();
+
+  const byPhone = await findUserByPhone(input.phoneE164);
+  if (byPhone) {
+    await db`
+      UPDATE users SET
+        phone_verified_at = NOW(),
+        supabase_user_id = COALESCE(supabase_user_id, ${input.supabaseUserId}),
+        updated_at = NOW()
+      WHERE id = ${byPhone.id}`;
+    return { user: (await findUserById(byPhone.id))!, created: false };
+  }
+
+  const bySupabase = await findUserBySupabaseId(input.supabaseUserId);
+  if (bySupabase) {
+    await db`
+      UPDATE users SET
+        phone_e164 = ${input.phoneE164},
+        phone_verified_at = NOW(),
+        updated_at = NOW()
+      WHERE id = ${bySupabase.id}`;
+    return { user: (await findUserById(bySupabase.id))!, created: false };
+  }
+
+  const id = crypto.randomUUID();
+  await db`
+    INSERT INTO users (
+      id, email, phone_e164, phone_verified_at, supabase_user_id,
+      subscription_status, created_at, updated_at
+    ) VALUES (
+      ${id}, NULL, ${input.phoneE164}, ${now}, ${input.supabaseUserId},
+      'none', ${now}, ${now}
+    )`;
+  return { user: (await findUserById(id))!, created: true };
 }
 
 export async function findUserById(id: string): Promise<User | null> {
@@ -262,8 +324,15 @@ export async function saveRevision(input: {
 export async function createTeam(name: string, ownerId: string): Promise<Team> {
   await ensureSchema();
   const id = crypto.randomUUID();
-  await getSql()`INSERT INTO teams (id, name, owner_id) VALUES (${id}, ${name}, ${ownerId})`;
-  await upsertUser((await findUserById(ownerId))!.email, { teamId: id, teamRole: "owner" });
+  const db = getSql();
+  await db`INSERT INTO teams (id, name, owner_id) VALUES (${id}, ${name}, ${ownerId})`;
+  // Prefer id update — phone-only owners may have null email.
+  await db`
+    UPDATE users SET
+      team_id = ${id},
+      team_role = 'owner',
+      updated_at = NOW()
+    WHERE id = ${ownerId}`;
   return (await findTeamById(id))!;
 }
 

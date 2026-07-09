@@ -5,6 +5,7 @@ import {
   getDocumentQuotaRemaining,
   tryConsumeDocumentQuota,
 } from "@/lib/db/document-quota";
+import { writeAuditLog } from "@/lib/db/audit-log";
 import { tierToPlan } from "@/lib/pricing.config";
 import { getUserEntitlements } from "@/lib/billing/entitlements";
 
@@ -50,14 +51,30 @@ export async function consumeUserCredit(userId: string): Promise<boolean> {
   if (documentQuotaEnabled()) {
     const { pro, tier } = await getUserEntitlements(userId);
     const plan = tierToPlan(tier, pro);
-    return tryConsumeDocumentQuota(userId, plan);
+    const ok = await tryConsumeDocumentQuota(userId, plan);
+    if (ok) {
+      await writeAuditLog({
+        userId,
+        action: "quota.consume",
+        meta: { plan, unit: "document" },
+      });
+    }
+    return ok;
   }
 
   const sql = getSql();
   const rows = await sql<{ ok: boolean }[]>`
     SELECT public.consume_credit(${userId}) AS ok
   `;
-  return rows[0]?.ok === true;
+  const ok = rows[0]?.ok === true;
+  if (ok) {
+    await writeAuditLog({
+      userId,
+      action: "quota.consume",
+      meta: { legacy: true },
+    });
+  }
+  return ok;
 }
 
 /** Restore one document review after a failed AI pass. */

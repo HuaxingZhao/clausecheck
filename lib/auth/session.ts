@@ -12,11 +12,16 @@ function getSecret(): Uint8Array {
 
 export interface SessionPayload {
   sub: string;
+  /** Empty string for phone-only accounts. */
   email: string;
+  phone?: string;
 }
 
 export async function createSessionToken(payload: SessionPayload): Promise<string> {
-  return new SignJWT({ email: payload.email })
+  return new SignJWT({
+    email: payload.email || "",
+    ...(payload.phone ? { phone: payload.phone } : {}),
+  })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(payload.sub)
     .setIssuedAt()
@@ -28,9 +33,10 @@ export async function verifySessionToken(token: string): Promise<SessionPayload 
   try {
     const { payload } = await jwtVerify(token, getSecret());
     const sub = payload.sub;
-    const email = payload.email;
-    if (typeof sub !== "string" || typeof email !== "string") return null;
-    return { sub, email };
+    if (typeof sub !== "string") return null;
+    const email = typeof payload.email === "string" ? payload.email : "";
+    const phone = typeof payload.phone === "string" ? payload.phone : undefined;
+    return { sub, email, phone };
   } catch {
     return null;
   }

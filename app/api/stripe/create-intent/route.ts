@@ -105,13 +105,20 @@ export async function POST(req: NextRequest) {
     const currency = body.currency as Currency;
     const stripeCurrency = stripeCurrencyKey(currency);
 
-    if (!session.email) {
-      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    if (!session.email && !session.phone) {
+      return NextResponse.json(
+        {
+          error:
+            "Add an email on your account before checkout, or sign in with phone again.",
+        },
+        { status: 400 }
+      );
     }
 
     const customerId = await resolveStripeCustomer(stripe, {
       userId: session.sub,
-      email: session.email,
+      email: session.email || null,
+      phone: session.phone || null,
       currency: stripeCurrency,
     });
 

@@ -10,6 +10,7 @@ import {
 } from "@/lib/invite/codes";
 import { getClientIp, hashGuardKey, normalizeInviteCode } from "@/lib/invite/request-meta";
 import { trackBusinessEvent } from "@/lib/monitoring";
+import { writeAuditLog } from "@/lib/db/audit-log";
 
 function msg(locale: string, zh: string, en: string) {
   return locale === "en" ? en : zh;
@@ -89,6 +90,14 @@ export async function POST(req: NextRequest) {
         }
       }
     }
+
+    await writeAuditLog({
+      userId: user.id,
+      action: isNewUser ? "auth.register" : "auth.login",
+      meta: { method: "email", invite_redeemed: inviteRedeemed },
+      ip: getClientIp(req),
+      userAgent: req.headers.get("user-agent"),
+    });
 
     return jsonWithSession(user.id, user.email, {
       registered: isNewUser,
