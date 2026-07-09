@@ -13,15 +13,19 @@ export default function PricingPage() {
   const t = useTranslations("nav");
   const locale = useLocale();
   const setSelectedPlan = usePricingStore((s) => s.setSelectedPlan);
-  const [authUser, setAuthUser] = useState<{ email: string; pro: boolean } | null>(null);
+  const [authUser, setAuthUser] = useState<{
+    email?: string | null;
+    phone?: string | null;
+    pro: boolean;
+  } | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
 
   useEffect(() => {
     fetch("/api/auth/me", { credentials: "include" })
       .then((r) => r.json())
       .then((me) => {
-        if (me.authenticated && me.email) {
-          setAuthUser({ email: me.email, pro: !!me.pro });
+        if (me.authenticated) {
+          setAuthUser({ email: me.email, phone: me.phone, pro: !!me.pro });
         }
       })
       .catch(() => {});
@@ -79,8 +83,8 @@ export default function PricingPage() {
           fetch("/api/auth/me", { credentials: "include" })
             .then((r) => r.json())
             .then((me) => {
-              if (me.authenticated && me.email) {
-                setAuthUser({ email: me.email, pro: !!me.pro });
+              if (me.authenticated) {
+                setAuthUser({ email: me.email, phone: me.phone, pro: !!me.pro });
               }
             });
         }}

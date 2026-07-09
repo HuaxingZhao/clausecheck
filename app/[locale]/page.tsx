@@ -33,7 +33,11 @@ export default function Home() {
   const [refining, setRefining] = useState(false);
   const [pro, setProState] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
-  const [authUser, setAuthUser] = useState<{ email: string; pro: boolean } | null>(null);
+  const [authUser, setAuthUser] = useState<{
+    email?: string | null;
+    phone?: string | null;
+    pro: boolean;
+  } | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [scenario, setScenario] = useState<ContractScenarioId>(DEFAULT_SCENARIO_ID);
   const [quotaHint, setQuotaHint] = useState<string | null>(null);
@@ -79,8 +83,8 @@ export default function Home() {
       const res = await fetch("/api/auth/me", { credentials: "include" });
       const data = await res.json();
       if (data.authenticated) {
-        setAuthUser({ email: data.email, pro: data.pro });
-        saveProEmail(data.email);
+        setAuthUser({ email: data.email, phone: data.phone, pro: !!data.pro });
+        if (data.email) saveProEmail(data.email);
         syncProFromServer(!!data.pro);
         setProState(!!data.pro);
       } else {
