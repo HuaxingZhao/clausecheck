@@ -7,6 +7,8 @@ import {
   addOnTotalPrice,
   annualBilledTotal,
   cnyFromUsd,
+  getAddOnPaymentMethodTypes,
+  getSubscriptionPaymentMethodTypes,
   isCheckoutEnabled,
   monthlyUnitPrice,
   usdFromCny,
@@ -32,6 +34,14 @@ describe("pricing.config validation", () => {
     assert.equal(isCheckoutEnabled("pro"), true);
     assert.equal(isCheckoutEnabled("team"), false);
     assert.equal(isCheckoutEnabled("enterprise"), false);
+  });
+
+  it("omits alipay from subscription payment methods (Stripe API constraint)", () => {
+    const subAnnual = getSubscriptionPaymentMethodTypes("CNY", "annual");
+    assert.ok(!subAnnual.includes("alipay"));
+    assert.deepEqual(subAnnual, ["card", "wechat_pay"]);
+    const addon = getAddOnPaymentMethodTypes("CNY");
+    assert.ok(addon.includes("alipay"));
   });
 });
 

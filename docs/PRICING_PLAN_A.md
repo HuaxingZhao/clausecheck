@@ -59,7 +59,7 @@ All checkout uses **Stripe Payment Element** (`PaymentGateway`). Methods are fil
 | Purchase | Billing | Allowed methods |
 |----------|---------|-----------------|
 | Pro subscription | **Monthly** | **Card only** |
-| Pro subscription | **Annual** | Card, **WeChat Pay**, **Alipay** |
+| Pro subscription | **Annual** | Card, **WeChat Pay** (Alipay: add-on only) |
 | Add-on packs | One-time | Card, **WeChat Pay**, **Alipay** |
 
 **Monthly CNY + wallet:** WeChat/Alipay are not offered on monthly subscriptions. Users may pay monthly with card, or switch to **annual** billing to use WeChat/Alipay. The currency selector shows this note; add-ons always allow wallet methods in CNY.

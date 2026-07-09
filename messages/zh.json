@@ -686,7 +686,7 @@
     "annual": "年付",
     "monthly": "月付",
     "savingsBadge": "省{percent}%",
-    "cnyWalletNote": "人民币年付或加油包支持微信/支付宝；月付订阅仅支持银行卡。",
+    "cnyWalletNote": "人民币年付专业版订阅与加油包支持微信支付；加油包另支持支付宝。月付订阅仅支持银行卡。",
     "comingSoonBadge": "即将推出",
     "placeholderClose": "关闭",
     "resetNote": "配额在订阅周年日零点重置。",

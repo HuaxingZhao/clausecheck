@@ -141,18 +141,40 @@ export function allowsWechatAlipay(
   return cycle === "annual";
 }
 
+/**
+ * Payment method types allowed by Stripe for subscription `payment_settings`.
+ * Note: `alipay` is NOT valid on subscriptions — only on one-time PaymentIntents.
+ */
+export function getSubscriptionPaymentMethodTypes(
+  currency: Currency,
+  cycle: BillingCycle
+): string[] {
+  if (currency === "USD") {
+    return ["card", "link", "us_bank_account"];
+  }
+  if (cycle === "annual") {
+    return ["card", "wechat_pay"];
+  }
+  return ["card"];
+}
+
+/** Payment method types for one-time add-on PaymentIntents. */
+export function getAddOnPaymentMethodTypes(currency: Currency): string[] {
+  if (currency === "USD") {
+    return ["card", "link", "us_bank_account"];
+  }
+  return ["card", "wechat_pay", "alipay"];
+}
+
 export function getPaymentMethodTypes(
   currency: Currency,
   cycle: BillingCycle,
   purchaseType: PurchaseType
 ): string[] {
-  if (currency === "USD") {
-    return ["card", "link", "us_bank_account"];
+  if (purchaseType === "addon") {
+    return getAddOnPaymentMethodTypes(currency);
   }
-  if (allowsWechatAlipay(currency, cycle, purchaseType)) {
-    return ["card", "wechat_pay", "alipay"];
-  }
-  return ["card"];
+  return getSubscriptionPaymentMethodTypes(currency, cycle);
 }
 
 export function usdFromCny(cny: number): number {

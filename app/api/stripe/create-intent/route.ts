@@ -6,7 +6,8 @@ import {
   addOnTotalPrice,
   annualBilledTotal,
   checkoutPriceId,
-  getPaymentMethodTypes,
+  getAddOnPaymentMethodTypes,
+  getSubscriptionPaymentMethodTypes,
   isCheckoutEnabled,
   monthlyUnitPrice,
   stripeCurrencyKey,
@@ -130,7 +131,7 @@ export async function POST(req: NextRequest) {
 
     if (body.purchaseType === "addon") {
       const amount = addOnTotalPrice(body.packs, currency);
-      const paymentMethodTypes = getPaymentMethodTypes(currency, "annual", "addon");
+      const paymentMethodTypes = getAddOnPaymentMethodTypes(currency);
 
       const intent = await stripe.paymentIntents.create({
         amount: toStripeCents(amount, currency),
@@ -161,7 +162,7 @@ export async function POST(req: NextRequest) {
       );
     }
     const cycle = body.billingCycle as BillingCycle;
-    const paymentMethodTypes = getPaymentMethodTypes(currency, cycle, "subscription");
+    const paymentMethodTypes = getSubscriptionPaymentMethodTypes(currency, cycle);
     const priceKey = checkoutPriceId(plan, cycle);
 
     const sub = await createSubscriptionIntent(
