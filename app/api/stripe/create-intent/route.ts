@@ -20,6 +20,7 @@ import {
   extractInvoiceClientSecret,
   resolveRecurringPriceId,
 } from "@/lib/stripe/recurring-price";
+import { resolveStripeCustomer } from "@/lib/stripe/customer";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
   apiVersion: "2025-02-24.acacia" as any,
@@ -105,23 +106,15 @@ export async function POST(req: NextRequest) {
     const currency = body.currency as Currency;
     const stripeCurrency = stripeCurrencyKey(currency);
 
-    let customerId: string | undefined;
-    if (session.email) {
-      const existing = await stripe.customers.list({ email: session.email, limit: 1 });
-      if (existing.data[0]) {
-        customerId = existing.data[0].id;
-      } else {
-        const created = await stripe.customers.create({
-          email: session.email,
-          metadata: { userId: session.sub },
-        });
-        customerId = created.id;
-      }
+    if (!session.email) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
-    if (!customerId) {
-      return NextResponse.json({ error: "Customer required" }, { status: 400 });
-    }
+    const customerId = await resolveStripeCustomer(stripe, {
+      userId: session.sub,
+      email: session.email,
+      currency: stripeCurrency,
+    });
 
     if (body.purchaseType === "addon") {
       const amount = addOnTotalPrice(body.packs, currency);
