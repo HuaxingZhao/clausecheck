@@ -35,7 +35,8 @@ interface PricingActions {
     remaining: number | null,
     tier: string | undefined,
     isPro: boolean,
-    resetDate?: string | null
+    resetDate?: string | null,
+    serverQuota?: { used?: number; limit?: number } | null
   ) => void;
   incrementUsedQuota: (by?: number) => void;
 }
@@ -61,13 +62,20 @@ export const usePricingStore = create<PricingState & PricingActions>()(
       setResetDate: (resetDate) => set({ resetDate }),
       setHasHydrated: (_hasHydrated) => set({ _hasHydrated }),
 
-      syncQuotaFromBalance: (remaining, tier, isPro, resetDate) => {
+      syncQuotaFromBalance: (remaining, tier, isPro, resetDate, serverQuota) => {
         const plan = tierToPlan(tier, isPro);
-        const baseLimit = getQuotaForPlan(plan);
         const addOnCount = get().addOnCount;
-        const quotaLimit = baseLimit + addOnCount;
+        const baseLimit = getQuotaForPlan(plan);
+        const quotaLimit =
+          typeof serverQuota?.limit === "number" && serverQuota.limit >= 0
+            ? serverQuota.limit
+            : baseLimit + addOnCount;
         const usedQuota =
-          remaining == null ? 0 : Math.max(0, quotaLimit - remaining);
+          typeof serverQuota?.used === "number" && serverQuota.used >= 0
+            ? serverQuota.used
+            : remaining == null
+              ? 0
+              : Math.max(0, quotaLimit - remaining);
         set({
           quotaLimit,
           usedQuota,
