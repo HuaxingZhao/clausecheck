@@ -161,7 +161,7 @@ export default function InvitePage() {
                 <p className="text-2xl font-semibold text-ink mb-1">
                   {t("progressSummary", {
                     invites: stats.invite_count,
-                    credits: stats.credits_earned,
+                    quota: stats.credits_earned,
                   })}
                 </p>
                 <p className="text-sm text-ink-light">{t("progressHint")}</p>

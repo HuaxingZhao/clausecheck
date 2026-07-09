@@ -5,11 +5,12 @@ import { usePricingStore } from "@/stores/usePricingStore";
 import { useCredits } from "@/hooks/use-credits";
 import { detectCurrencyFromLocale } from "@/lib/pricing/currency";
 
-/** Sync Zustand usedQuota + default currency from credits API & locale */
+/** Sync Zustand usedQuota + default currency from entitlements API & locale */
 export function usePricingQuotaSync(locale: string) {
   const { balance, authenticated, refresh } = useCredits();
   const syncQuotaFromBalance = usePricingStore((s) => s.syncQuotaFromBalance);
   const setCurrency = usePricingStore((s) => s.setCurrency);
+  const setResetDate = usePricingStore((s) => s.setResetDate);
 
   useEffect(() => {
     setCurrency(detectCurrencyFromLocale(locale));
@@ -17,7 +18,7 @@ export function usePricingQuotaSync(locale: string) {
 
   useEffect(() => {
     if (!authenticated) {
-      syncQuotaFromBalance(null, "free", false);
+      syncQuotaFromBalance(null, "trial", false);
       return;
     }
 
@@ -28,9 +29,20 @@ export function usePricingQuotaSync(locale: string) {
         const data = (await res.json()) as {
           pro?: boolean;
           tier?: string;
+          plan?: string;
+          quotaRemaining?: number;
+          resetAt?: string | null;
         };
         if (!cancelled) {
-          syncQuotaFromBalance(balance, data.tier, !!data.pro);
+          const remaining =
+            typeof data.quotaRemaining === "number" ? data.quotaRemaining : balance;
+          syncQuotaFromBalance(
+            remaining,
+            data.plan ?? data.tier,
+            !!data.pro,
+            data.resetAt ?? null
+          );
+          if (data.resetAt) setResetDate(data.resetAt);
         }
       } catch {
         if (!cancelled) {
@@ -42,7 +54,7 @@ export function usePricingQuotaSync(locale: string) {
     return () => {
       cancelled = true;
     };
-  }, [authenticated, balance, syncQuotaFromBalance]);
+  }, [authenticated, balance, syncQuotaFromBalance, setResetDate]);
 
   return { refreshQuota: refresh };
 }

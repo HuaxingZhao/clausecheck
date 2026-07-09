@@ -27,8 +27,12 @@ npm run deploy:prep
 **P0 数据库迁移（必须先于代码部署）：** 见 [docs/DEPLOY_OPEN_ITEMS.md](./DEPLOY_OPEN_ITEMS.md) 与 [docs/CONSUME_CREDIT_MIGRATION.md](./CONSUME_CREDIT_MIGRATION.md)
 
 ```bash
-# SQL 执行后验证（需 DATABASE_URL）
+# ① consume_credit 签名（若未执行）
+# supabase/migrations/20260712_fix_consume_credit_signature.sql
 npm run db:verify-consume-credit
+
+# ② Plan A 统一配额表（订阅迁移）
+# supabase/migrations/20260713_unified_document_quota.sql
 ```
 
 ---
@@ -120,6 +124,9 @@ vercel --prod
      - `customer.subscription.created`
      - `customer.subscription.updated`
      - `customer.subscription.deleted`
+     - `invoice.payment_succeeded`
+     - `payment_intent.succeeded`（加购一次性额度）
+     - `payment_method.attached`
 3. 创建后复制 **Signing secret** (`whsec_...`)
 4. 填入 Vercel 环境变量 `STRIPE_WEBHOOK_SECRET` → **Redeploy**
 

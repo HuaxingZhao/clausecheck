@@ -7,7 +7,13 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { syncCheckoutSession, syncSubscription } from "@/lib/billing/stripe-sync";
+import {
+  syncCheckoutSession,
+  syncInvoicePaymentSucceeded,
+  syncPaymentIntentSucceeded,
+  syncPaymentMethodAttached,
+  syncSubscription,
+} from "@/lib/billing/stripe-sync";
 import { getStripeWebhookSecret } from "@/lib/env";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
@@ -53,6 +59,24 @@ export async function POST(req: NextRequest) {
       const subscription = event.data.object as Stripe.Subscription;
       await syncSubscription(subscription);
       console.log(`⚠️ subscription deleted — ${subscription.id}`);
+    }
+
+    if (event.type === "invoice.payment_succeeded") {
+      const invoice = event.data.object as Stripe.Invoice;
+      await syncInvoicePaymentSucceeded(invoice);
+      console.log(`✅ invoice.payment_succeeded — ${invoice.id}`);
+    }
+
+    if (event.type === "payment_intent.succeeded") {
+      const intent = event.data.object as Stripe.PaymentIntent;
+      await syncPaymentIntentSucceeded(intent);
+      console.log(`✅ payment_intent.succeeded — ${intent.id}`);
+    }
+
+    if (event.type === "payment_method.attached") {
+      const paymentMethod = event.data.object as Stripe.PaymentMethod;
+      await syncPaymentMethodAttached(paymentMethod);
+      console.log(`✅ payment_method.attached — ${paymentMethod.id}`);
     }
   } catch (err) {
     console.error("Webhook handler error:", err);

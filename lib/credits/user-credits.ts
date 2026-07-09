@@ -1,18 +1,38 @@
 import { getSql, usePostgres, ensureSchema } from "@/lib/db/pg";
+import {
+  bootstrapQuotaFromCredits,
+  documentQuotaEnabled,
+  getDocumentQuotaRemaining,
+  tryConsumeDocumentQuota,
+} from "@/lib/db/document-quota";
+import { tierToPlan } from "@/lib/pricing.config";
+import { getUserEntitlements } from "@/lib/billing/entitlements";
 
-const EXPERIENCE_WORD_LIMIT = 20_000;
-
-export { EXPERIENCE_WORD_LIMIT };
+export const EXPERIENCE_WORD_LIMIT = 20_000;
 
 export function creditsSystemEnabled(): boolean {
   return usePostgres();
 }
 
-/** Current balance; returns 0 when no row exists. */
+/** Current remaining document reviews; bootstraps from legacy user_credits when needed. */
 export async function getUserCreditBalance(userId: string): Promise<number> {
   if (!usePostgres()) return 0;
   await ensureSchema();
   const sql = getSql();
+
+  if (documentQuotaEnabled()) {
+    const legacy = await sql<{ balance: number | null }[]>`
+      SELECT balance FROM public.user_credits WHERE user_id = ${userId} LIMIT 1`;
+    const legacyBalance = legacy[0]?.balance ?? 0;
+    if (legacyBalance > 0) {
+      await bootstrapQuotaFromCredits(userId, legacyBalance);
+    }
+
+    const { pro, tier } = await getUserEntitlements(userId);
+    const plan = tierToPlan(tier, pro);
+    return getDocumentQuotaRemaining(userId, plan);
+  }
+
   const rows = await sql<{ balance: number | null }[]>`
     SELECT balance
       FROM public.user_credits
@@ -22,10 +42,17 @@ export async function getUserCreditBalance(userId: string): Promise<number> {
   return rows[0]?.balance ?? 0;
 }
 
-/** Call atomic consume_credit RPC; returns false when balance insufficient. */
+/** Consume one document review from unified quota (falls back to legacy consume_credit). */
 export async function consumeUserCredit(userId: string): Promise<boolean> {
   if (!usePostgres()) return false;
   await ensureSchema();
+
+  if (documentQuotaEnabled()) {
+    const { pro, tier } = await getUserEntitlements(userId);
+    const plan = tierToPlan(tier, pro);
+    return tryConsumeDocumentQuota(userId, plan);
+  }
+
   const sql = getSql();
   const rows = await sql<{ ok: boolean }[]>`
     SELECT public.consume_credit(${userId}) AS ok
@@ -33,7 +60,7 @@ export async function consumeUserCredit(userId: string): Promise<boolean> {
   return rows[0]?.ok === true;
 }
 
-/** Restore one credit after a failed AI pass (ledger + balance). */
+/** Restore one document review after a failed AI pass. */
 export async function refundUserCredit(
   userId: string,
   referenceId?: string | null
@@ -41,6 +68,16 @@ export async function refundUserCredit(
   if (!usePostgres()) return;
   await ensureSchema();
   const sql = getSql();
+
+  if (documentQuotaEnabled()) {
+    await sql`
+      UPDATE public.document_quota
+         SET used = GREATEST(0, used - 1),
+             updated_at = now()
+       WHERE user_id = ${userId} AND pool_id = 'main'`;
+    return;
+  }
+
   await sql.begin(async (tx) => {
     await tx`
       UPDATE public.user_credits

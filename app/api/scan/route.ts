@@ -166,15 +166,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const skipCreditConsume = isPro || tier === "pay_per_use";
-
-    if (useCredits && userId && !skipCreditConsume) {
+    if (useCredits && userId) {
       const consumed = await consumeUserCredit(userId);
       if (!consumed) {
         return NextResponse.json(
           {
-            error: "INSUFFICIENT_CREDITS",
-            message: "额度不足，请升级或购买加油包",
+            error: "INSUFFICIENT_QUOTA",
+            message: "文档审阅配额不足，请升级或购买加油包",
           },
           { status: 402 }
         );

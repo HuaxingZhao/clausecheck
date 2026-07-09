@@ -1,6 +1,6 @@
 # 上线部署 Open Items 清单
 
-> 最后更新：2026-07-08 · 部署前逐项勾选
+> 最后更新：2026-07-09 · 部署前逐项勾选
 
 ---
 
@@ -9,6 +9,7 @@
 | # | 项目 | 状态 | 说明 |
 |---|------|------|------|
 | **P0-DB-1** | **`consume_credit` TEXT 签名迁移** | ⬜ 待执行 | **必须先于代码部署** — 见下方 |
+| **P0-DB-2** | **统一 `document_quota` 表迁移** | ⬜ 待执行 | Plan A 订阅配额 — 见下方 |
 
 ### P0-DB-1：`consume_credit` 迁移（部署顺序锁定）
 
@@ -31,6 +32,26 @@
 **为什么阻断：** 新代码调用 `consume_credit(${userId})`（TEXT）。若库内仍为 `consume_credit(uuid)`，扫描扣费 RPC 会报错，用户无法消耗额度。
 
 **操作指南（网页端）：** [docs/CONSUME_CREDIT_MIGRATION.md](./CONSUME_CREDIT_MIGRATION.md)
+
+### P0-DB-2：统一 `document_quota` 迁移（Plan A 订阅配额）
+
+```
+① 在 Supabase / Neon SQL Editor 执行（P0-DB-1 之后）
+   → supabase/migrations/20260713_unified_document_quota.sql
+
+② 可选验证
+   → SELECT pool_id, COUNT(*), SUM(quota_limit), SUM(used)
+     FROM document_quota GROUP BY pool_id;
+
+③ 部署 Vercel 新代码（git push / Redeploy）
+
+④ Stripe Dashboard → Webhooks → 为生产 endpoint 追加事件：
+   → invoice.payment_succeeded
+   → payment_intent.succeeded
+   → payment_method.attached
+```
+
+**为什么阻断：** 新代码通过 `document_quota` + `consume_document_quota` 扣减文档审阅配额；未迁移则登录用户扫描/订阅同步会失败或回退异常。
 
 ---
 

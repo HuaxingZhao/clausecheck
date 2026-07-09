@@ -22,9 +22,9 @@ export async function GET(req: NextRequest) {
     }
 
     const balance = await getUserCreditBalance(userId);
-    return NextResponse.json({ balance });
+    return NextResponse.json({ balance, unit: "document" });
   } catch (err: unknown) {
     console.error("user credits error:", err);
-    return NextResponse.json({ error: "Failed to load credits" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to load quota" }, { status: 500 });
   }
 }

@@ -139,7 +139,12 @@ export default function PaymentGateway(props: PaymentGatewayProps) {
                 currency,
               };
 
-        const res = await fetch("/api/stripe/create-intent", {
+        const endpoint =
+          purchaseType === "subscription"
+            ? "/api/create-subscription"
+            : "/api/stripe/create-intent";
+
+        const res = await fetch(endpoint, {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },

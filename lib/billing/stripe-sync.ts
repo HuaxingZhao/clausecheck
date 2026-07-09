@@ -2,6 +2,11 @@ import Stripe from "stripe";
 import { activateProSubscription, deactivateProSubscription } from "./entitlements";
 import { grantPayPerUseCredit } from "../db/scan-metrics";
 import {
+  downgradeToTrialQuota,
+  grantAddonDocumentQuota,
+  syncSubscriptionDocumentQuota,
+} from "../db/document-quota";
+import {
   createTeam,
   findUserByEmail,
   upsertTeamSubscription,
@@ -17,7 +22,9 @@ export function getStripe(): Stripe {
 function isSubscriptionPriceId(priceId: string | undefined | null): boolean {
   return (
     !!priceId &&
-    (priceId.startsWith("pro_monthly:") || priceId.startsWith("team_monthly:"))
+    (priceId.startsWith("pro_monthly:") ||
+      priceId.startsWith("pro_annual:") ||
+      priceId.startsWith("team_monthly:"))
   );
 }
 
@@ -79,13 +86,22 @@ export async function syncCheckoutSession(session: Stripe.Checkout.Session) {
       stripeCustomerId,
       proUntil,
       status: "active",
+    }).then(async (user) => {
+      if (user?.id) {
+        await syncSubscriptionDocumentQuota(user.id, "pro", proUntil);
+      }
+      return user;
     });
   }
 
-  // pay_per_use — grant one scan credit
+  // pay_per_use — grant one scan credit (deprecated; also mirrors to document quota)
   if (session.mode === "payment" && priceId?.startsWith("pay_per_use:")) {
     await grantPayPerUseCredit(email, session.id);
-    return upsertUser(email, { stripeCustomerId });
+    const user = await upsertUser(email, { stripeCustomerId });
+    if (user?.id) {
+      await grantAddonDocumentQuota(user.id, 1);
+    }
+    return user;
   }
 
   return null;
@@ -108,16 +124,26 @@ export async function syncSubscription(subscription: Stripe.Subscription) {
   ).toISOString();
 
   if (subscription.status === "active" || subscription.status === "trialing") {
-    return activateProSubscription({
+    const user = await activateProSubscription({
       email,
       stripeCustomerId: customerId,
       proUntil,
       status: "active",
     });
+    if (user?.id) {
+      const plan =
+        subscription.metadata?.plan === "team" ? "team" : "pro";
+      await syncSubscriptionDocumentQuota(user.id, plan, proUntil);
+    }
+    return user;
   }
 
   if (subscription.status === "canceled" || subscription.status === "unpaid") {
-    return deactivateProSubscription(email);
+    const user = await deactivateProSubscription(email);
+    if (user?.id) {
+      await downgradeToTrialQuota(user.id);
+    }
+    return user;
   }
 
   return upsertPastDue(email, customerId, proUntil, subscription.status);
@@ -135,6 +161,49 @@ async function upsertPastDue(
     proUntil,
     status: status === "past_due" ? "past_due" : "canceled",
   });
+}
+
+export async function syncInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
+  const subscriptionRef = (invoice as Stripe.Invoice & { subscription?: string | Stripe.Subscription | null })
+    .subscription;
+  if (!subscriptionRef) return null;
+
+  const stripe = getStripe();
+  const subId =
+    typeof subscriptionRef === "string" ? subscriptionRef : subscriptionRef.id;
+  const subscription = await stripe.subscriptions.retrieve(subId);
+  return syncSubscription(subscription);
+}
+
+export async function syncPaymentIntentSucceeded(intent: Stripe.PaymentIntent) {
+  const purchaseType = intent.metadata?.purchaseType;
+  const userId = intent.metadata?.userId;
+  if (purchaseType !== "addon" || !userId) return null;
+
+  const packs = Number(intent.metadata?.packs ?? "1");
+  if (!Number.isFinite(packs) || packs < 1) return null;
+
+  await grantAddonDocumentQuota(userId, packs);
+  return { userId, packs };
+}
+
+export async function syncPaymentMethodAttached(
+  paymentMethod: Stripe.PaymentMethod
+): Promise<void> {
+  const customerId =
+    typeof paymentMethod.customer === "string"
+      ? paymentMethod.customer
+      : paymentMethod.customer?.id;
+  if (!customerId) return;
+
+  const stripe = getStripe();
+  try {
+    await stripe.customers.update(customerId, {
+      invoice_settings: { default_payment_method: paymentMethod.id },
+    });
+  } catch (err) {
+    console.warn("payment_method.attached: could not set default PM", err);
+  }
 }
 
 export async function getCheckoutSessionEmail(
