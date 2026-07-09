@@ -1,4 +1,5 @@
 import { getSql, usePostgres } from "@/lib/db/pg";
+import { grantAddonDocumentQuota } from "@/lib/db/document-quota";
 import {
   INVITE_CODE_CHARS,
   INVITE_CODE_LENGTH,
@@ -91,7 +92,7 @@ export async function getOrCreateInviteCode(userId: string): Promise<InviteCodeR
 
   const sql = getSql();
   const existing = await sql`
-    SELECT * FROM public.invite_codes WHERE user_id = ${userId}::uuid LIMIT 1
+    SELECT * FROM public.invite_codes WHERE user_id = ${userId} LIMIT 1
   `;
   if (existing[0]) {
     return rowToInviteCode(existing[0] as Record<string, unknown>);
@@ -102,7 +103,7 @@ export async function getOrCreateInviteCode(userId: string): Promise<InviteCodeR
     try {
       const rows = await sql`
         INSERT INTO public.invite_codes (user_id, code)
-        VALUES (${userId}::uuid, ${code})
+        VALUES (${userId}, ${code})
         ON CONFLICT (user_id) DO NOTHING
         RETURNING *
       `;
@@ -110,7 +111,7 @@ export async function getOrCreateInviteCode(userId: string): Promise<InviteCodeR
         return rowToInviteCode(rows[0] as Record<string, unknown>);
       }
       const again = await sql`
-        SELECT * FROM public.invite_codes WHERE user_id = ${userId}::uuid LIMIT 1
+        SELECT * FROM public.invite_codes WHERE user_id = ${userId} LIMIT 1
       `;
       if (again[0]) {
         return rowToInviteCode(again[0] as Record<string, unknown>);
@@ -132,7 +133,7 @@ export async function getInviteStats(userId: string): Promise<InviteStats> {
 
   const sql = getSql();
   const codeRows = await sql`
-    SELECT * FROM public.invite_codes WHERE user_id = ${userId}::uuid LIMIT 1
+    SELECT * FROM public.invite_codes WHERE user_id = ${userId} LIMIT 1
   `;
   const codeRow = codeRows[0]
     ? rowToInviteCode(codeRows[0] as Record<string, unknown>)
@@ -142,13 +143,13 @@ export async function getInviteStats(userId: string): Promise<InviteStats> {
     SELECT COUNT(*)::text AS count
       FROM public.invite_redemptions r
       JOIN public.invite_codes c ON c.id = r.invite_code_id
-     WHERE c.user_id = ${userId}::uuid
+     WHERE c.user_id = ${userId}
   `;
 
   const creditRows = await sql<{ total: string | null }[]>`
     SELECT COALESCE(SUM(amount), 0)::text AS total
       FROM public.credit_transactions
-     WHERE user_id = ${userId}::uuid
+     WHERE user_id = ${userId}
        AND type = 'invite'
   `;
 
@@ -192,7 +193,7 @@ export async function redeemInviteCode(input: {
 
     const priorRedeem = await tx`
       SELECT 1 FROM public.invite_redemptions
-       WHERE redeemer_user_id = ${input.redeemerUserId}::uuid
+       WHERE redeemer_user_id = ${input.redeemerUserId}
        LIMIT 1
     `;
     if (priorRedeem.length > 0) {
@@ -225,8 +226,8 @@ export async function redeemInviteCode(input: {
       INSERT INTO public.invite_redemptions (
         invite_code_id, redeemer_user_id, device_key, ip_key
       ) VALUES (
-        ${invite.id}::uuid,
-        ${input.redeemerUserId}::uuid,
+        ${invite.id},
+        ${input.redeemerUserId},
         ${input.deviceKey},
         ${input.ipKey}
       )
@@ -235,20 +236,20 @@ export async function redeemInviteCode(input: {
     await tx`
       UPDATE public.invite_codes
          SET use_count = use_count + 1,
-             used_by = ${input.redeemerUserId}::uuid
-       WHERE id = ${invite.id}::uuid
+             used_by = ${input.redeemerUserId}
+       WHERE id = ${invite.id}
     `;
 
     await tx`
       INSERT INTO public.user_credits (user_id, balance)
-      VALUES (${input.redeemerUserId}::uuid, ${INVITE_CREDITS_INVITEE})
+      VALUES (${input.redeemerUserId}, ${INVITE_CREDITS_INVITEE})
       ON CONFLICT (user_id) DO UPDATE
         SET balance = public.user_credits.balance + ${INVITE_CREDITS_INVITEE}
     `;
     await tx`
       INSERT INTO public.credit_transactions (user_id, amount, type, reference_id)
       VALUES (
-        ${input.redeemerUserId}::uuid,
+        ${input.redeemerUserId},
         ${INVITE_CREDITS_INVITEE},
         'register',
         ${referenceId}
@@ -259,14 +260,14 @@ export async function redeemInviteCode(input: {
 
     await tx`
       INSERT INTO public.user_credits (user_id, balance)
-      VALUES (${invite.userId}::uuid, ${INVITE_CREDITS_INVITER})
+      VALUES (${invite.userId}, ${INVITE_CREDITS_INVITER})
       ON CONFLICT (user_id) DO UPDATE
         SET balance = public.user_credits.balance + ${INVITE_CREDITS_INVITER}
     `;
     await tx`
       INSERT INTO public.credit_transactions (user_id, amount, type, reference_id)
       VALUES (
-        ${invite.userId}::uuid,
+        ${invite.userId},
         ${INVITE_CREDITS_INVITER},
         'invite',
         ${referenceId}
@@ -279,5 +280,11 @@ export async function redeemInviteCode(input: {
       inviterUserId: invite.userId,
       creditsGranted: INVITE_CREDITS_INVITEE,
     };
+  }).then(async (result) => {
+    await Promise.all([
+      grantAddonDocumentQuota(input.redeemerUserId, INVITE_CREDITS_INVITEE),
+      grantAddonDocumentQuota(result.inviterUserId, INVITE_CREDITS_INVITER),
+    ]);
+    return result;
   });
 }
