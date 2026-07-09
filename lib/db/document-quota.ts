@@ -44,9 +44,32 @@ function inLegacyTrial(trialStart: string | null): boolean {
   return days < LEGACY_TRIAL_DAYS;
 }
 
-function proportionalLimitFromCredits(balance: number, proQuota: number): number {
-  if (balance <= 0) return getQuotaForPlan("trial");
-  return Math.max(getQuotaForPlan("trial"), Math.ceil((balance * proQuota) / REGISTER_CREDIT_GRANT));
+/** Legacy credit balances must not inflate Trial beyond Plan A (1 doc). */
+function proportionalLimitFromCredits(balance: number, _proQuota: number): number {
+  void _proQuota;
+  void balance;
+  return getQuotaForPlan("trial");
+}
+
+/** Cap non-Pro rows that were over-migrated from old credits (e.g. 10 instead of 1). */
+async function normalizeTrialQuotaRow(
+  userId: string,
+  plan: PlanId,
+  row: DocumentQuotaRow
+): Promise<DocumentQuotaRow> {
+  if (plan !== "trial") return row;
+  const trialLimit = getQuotaForPlan("trial");
+  if (row.quota_limit <= trialLimit) return row;
+
+  await ensureSchema();
+  const db = getSql();
+  await db`
+    UPDATE public.document_quota
+       SET quota_limit = ${trialLimit},
+           used = LEAST(used, ${trialLimit}),
+           updated_at = now()
+     WHERE user_id = ${userId} AND pool_id = 'main'`;
+  return (await getMainRow(userId)) ?? { ...row, quota_limit: trialLimit, used: Math.min(row.used, trialLimit) };
 }
 
 export function documentQuotaEnabled(): boolean {
@@ -137,10 +160,11 @@ export async function getDocumentQuotaStatus(
     };
   }
 
-  const row = await ensureMainQuotaRow(userId, {
+  let row = await ensureMainQuotaRow(userId, {
     limit: getQuotaForPlan(plan),
     resetAt: resetAt ?? undefined,
   });
+  row = await normalizeTrialQuotaRow(userId, plan, row);
 
   const main = effectiveMainLimits(row);
   const extraRemaining = await sumPoolRemaining(userId, true);

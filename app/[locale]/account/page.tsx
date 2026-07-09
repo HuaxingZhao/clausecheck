@@ -159,6 +159,20 @@ export default function AccountPage() {
       />
 
       <main className="max-w-2xl mx-auto px-6 py-16">
+        <div className="flex flex-wrap items-center gap-4 mb-6 font-sans text-sm">
+          <Link
+            href={`/${locale}`}
+            className="text-ink-light hover:text-ink transition-colors"
+          >
+            ← {t("backHome")}
+          </Link>
+          <Link
+            href={`/${locale}#upload`}
+            className="text-legal-navy font-medium hover:underline"
+          >
+            {t("backScan")} →
+          </Link>
+        </div>
         <div className="section-label">{t("label")}</div>
         <h1 className="mb-2">{t("title")}</h1>
         <p className="text-ink-light mb-10">{t("subtitle")}</p>
@@ -196,15 +210,20 @@ export default function AccountPage() {
                     </dd>
                   </div>
                 )}
-                {quota && !auth.pro && (
+                {quota && (
                   <div>
                     <dt>{t("scanQuota")}</dt>
                     <dd>
-                      {quota.inTrialPeriod
-                        ? t("trialActive")
+                      {typeof quota.quotaUsed === "number" &&
+                      typeof quota.quotaLimit === "number" &&
+                      quota.quotaLimit > 0
+                        ? t("quotaUsedOfLimit", {
+                            used: quota.quotaUsed,
+                            limit: quota.quotaLimit,
+                          })
                         : quota.remaining === 0
                           ? t("quotaExhausted")
-                          : t("scansRemaining", { count: quota.remaining })}
+                          : t("scansRemaining", { count: Math.max(0, quota.remaining) })}
                     </dd>
                   </div>
                 )}

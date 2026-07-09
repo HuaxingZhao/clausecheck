@@ -188,6 +188,10 @@ export interface ServerQuotaStatus {
   remaining: number;
   inTrialPeriod: boolean;
   payPerUseCredits: number;
+  quotaLimit?: number;
+  quotaUsed?: number;
+  resetAt?: string | null;
+  plan?: string;
 }
 
 /** Sync local UX state from GET /api/quota (server is authoritative). */
