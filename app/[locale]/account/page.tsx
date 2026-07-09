@@ -14,7 +14,8 @@ import {
 
 interface AuthMe {
   authenticated: boolean;
-  email?: string;
+  email?: string | null;
+  phone?: string | null;
   pro?: boolean;
   tier?: string;
   subscriptionStatus?: string;
@@ -149,8 +150,8 @@ export default function AccountPage() {
       <SiteNav
         locale={locale}
         authUser={
-          auth?.authenticated && auth.email
-            ? { email: auth.email, pro: !!auth.pro }
+          auth?.authenticated
+            ? { email: auth.email, phone: auth.phone, pro: !!auth.pro }
             : null
         }
         showProBadge={!!auth?.pro}
@@ -188,9 +189,15 @@ export default function AccountPage() {
             <div className="account-card">
               <h2 className="font-sans font-semibold text-lg mb-4">{t("profile")}</h2>
               <dl className="account-dl">
+                {auth.phone && (
+                  <div>
+                    <dt>{t("phone")}</dt>
+                    <dd>{auth.phone}</dd>
+                  </div>
+                )}
                 <div>
                   <dt>{t("email")}</dt>
-                  <dd>{auth.email}</dd>
+                  <dd>{auth.email || t("emailNotSet")}</dd>
                 </div>
                 <div>
                   <dt>{t("plan")}</dt>

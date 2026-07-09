@@ -328,6 +328,8 @@
     "backHome": "返回首页",
     "profile": "账户信息",
     "email": "邮箱",
+    "emailNotSet": "未绑定（可用手机号登录）",
+    "phone": "手机号",
     "plan": "当前方案",
     "planFree": "试用版",
     "planPro": "专业版",
