@@ -1,14 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import {
   getOrCreateDeviceFingerprint,
   readPendingInviteCode,
   clearPendingInviteCode,
 } from "@/lib/invite/client-fingerprint";
+import { PHONE_COUNTRY_OPTIONS } from "@/lib/auth/phone";
+import type { CountryCode } from "libphonenumber-js";
 
+type AuthChannel = "phone" | "email";
 type AuthMode = "login" | "register";
+type PhoneStep = "enter" | "otp";
 
 interface AuthPanelProps {
   open: boolean;
@@ -26,20 +31,33 @@ export default function AuthPanel({
   onSuccess,
 }: AuthPanelProps) {
   const t = useTranslations("auth");
+  const [channel, setChannel] = useState<AuthChannel>("phone");
   const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [country, setCountry] = useState<CountryCode>("CN");
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [phoneStep, setPhoneStep] = useState<PhoneStep>("enter");
+  const [sentPhone, setSentPhone] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
       setEmail(initialEmail);
       setPassword("");
       setConfirmPassword("");
+      setPhone("");
+      setOtp("");
+      setPhoneStep("enter");
+      setSentPhone(null);
       setError(null);
+      setInfo(null);
       setMode("login");
+      setChannel("phone");
     }
   }, [open, initialEmail]);
 
@@ -49,7 +67,7 @@ export default function AuthPanel({
     window.location.href = `/api/auth/google?locale=${locale}`;
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleEmailSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -76,7 +94,6 @@ export default function AuthPanel({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
 
-      // Server already attempted invite redeem; clear pending code either way.
       if (mode === "register") {
         clearPendingInviteCode();
       }
@@ -90,10 +107,61 @@ export default function AuthPanel({
     }
   }
 
+  async function handleSendCode(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setInfo(null);
+    try {
+      const res = await fetch("/api/auth/phone/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ phone, country, locale }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || t("phoneSendFailed"));
+      setSentPhone(typeof data.phone === "string" ? data.phone : phone);
+      setPhoneStep("otp");
+      setInfo(typeof data.message === "string" ? data.message : t("phoneCodeSent"));
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : t("phoneSendFailed"));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleVerifyCode(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/auth/phone/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          phone: sentPhone || phone,
+          country,
+          token: otp,
+          locale,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || t("phoneVerifyFailed"));
+      onSuccess?.();
+      window.location.href = `/${locale}/account?auth=success`;
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : t("phoneVerifyFailed"));
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="auth-overlay" onClick={onClose}>
       <div className="auth-modal" onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="auth-close" onClick={onClose} aria-label="Close">
+        <button type="button" className="auth-close" onClick={onClose} aria-label={t("close")}>
           ×
         </button>
         <h2 className="font-sans text-xl font-semibold mb-2">{t("title")}</h2>
@@ -116,82 +184,197 @@ export default function AuthPanel({
         <div className="auth-mode-tabs mb-4">
           <button
             type="button"
-            className={`auth-mode-tab ${mode === "login" ? "active" : ""}`}
+            className={`auth-mode-tab ${channel === "phone" ? "active" : ""}`}
             onClick={() => {
-              setMode("login");
+              setChannel("phone");
               setError(null);
+              setInfo(null);
             }}
           >
-            {t("tabLogin")}
+            {t("tabPhone")}
           </button>
           <button
             type="button"
-            className={`auth-mode-tab ${mode === "register" ? "active" : ""}`}
+            className={`auth-mode-tab ${channel === "email" ? "active" : ""}`}
             onClick={() => {
-              setMode("register");
+              setChannel("email");
               setError(null);
+              setInfo(null);
             }}
           >
-            {t("tabRegister")}
+            {t("tabEmail")}
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <label className="block text-sm font-sans font-medium mb-2">{t("emailLabel")}</label>
-          <input
-            type="email"
-            required
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder={t("emailPlaceholder")}
-            className="auth-input"
-          />
+        {channel === "phone" ? (
+          phoneStep === "enter" ? (
+            <form onSubmit={handleSendCode}>
+              <label className="block text-sm font-sans font-medium mb-2">{t("phoneLabel")}</label>
+              <div className="flex gap-2">
+                <select
+                  className="auth-input !w-auto min-w-[7.5rem]"
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value as CountryCode)}
+                  aria-label={t("countryLabel")}
+                >
+                  {PHONE_COUNTRY_OPTIONS.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.dial} {locale === "en" ? c.labelEn : c.labelZh}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="tel"
+                  required
+                  autoComplete="tel-national"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder={t("phonePlaceholder")}
+                  className="auth-input flex-1"
+                />
+              </div>
+              <p className="text-xs text-ink-muted mt-2 font-sans">{t("phoneHint")}</p>
+              {error && <p className="text-red-600 text-sm mt-3 font-sans">{error}</p>}
+              {info && <p className="text-legal-navy text-sm mt-3 font-sans">{info}</p>}
+              <button type="submit" disabled={loading} className="btn btn-primary w-full mt-6">
+                {loading ? t("submitting") : t("sendCode")}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleVerifyCode}>
+              <p className="text-sm text-ink-light mb-3 font-sans">
+                {t("otpSentTo", { phone: sentPhone || phone })}
+              </p>
+              <label className="block text-sm font-sans font-medium mb-2">{t("otpLabel")}</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                required
+                pattern="[0-9]{4,8}"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 8))}
+                placeholder={t("otpPlaceholder")}
+                className="auth-input tracking-widest text-center text-lg"
+              />
+              {error && <p className="text-red-600 text-sm mt-3 font-sans">{error}</p>}
+              {info && <p className="text-legal-navy text-sm mt-3 font-sans">{info}</p>}
+              <button type="submit" disabled={loading} className="btn btn-primary w-full mt-6">
+                {loading ? t("submitting") : t("verifyCode")}
+              </button>
+              <button
+                type="button"
+                className="w-full mt-3 text-sm text-ink-muted hover:text-ink font-sans"
+                onClick={() => {
+                  setPhoneStep("enter");
+                  setOtp("");
+                  setError(null);
+                }}
+              >
+                {t("changePhone")}
+              </button>
+            </form>
+          )
+        ) : (
+          <>
+            <div className="auth-mode-tabs mb-4">
+              <button
+                type="button"
+                className={`auth-mode-tab ${mode === "login" ? "active" : ""}`}
+                onClick={() => {
+                  setMode("login");
+                  setError(null);
+                }}
+              >
+                {t("tabLogin")}
+              </button>
+              <button
+                type="button"
+                className={`auth-mode-tab ${mode === "register" ? "active" : ""}`}
+                onClick={() => {
+                  setMode("register");
+                  setError(null);
+                }}
+              >
+                {t("tabRegister")}
+              </button>
+            </div>
 
-          <label className="block text-sm font-sans font-medium mb-2 mt-4">{t("passwordLabel")}</label>
-          <input
-            type="password"
-            required
-            autoComplete={mode === "login" ? "current-password" : "new-password"}
-            minLength={8}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder={t("passwordPlaceholder")}
-            className="auth-input"
-          />
+            <form onSubmit={handleEmailSubmit}>
+              <label className="block text-sm font-sans font-medium mb-2">{t("emailLabel")}</label>
+              <input
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={t("emailPlaceholder")}
+                className="auth-input"
+              />
 
-          {mode === "register" && (
-            <>
               <label className="block text-sm font-sans font-medium mb-2 mt-4">
-                {t("confirmPasswordLabel")}
+                {t("passwordLabel")}
               </label>
               <input
                 type="password"
                 required
-                autoComplete="new-password"
+                autoComplete={mode === "login" ? "current-password" : "new-password"}
                 minLength={8}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder={t("confirmPasswordPlaceholder")}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={t("passwordPlaceholder")}
                 className="auth-input"
               />
-            </>
-          )}
 
-          {error && <p className="text-red-600 text-sm mt-3 font-sans">{error}</p>}
+              {mode === "register" && (
+                <>
+                  <label className="block text-sm font-sans font-medium mb-2 mt-4">
+                    {t("confirmPasswordLabel")}
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    autoComplete="new-password"
+                    minLength={8}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder={t("confirmPasswordPlaceholder")}
+                    className="auth-input"
+                  />
+                </>
+              )}
 
-          <button type="submit" disabled={loading} className="btn btn-primary w-full mt-6">
-            {loading
-              ? t("submitting")
-              : mode === "login"
-                ? t("loginButton")
-                : t("registerButton")}
-          </button>
+              {error && <p className="text-red-600 text-sm mt-3 font-sans">{error}</p>}
 
-          <p className="text-xs text-ink-muted mt-3 text-center font-sans">
-            {mode === "login" ? t("loginHint") : t("registerHint")}
-          </p>
-        </form>
+              <button type="submit" disabled={loading} className="btn btn-primary w-full mt-6">
+                {loading
+                  ? t("submitting")
+                  : mode === "login"
+                    ? t("loginButton")
+                    : t("registerButton")}
+              </button>
+
+              <p className="text-xs text-ink-muted mt-3 text-center font-sans">
+                {mode === "login" ? t("loginHint") : t("registerHint")}
+              </p>
+            </form>
+          </>
+        )}
+
+        <p className="text-xs text-ink-muted mt-6 text-center font-sans leading-relaxed">
+          {t.rich("legalFooter", {
+            terms: (chunks) => (
+              <Link href={`/${locale}/terms`} className="underline hover:text-ink">
+                {chunks}
+              </Link>
+            ),
+            privacy: (chunks) => (
+              <Link href={`/${locale}/privacy`} className="underline hover:text-ink">
+                {chunks}
+              </Link>
+            ),
+          })}
+        </p>
       </div>
     </div>
   );

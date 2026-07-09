@@ -20,5 +20,9 @@ export async function GET(req: NextRequest) {
     user = await upsertUser(email, {});
   }
 
+  if (!user.email) {
+    return NextResponse.redirect(new URL(`/${locale}?auth=invalid`, req.url));
+  }
+
   return loginUserRedirect(user.email, locale, req);
 }

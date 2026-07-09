@@ -1,4 +1,4 @@
-import { getSql, usePostgres } from "@/lib/db/pg";
+import { ensureSchema, getSql, usePostgres } from "@/lib/db/pg";
 import { grantAddonDocumentQuota } from "@/lib/db/document-quota";
 import {
   INVITE_CODE_CHARS,
@@ -90,6 +90,7 @@ export async function getOrCreateInviteCode(userId: string): Promise<InviteCodeR
     throw new InviteRedeemError("SYSTEM_UNAVAILABLE", "Invite system unavailable");
   }
 
+  await ensureSchema();
   const sql = getSql();
   const existing = await sql`
     SELECT * FROM public.invite_codes WHERE user_id = ${userId} LIMIT 1
@@ -131,6 +132,7 @@ export async function getInviteStats(userId: string): Promise<InviteStats> {
     return { code: null, inviteCount: 0, creditsEarned: 0 };
   }
 
+  await ensureSchema();
   const sql = getSql();
   const codeRows = await sql`
     SELECT * FROM public.invite_codes WHERE user_id = ${userId} LIMIT 1
@@ -170,6 +172,7 @@ export async function redeemInviteCode(input: {
     throw new InviteRedeemError("SYSTEM_UNAVAILABLE", "Invite system unavailable");
   }
 
+  await ensureSchema();
   const code = input.code.trim().toUpperCase();
   const sql = getSql();
   const guardSince = new Date(Date.now() - INVITE_GUARD_WINDOW_MS).toISOString();

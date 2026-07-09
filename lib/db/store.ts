@@ -55,6 +55,10 @@ async function writeJson(db: JsonDb) {
 function normalizeJsonUser(u: User): User {
   return {
     ...u,
+    email: u.email ?? null,
+    phoneE164: u.phoneE164 ?? null,
+    phoneVerifiedAt: u.phoneVerifiedAt ?? null,
+    supabaseUserId: u.supabaseUserId ?? null,
     teamId: u.teamId ?? null,
     teamRole: u.teamRole ?? null,
   };
@@ -70,6 +74,53 @@ export async function findUserByEmail(email: string) {
   if (usePostgres()) return pg.findUserByEmail(email);
   const db = await readJson();
   return db.users.find((u) => u.email === norm(email)) ?? null;
+}
+
+export async function findUserByPhone(phoneE164: string) {
+  if (usePostgres()) return pg.findUserByPhone(phoneE164);
+  const db = await readJson();
+  return db.users.find((u) => u.phoneE164 === phoneE164) ?? null;
+}
+
+export async function upsertPhoneUser(input: {
+  phoneE164: string;
+  supabaseUserId: string;
+}) {
+  if (usePostgres()) return pg.upsertPhoneUser(input);
+  const db = await readJson();
+  const now = new Date().toISOString();
+  const existing =
+    db.users.find((u) => u.phoneE164 === input.phoneE164) ??
+    db.users.find((u) => u.supabaseUserId === input.supabaseUserId);
+  if (existing) {
+    const updated = normalizeJsonUser({
+      ...existing,
+      phoneE164: input.phoneE164,
+      phoneVerifiedAt: now,
+      supabaseUserId: existing.supabaseUserId ?? input.supabaseUserId,
+      updatedAt: now,
+    });
+    db.users = db.users.map((u) => (u.id === updated.id ? updated : u));
+    await writeJson(db);
+    return { user: updated, created: false };
+  }
+  const user = normalizeJsonUser({
+    id: crypto.randomUUID(),
+    email: null,
+    phoneE164: input.phoneE164,
+    phoneVerifiedAt: now,
+    supabaseUserId: input.supabaseUserId,
+    stripeCustomerId: null,
+    subscriptionStatus: "none",
+    proUntil: null,
+    teamId: null,
+    teamRole: null,
+    createdAt: now,
+    updatedAt: now,
+  });
+  db.users.push(user);
+  await writeJson(db);
+  return { user, created: true };
 }
 
 export async function getPasswordHash(email: string): Promise<string | null> {
@@ -116,6 +167,9 @@ export async function upsertUser(
     user = normalizeJsonUser({
       id: crypto.randomUUID(),
       email: key,
+      phoneE164: null,
+      phoneVerifiedAt: null,
+      supabaseUserId: null,
       stripeCustomerId: patch.stripeCustomerId ?? null,
       subscriptionStatus: patch.subscriptionStatus ?? "none",
       proUntil: patch.proUntil ?? null,

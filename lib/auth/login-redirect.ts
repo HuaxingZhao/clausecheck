@@ -20,7 +20,10 @@ export async function loginUserRedirect(
       console.error("bootstrapNewUserCredits after OAuth login:", err);
     }
   }
-  const sessionToken = await createSessionToken({ sub: user.id, email: user.email });
+  const sessionToken = await createSessionToken({
+    sub: user.id,
+    email: user.email ?? "",
+  });
   const path = redirectPath || `/${locale}/account?auth=success`;
   const res = NextResponse.redirect(new URL(path, req.url));
   res.cookies.set(SESSION_COOKIE, sessionToken, sessionCookieOptions());

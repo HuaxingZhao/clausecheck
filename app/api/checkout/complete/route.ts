@@ -32,7 +32,10 @@ export async function POST(req: NextRequest) {
       authenticated: true,
     });
 
-    const token = await createSessionToken({ sub: user.id, email: user.email });
+    const token = await createSessionToken({
+      sub: user.id,
+      email: user.email ?? result.email,
+    });
     res.cookies.set(SESSION_COOKIE, token, sessionCookieOptions());
 
     return res;

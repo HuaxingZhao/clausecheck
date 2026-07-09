@@ -42,10 +42,12 @@ export async function getUserEntitlements(userId: string) {
   const payPerUseCredits = user
     ? documentQuotaEnabled()
       ? Math.max(
-          await countPayPerUseCredits(user.email),
+          user.email ? await countPayPerUseCredits(user.email) : 0,
           pro ? 0 : await getLegacyPpuRemaining(user.id)
         )
-      : await countPayPerUseCredits(user.email)
+      : user.email
+        ? await countPayPerUseCredits(user.email)
+        : 0
     : 0;
   let tier: UserTier = "free";
   if (pro) tier = "pro";
@@ -86,7 +88,7 @@ export async function resolveTierForRequest(sessionUserId: string | null): Promi
   if (!sessionUserId) return "free";
   const { pro, user } = await getUserEntitlements(sessionUserId);
   if (pro) return "pro";
-  if (user && (await hasPayPerUseCredit(user.email))) return "pay_per_use";
+  if (user?.email && (await hasPayPerUseCredit(user.email))) return "pay_per_use";
   return "free";
 }
 

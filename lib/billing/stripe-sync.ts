@@ -6,6 +6,7 @@ import {
   grantAddonDocumentQuota,
   syncSubscriptionDocumentQuota,
 } from "../db/document-quota";
+import { writeAuditLog } from "../db/audit-log";
 import {
   createTeam,
   findUserByEmail,
@@ -172,7 +173,13 @@ export async function syncInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
   const subId =
     typeof subscriptionRef === "string" ? subscriptionRef : subscriptionRef.id;
   const subscription = await stripe.subscriptions.retrieve(subId);
-  return syncSubscription(subscription);
+  const result = await syncSubscription(subscription);
+  await writeAuditLog({
+    userId: subscription.metadata?.userId ?? null,
+    action: "payment.invoice_succeeded",
+    meta: { invoiceId: invoice.id, subscriptionId: subId },
+  });
+  return result;
 }
 
 export async function syncPaymentIntentSucceeded(intent: Stripe.PaymentIntent) {
