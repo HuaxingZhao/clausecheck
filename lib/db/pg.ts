@@ -1,6 +1,7 @@
 import postgres from "postgres";
 import { ensureCreditsSchema } from "./ensure-credits-schema";
 import { ensureDocumentQuotaSchema } from "./ensure-document-quota-schema";
+import { ensureInviteSchema } from "./ensure-invite-schema";
 
 let sql: ReturnType<typeof postgres> | null = null;
 
@@ -125,6 +126,7 @@ export async function ensureSchema() {
       await db`CREATE INDEX IF NOT EXISTS idx_analytics_events_name ON analytics_events(name, created_at DESC)`;
       await ensureCreditsSchema(db);
       await ensureDocumentQuotaSchema(db);
+      await ensureInviteSchema(db);
     })();
   }
   await schemaReady;

@@ -42,16 +42,16 @@ export default function InvitePage() {
 
       const res = await fetch(`/api/invite/stats?locale=${locale}`, { credentials: "include" });
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Failed");
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(data.error || t("loadFailed"));
       }
       setStats((await res.json()) as InviteStatsResponse);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed");
+      setError(err instanceof Error ? err.message : t("loadFailed"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [locale, t]);
 
   useEffect(() => {
     void loadStats();

@@ -341,6 +341,7 @@
     "subtitle": "Share your personal link. When a friend signs up, you both receive 3 document review quota.",
     "backHome": "Back to home",
     "loading": "Loading invite details…",
+    "loadFailed": "Could not load invite details. Please try again.",
     "linkTitle": "Your invite link",
     "copyLink": "Copy link",
     "copied": "Link copied",
