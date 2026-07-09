@@ -10,7 +10,7 @@ export default function CreditsRemainingBadge() {
   if (loading) {
     return (
       <span className="credits-remaining-badge credits-remaining-loading">
-        {t("creditsLoading")}
+        {t("quotaLoading")}
       </span>
     );
   }
@@ -18,14 +18,14 @@ export default function CreditsRemainingBadge() {
   if (!authenticated || balance == null) {
     return (
       <span className="credits-remaining-badge credits-remaining-muted">
-        {t("creditsLogin")}
+        {t("quotaLogin")}
       </span>
     );
   }
 
   return (
     <span className="credits-remaining-badge">
-      {t("creditsRemaining", { count: balance })}
+      {t("quotaRemaining", { count: balance })}
     </span>
   );
 }

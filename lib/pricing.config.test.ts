@@ -9,6 +9,7 @@ import {
   cnyFromUsd,
   getAddOnPaymentMethodTypes,
   getSubscriptionPaymentMethodTypes,
+  PLAN_DEFINITIONS,
   isCheckoutEnabled,
   monthlyUnitPrice,
   usdFromCny,
@@ -34,6 +35,11 @@ describe("pricing.config validation", () => {
     assert.equal(isCheckoutEnabled("pro"), true);
     assert.equal(isCheckoutEnabled("team"), false);
     assert.equal(isCheckoutEnabled("enterprise"), false);
+  });
+
+  it("marks Team and Enterprise as coming soon", () => {
+    assert.equal(PLAN_DEFINITIONS.team.isComingSoon, true);
+    assert.equal(PLAN_DEFINITIONS.enterprise.isComingSoon, true);
   });
 
   it("uses card-only subscription payment methods (dashboard-gated wallets)", () => {

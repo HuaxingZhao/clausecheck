@@ -5,6 +5,7 @@ import {
   upsertUser,
 } from "../db/store";
 import { countPayPerUseCredits, hasPayPerUseCredit } from "../db/scan-metrics";
+import { documentQuotaEnabled, getLegacyPpuRemaining } from "../db/document-quota";
 import type { SubscriptionStatus, Team, User } from "../db/types";
 import type { UserTier } from "../quota";
 
@@ -38,7 +39,14 @@ export async function getUserEntitlements(userId: string) {
   const user = await findUserById(userId);
   const pro = await isProUser(user);
   const team = await getTeamForUser(user);
-  const payPerUseCredits = user ? await countPayPerUseCredits(user.email) : 0;
+  const payPerUseCredits = user
+    ? documentQuotaEnabled()
+      ? Math.max(
+          await countPayPerUseCredits(user.email),
+          pro ? 0 : await getLegacyPpuRemaining(user.id)
+        )
+      : await countPayPerUseCredits(user.email)
+    : 0;
   let tier: UserTier = "free";
   if (pro) tier = "pro";
   else if (payPerUseCredits > 0) tier = "pay_per_use";

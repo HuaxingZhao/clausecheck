@@ -51,9 +51,9 @@
     "rescan": "🔄 Rescan",
     "errorFormat": "Only PDF / DOCX / TXT files supported",
     "errorSize": "File must be under 10MB",
-    "creditsRemaining": "{count} credits left",
-    "creditsLogin": "Sign in to see credits",
-    "creditsLoading": "Loading credits…",
+    "quotaRemaining": "{count} document reviews left",
+    "quotaLogin": "Sign in to see document review quota",
+    "quotaLoading": "Loading quota…",
     "wordLimitModalTitle": "Document too long",
     "wordLimitModalBody": "This document exceeds the 20,000-character trial limit. Upgrade to Pro for up to 80,000 characters of deep review.",
     "wordLimitModalClose": "Got it",
@@ -226,7 +226,7 @@
     "downloadReport": "Download PDF Report",
     "viewHistory": "View report history",
     "noFlags": "No specific clauses were flagged. Try re-scanning — Pro uses deep two-pass analysis.",
-    "trialHint": "This is a free trial scan. Upgrade to Pro for unlimited scans & report export.",
+    "trialHint": "This is a trial scan. Upgrade to Pro for more document reviews and report export.",
     "viewPricing": "View Pricing →",
     "riskLevelHigh": "High",
     "riskLevelMedium": "Medium",
@@ -263,10 +263,10 @@
   },
   "quota": {
     "limitReached": "Monthly free limit reached. Upgrade to Pro or pay per scan.",
-    "trialActive": "Free trial active — unlimited scans",
-    "freeRemaining": "{count} free scan(s) left this month",
-    "payPerUseRemaining": "{count} pay-per-use credit(s) remaining",
-    "checkoutSuccess": "🎉 Payment successful! Pro unlocked — unlimited scans + report export",
+    "trialActive": "Trial quota active — document reviews available",
+    "freeRemaining": "{count} document review(s) left this cycle",
+    "payPerUseRemaining": "{count} add-on document review(s) remaining",
+    "checkoutSuccess": "🎉 Payment successful! Pro plan active — document review quota updated",
     "payPerUseSuccess": "🎉 Payment successful! 1 Pro scan unlocked — upload your contract now",
     "checkoutError": "Payment redirect failed. Please try again."
   },
@@ -331,12 +331,12 @@
     "proFeaturesBody": "You have Pro — save reports and export revision workbooks.",
     "viewReports": "Report history",
     "viewRevisions": "Revisions",
-    "inviteFriends": "Invite friends for credits"
+    "inviteFriends": "Invite friends for quota"
   },
   "invite": {
     "label": "Invite friends",
-    "title": "Invite friends — 3 credits each",
-    "subtitle": "Share your personal link. When a friend signs up, you both receive 3 deep-analysis credits.",
+    "title": "Invite friends — 3 document reviews each",
+    "subtitle": "Share your personal link. When a friend signs up, you both receive 3 document review quota.",
     "backHome": "Back to home",
     "loading": "Loading invite details…",
     "linkTitle": "Your invite link",
@@ -346,8 +346,8 @@
     "codeLabel": "Code",
     "usesRemaining": "{count} of {max} redemptions left",
     "progressTitle": "Your progress",
-    "progressSummary": "Invited {invites} · earned {credits} credits",
-    "progressHint": "Earn 3 scan credits for each successful referral.",
+    "progressSummary": "Invited {invites} · earned {quota} document reviews",
+    "progressHint": "Earn 3 document review quota for each successful referral.",
     "shareTitle": "Share message",
     "shareTemplate": "I use ClauseCheck to review contracts — sign up for 3 free deep scans, plus 3 more with my link: {url}",
     "copyShare": "Copy message",
@@ -388,10 +388,10 @@
   "upgrade": {
     "title": "High-risk clauses detected",
     "bodyHigh": "We found {count} high-risk clause(s). Upgrade for deep two-pass analysis, full quotes, and PDF export.",
-    "bodyMedium": "Score {score}/100 — upgrade for unlimited deep scans and professional PDF reports.",
+    "bodyMedium": "Score {score}/100 — upgrade for deeper analysis and professional PDF reports.",
     "benefits": [
       "Deep two-pass GPT-4o analysis",
-      "Unlimited scans & PDF export",
+      "10 document reviews per billing cycle & PDF export",
       "Report history & email delivery"
     ],
     "ctaPro": "Upgrade to Pro",
@@ -805,7 +805,7 @@
     "label": "Waitlist",
     "title": "Opening soon",
     "subtitle": "You selected {plan}. We're finishing checkout and activation.",
-    "body": "Join the waitlist to get notified at launch. You can keep using trial credits in the meantime.",
+    "body": "Join the waitlist to get notified at launch. You can keep using your trial document review quota in the meantime.",
     "planPro": "Pro",
     "planBoost": "Single boost",
     "backPricing": "Back to pricing"
@@ -860,7 +860,7 @@
       },
       {
         "q": "What are the Free tier limits?",
-        "a": "After sign-up you get a 3-day unlimited trial. After that, 3 scans per month, up to 12,000 characters each, with standard AI analysis. Full online reports and PDF download are included; cloud history and Word revision workbook export require Pro or pay-per-scan."
+        "a": "After sign-up you get a 3-day trial with generous document review access. After that, Trial includes 1 document review per billing cycle (legacy accounts may retain 3 per month during transition), up to 12,000 characters each, with standard AI analysis. Full online reports and PDF download are included; cloud history and Word revision workbook export require Pro or an add-on pack."
       },
       {
         "q": "How long does a scan take?",

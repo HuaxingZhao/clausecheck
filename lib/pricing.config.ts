@@ -27,6 +27,8 @@ export interface PlanDefinition {
   selfServe: boolean;
   /** When true, Payment Element / Stripe APIs may be invoked for this plan. */
   checkoutEnabled: boolean;
+  /** Phase 1 placeholder — show prices but block checkout. */
+  isComingSoon?: boolean;
 }
 
 export const PLAN_DEFINITIONS: Record<PlanId, PlanDefinition> = {
@@ -53,6 +55,7 @@ export const PLAN_DEFINITIONS: Record<PlanId, PlanDefinition> = {
     monthlyCny: 499,
     selfServe: false,
     checkoutEnabled: false,
+    isComingSoon: true,
   },
   enterprise: {
     id: "enterprise",
@@ -61,6 +64,7 @@ export const PLAN_DEFINITIONS: Record<PlanId, PlanDefinition> = {
     monthlyCny: null,
     selfServe: false,
     checkoutEnabled: false,
+    isComingSoon: true,
   },
 };
 
@@ -213,6 +217,9 @@ export function validatePricingConfig(): { valid: boolean; errors: string[] } {
   }
   if (PLAN_DEFINITIONS.team.checkoutEnabled || PLAN_DEFINITIONS.enterprise.checkoutEnabled) {
     errors.push("Team and Enterprise must not enable checkout in phase 1");
+  }
+  if (!PLAN_DEFINITIONS.team.isComingSoon) {
+    errors.push("Team must be marked isComingSoon in phase 1");
   }
 
   return { valid: errors.length === 0, errors };

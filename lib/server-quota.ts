@@ -7,6 +7,11 @@ import type { NextRequest } from "next/server";
 import { getAuthSecret } from "./env";
 import { getSessionFromRequest } from "./auth/session";
 import { getUserEntitlements } from "./billing/entitlements";
+import { tierToPlan } from "./pricing.config";
+import {
+  documentQuotaEnabled,
+  getDocumentQuotaStatus,
+} from "./db/document-quota";
 import {
   checkFreeQuota,
   consumePayPerUseCredit,
@@ -37,11 +42,11 @@ export async function resolveAuthorizedScanTier(req: NextRequest): Promise<Omit<
   const session = await getSessionFromRequest(req);
 
   if (session?.sub) {
-    const { pro } = await getUserEntitlements(session.sub);
-    if (pro) {
+    const ent = await getUserEntitlements(session.sub);
+    if (ent.pro) {
       return { tier: "pro", userId: session.sub, email: session.email };
     }
-    if (await hasPayPerUseCredit(session.email)) {
+    if (ent.payPerUseCredits > 0 || (await hasPayPerUseCredit(session.email))) {
       return { tier: "pay_per_use", userId: session.sub, email: session.email };
     }
   }
@@ -59,7 +64,35 @@ export async function checkScanAccess(
 ): Promise<ScanAccess> {
   const base = await resolveAuthorizedScanTier(req);
 
-  if (base.tier === "pro" || base.tier === "pay_per_use") {
+  if (base.userId && documentQuotaEnabled()) {
+    const ent = await getUserEntitlements(base.userId);
+    const plan = tierToPlan(ent.tier, ent.pro);
+    const quota = await getDocumentQuotaStatus(
+      base.userId,
+      plan,
+      ent.user?.proUntil ?? null
+    );
+
+    if (quota.remaining > 0 || quota.inLegacyTrial) {
+      return { ...base, allowed: true };
+    }
+
+    return {
+      ...base,
+      allowed: false,
+      code: "QUOTA_EXCEEDED",
+      error:
+        locale === "en"
+          ? "Document review quota exhausted. Upgrade to Pro or purchase an add-on."
+          : "文档审阅配额已用尽，请升级专业版或购买加油包",
+    };
+  }
+
+  if (base.tier === "pro") {
+    return { ...base, allowed: true };
+  }
+
+  if (base.tier === "pay_per_use") {
     return { ...base, allowed: true };
   }
 
@@ -76,8 +109,8 @@ export async function checkScanAccess(
       code: "QUOTA_EXCEEDED",
       error:
         locale === "en"
-          ? "Free monthly quota exhausted. Upgrade to Pro or pay per use."
-          : "本月免费额度已用完，升级专业版或按次使用",
+          ? "Document review quota exhausted. Upgrade to Pro or purchase an add-on."
+          : "文档审阅配额已用尽，请升级专业版或购买加油包",
     };
   }
 
@@ -86,6 +119,10 @@ export async function checkScanAccess(
 
 export async function recordScanUsage(req: NextRequest, access: ScanAccess): Promise<void> {
   await incrementGlobalScanCount();
+
+  if (access.userId && documentQuotaEnabled()) {
+    return;
+  }
 
   if (access.tier === "pro") return;
 
@@ -107,11 +144,37 @@ export interface QuotaStatus {
   remaining: number;
   inTrialPeriod: boolean;
   payPerUseCredits: number;
+  quotaLimit?: number;
+  quotaUsed?: number;
+  resetAt?: string | null;
+  plan?: string;
 }
 
 /** Server quota snapshot for client UI sync */
 export async function getQuotaStatus(req: NextRequest): Promise<QuotaStatus> {
   const base = await resolveAuthorizedScanTier(req);
+
+  if (base.userId && documentQuotaEnabled()) {
+    const ent = await getUserEntitlements(base.userId);
+    const plan = tierToPlan(ent.tier, ent.pro);
+    const quota = await getDocumentQuotaStatus(
+      base.userId,
+      plan,
+      ent.user?.proUntil ?? null
+    );
+
+    return {
+      tier: ent.tier,
+      allowed: quota.remaining > 0 || quota.inLegacyTrial,
+      remaining: quota.inLegacyTrial ? -1 : quota.remaining,
+      inTrialPeriod: quota.inLegacyTrial,
+      payPerUseCredits: ent.payPerUseCredits,
+      quotaLimit: quota.limit,
+      quotaUsed: quota.used,
+      resetAt: quota.resetAt,
+      plan,
+    };
+  }
 
   if (base.tier === "pro") {
     return {
@@ -120,6 +183,7 @@ export async function getQuotaStatus(req: NextRequest): Promise<QuotaStatus> {
       remaining: -1,
       inTrialPeriod: false,
       payPerUseCredits: 0,
+      plan: "pro",
     };
   }
 
@@ -131,6 +195,7 @@ export async function getQuotaStatus(req: NextRequest): Promise<QuotaStatus> {
       remaining: credits,
       inTrialPeriod: false,
       payPerUseCredits: credits,
+      plan: "trial",
     };
   }
 
@@ -146,5 +211,6 @@ export async function getQuotaStatus(req: NextRequest): Promise<QuotaStatus> {
     remaining: quota.remaining,
     inTrialPeriod: quota.inTrialPeriod,
     payPerUseCredits: 0,
+    plan: "trial",
   };
 }
