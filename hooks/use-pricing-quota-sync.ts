@@ -31,6 +31,8 @@ export function usePricingQuotaSync(locale: string) {
           tier?: string;
           plan?: string;
           quotaRemaining?: number;
+          quotaUsed?: number;
+          quotaLimit?: number;
           resetAt?: string | null;
         };
         if (!cancelled) {
@@ -40,7 +42,11 @@ export function usePricingQuotaSync(locale: string) {
             remaining,
             data.plan ?? data.tier,
             !!data.pro,
-            data.resetAt ?? null
+            data.resetAt ?? null,
+            {
+              used: data.quotaUsed,
+              limit: data.quotaLimit,
+            }
           );
           if (data.resetAt) setResetDate(data.resetAt);
         }

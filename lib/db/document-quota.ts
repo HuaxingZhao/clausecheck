@@ -94,35 +94,12 @@ function effectiveMainLimits(row: DocumentQuotaRow): {
   inLegacyTrial: boolean;
   inLegacyMonthly: boolean;
 } {
-  const legacyTrial = inLegacyTrial(row.trial_start);
-  if (legacyTrial) {
-    return { used: 0, limit: row.quota_limit, inLegacyTrial: true, inLegacyMonthly: false };
-  }
-
-  const monthKey = todayMonthKey();
-  const legacyMonthly =
-    row.legacy_month_key != null &&
-    (row.legacy_month_used > 0 || row.quota_limit >= LEGACY_MONTHLY_LIMIT);
-
-  if (legacyMonthly && row.legacy_month_key === monthKey) {
-    const used = row.legacy_month_used;
-    const limit = Math.max(row.quota_limit, LEGACY_MONTHLY_LIMIT);
-    return { used, limit, inLegacyTrial: false, inLegacyMonthly: true };
-  }
-
-  if (legacyMonthly && row.legacy_month_key !== monthKey) {
-    return {
-      used: 0,
-      limit: Math.max(row.quota_limit, LEGACY_MONTHLY_LIMIT),
-      inLegacyTrial: false,
-      inLegacyMonthly: true,
-    };
-  }
-
+  // Plan A: document_quota.used / quota_limit is always the source of truth.
+  // Legacy trial flag is informational only — never grants unlimited scans.
   return {
     used: row.used,
     limit: row.quota_limit,
-    inLegacyTrial: false,
+    inLegacyTrial: inLegacyTrial(row.trial_start),
     inLegacyMonthly: false,
   };
 }
@@ -167,19 +144,6 @@ export async function getDocumentQuotaStatus(
 
   const main = effectiveMainLimits(row);
   const extraRemaining = await sumPoolRemaining(userId, true);
-
-  if (main.inLegacyTrial) {
-    return {
-      used: 0,
-      limit: main.limit + extraRemaining,
-      remaining: main.limit + extraRemaining,
-      resetAt: row.reset_at,
-      inLegacyTrial: true,
-      inLegacyMonthly: false,
-      plan,
-    };
-  }
-
   const mainRemaining = Math.max(0, main.limit - main.used);
   const used = main.used;
   const limit = main.limit + extraRemaining;
@@ -189,8 +153,8 @@ export async function getDocumentQuotaStatus(
     limit,
     remaining: mainRemaining + extraRemaining,
     resetAt: row.reset_at,
-    inLegacyTrial: false,
-    inLegacyMonthly: main.inLegacyMonthly,
+    inLegacyTrial: main.inLegacyTrial,
+    inLegacyMonthly: false,
     plan,
   };
 }
@@ -214,29 +178,12 @@ export async function recordMainQuotaScan(userId: string): Promise<void> {
   if (!documentQuotaEnabled()) return;
   await ensureSchema();
   const db = getSql();
-  const row = await ensureMainQuotaRow(userId);
-  const main = effectiveMainLimits(row);
-
-  if (main.inLegacyTrial) return;
-
-  if (main.inLegacyMonthly) {
-    const monthKey = todayMonthKey();
-    await db`
-      UPDATE public.document_quota
-         SET legacy_month_key = ${monthKey},
-             legacy_month_used = CASE
-               WHEN legacy_month_key = ${monthKey} THEN legacy_month_used + 1
-               ELSE 1
-             END,
-             updated_at = now()
-       WHERE user_id = ${userId} AND pool_id = 'main'`;
-    return;
-  }
-
+  await ensureMainQuotaRow(userId);
   await db`
     UPDATE public.document_quota
        SET used = used + 1, updated_at = now()
-     WHERE user_id = ${userId} AND pool_id = 'main'`;
+     WHERE user_id = ${userId} AND pool_id = 'main'
+       AND used < quota_limit`;
 }
 
 export async function syncSubscriptionDocumentQuota(
@@ -326,24 +273,15 @@ export async function tryConsumeDocumentQuota(
   if (!documentQuotaEnabled()) return false;
 
   const status = await getDocumentQuotaStatus(userId, plan);
-  if (status.inLegacyTrial) return true;
   if (status.remaining <= 0) return false;
 
+  // Prefer atomic RPC; fall back to direct increment if RPC missing.
+  const ok = await consumeDocumentQuota(userId);
+  if (ok) return true;
+
   const row = await ensureMainQuotaRow(userId);
-  const main = effectiveMainLimits(row);
-
-  if (main.inLegacyMonthly) {
-    if (main.used >= main.limit) {
-      return consumeDocumentQuota(userId);
-    }
-    await recordMainQuotaScan(userId);
-    return true;
-  }
-
-  if (row.used < row.quota_limit) {
-    await recordMainQuotaScan(userId);
-    return true;
-  }
-
-  return consumeDocumentQuota(userId);
+  if (row.used >= row.quota_limit) return false;
+  await recordMainQuotaScan(userId);
+  const after = await getMainRow(userId);
+  return !!after && after.used > row.used;
 }

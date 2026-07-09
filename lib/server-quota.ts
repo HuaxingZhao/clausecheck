@@ -73,7 +73,7 @@ export async function checkScanAccess(
       ent.user?.proUntil ?? null
     );
 
-    if (quota.remaining > 0 || quota.inLegacyTrial) {
+    if (quota.remaining > 0) {
       return { ...base, allowed: true };
     }
 
@@ -165,8 +165,8 @@ export async function getQuotaStatus(req: NextRequest): Promise<QuotaStatus> {
 
     return {
       tier: ent.tier,
-      allowed: quota.remaining > 0 || quota.inLegacyTrial,
-      remaining: quota.inLegacyTrial ? -1 : quota.remaining,
+      allowed: quota.remaining > 0,
+      remaining: quota.remaining,
       inTrialPeriod: quota.inLegacyTrial,
       payPerUseCredits: ent.payPerUseCredits,
       quotaLimit: quota.limit,

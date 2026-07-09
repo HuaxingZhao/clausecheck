@@ -226,7 +226,7 @@
     "downloadReport": "下载 PDF 报告",
     "viewHistory": "查看报告历史",
     "noFlags": "未识别到具体风险条款。请重试扫描——专业版使用深度双轮分析。",
-    "trialHint": "这是试用期的免费扫描。开通专业版解锁无限使用 & 报告导出。",
+    "trialHint": "这是试用配额内的扫描。开通专业版可获得更多文档审阅配额与报告导出。",
     "viewPricing": "查看定价 →",
     "riskLevelHigh": "高风险",
     "riskLevelMedium": "中风险",
@@ -263,10 +263,10 @@
   },
   "quota": {
     "limitReached": "本月免费额度已用完，升级专业版或按次使用",
-    "trialActive": "免费试用期内，可无限次扫描",
+    "trialActive": "试用配额生效中",
     "freeRemaining": "本月免费剩余 {count} 次",
     "payPerUseRemaining": "按次额度剩余 {count} 次",
-    "checkoutSuccess": "🎉 支付成功！已解锁专业版，无限次扫描 + 报告导出",
+    "checkoutSuccess": "🎉 支付成功！已解锁专业版文档审阅配额与报告导出",
     "payPerUseSuccess": "🎉 支付成功！已解锁 1 次专业扫描，请立即上传合同",
     "checkoutError": "支付跳转失败，请稍后再试"
   },
