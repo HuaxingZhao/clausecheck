@@ -16,6 +16,10 @@ import {
   type CheckoutPlanId,
   type Currency,
 } from "@/lib/pricing.config";
+import {
+  extractInvoiceClientSecret,
+  resolveRecurringPriceId,
+} from "@/lib/stripe/recurring-price";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
   apiVersion: "2025-02-24.acacia" as any,
@@ -52,43 +56,33 @@ async function createSubscriptionIntent(
       : annualBilledTotal(plan, currency),
     currency
   );
-  const label = `${plan.charAt(0).toUpperCase() + plan.slice(1)} · ${isMonthly ? "Monthly" : "Annual"}`;
+  const label = `ClauseCheck ${plan.charAt(0).toUpperCase() + plan.slice(1)} · ${isMonthly ? "Monthly" : "Annual"}`;
+  const lookupKey = `${priceKey}_${stripeCurrency}`;
+
+  const stripePriceId = await resolveRecurringPriceId(stripe, {
+    lookupKey,
+    productName: label,
+    unitAmountCents: unitAmount,
+    currency: stripeCurrency,
+    interval: isMonthly ? "month" : "year",
+  });
 
   const subscription = await stripe.subscriptions.create({
     customer: customerId,
-    items: [
-      {
-        price_data: {
-          currency: stripeCurrency,
-          product_data: { name: `ClauseCheck ${label}` },
-          unit_amount: unitAmount,
-          recurring: { interval: isMonthly ? "month" : "year" },
-        } as unknown as Stripe.SubscriptionCreateParams.Item.PriceData,
-      },
-    ],
+    items: [{ price: stripePriceId }],
     payment_behavior: "default_incomplete",
     payment_settings: {
       payment_method_types: paymentMethodTypes as Stripe.SubscriptionCreateParams.PaymentSettings.PaymentMethodType[],
       save_default_payment_method: "on_subscription",
     },
-    expand: ["latest_invoice.payment_intent"],
+    expand: ["latest_invoice.confirmation_secret"],
     metadata: { priceKey, userId, plan, cycle },
   });
 
-  const invoice = subscription.latest_invoice as Stripe.Invoice & {
-    payment_intent?: Stripe.PaymentIntent | string | null;
-  };
-  const pi =
-    typeof invoice.payment_intent === "object" && invoice.payment_intent
-      ? invoice.payment_intent
-      : null;
-
-  if (!pi?.client_secret) {
-    throw new Error("Missing payment intent client secret");
-  }
+  const clientSecret = await extractInvoiceClientSecret(stripe, subscription);
 
   return {
-    clientSecret: pi.client_secret,
+    clientSecret,
     subscriptionId: subscription.id,
     amount: isMonthly
       ? monthlyUnitPrice(plan, currency, "monthly")
