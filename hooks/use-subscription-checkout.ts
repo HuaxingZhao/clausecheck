@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback } from "react";
-import { checkoutPriceId, stripeCurrencyKey, type BillingCycle, type Currency } from "@/lib/pricing.config";
+import { checkoutPriceId, stripeCurrencyKey, type BillingCycle, type CheckoutPlanId, type Currency } from "@/lib/pricing.config";
 
 export function useSubscriptionCheckout(locale: string) {
   return useCallback(
-    async (plan: "pro" | "team", cycle: BillingCycle, currency: Currency) => {
+    async (plan: CheckoutPlanId, cycle: BillingCycle, currency: Currency) => {
       const res = await fetch("/api/checkout", {
         method: "POST",
         credentials: "include",

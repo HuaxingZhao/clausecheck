@@ -687,6 +687,8 @@
     "monthly": "Monthly",
     "savingsBadge": "-{percent}%",
     "cnyWalletNote": "WeChat Pay and Alipay are available for annual billing and add-on purchases in CNY. Monthly subscriptions accept card only.",
+    "comingSoonBadge": "Coming soon",
+    "placeholderClose": "Close",
     "resetNote": "Quotas reset at midnight on your subscription anniversary date.",
     "processing": "Processing…",
     "footnote": "Add-on reviews apply to the current billing cycle only. Annual plans save 15% vs monthly.",
@@ -722,12 +724,20 @@
         "✅ Admin dashboard",
         "✅ Word export for all seats"
       ],
-      "cta": "Subscribe"
+      "cta": "Subscribe",
+      "comingSoonCta": "Learn more",
+      "placeholderNote": "Team plans are in preparation. Self-serve checkout is not yet available.",
+      "placeholderTitle": "Team plan — coming soon",
+      "placeholderBody": "We are preparing shared quotas, seat management, and firm billing. For early access or volume requirements, email us and we will notify you when Team checkout opens."
     },
     "enterprise": {
       "name": "Enterprise",
       "audience": "Mid-size & large organizations",
-      "note": "Custom volume, SSO, and procurement. Contact our sales team — no self-serve checkout."
+      "note": "Custom volume, SSO, and procurement. Contact our sales team — no self-serve checkout.",
+      "comingSoonCta": "Contact us",
+      "placeholderNote": "Custom allocation, SSO, and procurement workflows. Sales-assisted onboarding only.",
+      "placeholderTitle": "Enterprise — contact us",
+      "placeholderBody": "Enterprise plans are configured individually for volume, security, and procurement. Email us with your firm size and requirements; we will respond within one business day."
     },
     "addOn": {
       "badge": "Add-on",

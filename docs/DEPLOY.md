@@ -86,6 +86,7 @@ npm run db:verify-consume-credit
 | `DATABASE_URL` | Neon pooled 连接串 | Production, Preview |
 | `AUTH_SECRET` | `.env.local`（勿用默认值） | Production, Preview |
 | `STRIPE_SECRET_KEY` | Stripe Dashboard（生产用 `sk_live_`，测试用 `sk_test_`） | Production |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe Dashboard → API keys（与 `STRIPE_SECRET_KEY` 同模式：`pk_live_` / `pk_test_`） | Production, Preview |
 | `STRIPE_WEBHOOK_SECRET` | 第 3 步创建 webhook 后填入 | Production |
 | `NEXT_PUBLIC_URL` | 暂定 `https://你的项目.vercel.app`，自定义域名后改 | Production |
 | `RESEND_API_KEY` | `.env.local` | **Production 必填**（登录邮件） |
@@ -122,7 +123,23 @@ vercel --prod
 3. 创建后复制 **Signing secret** (`whsec_...`)
 4. 填入 Vercel 环境变量 `STRIPE_WEBHOOK_SECRET` → **Redeploy**
 
-测试模式可先部署到 Preview，用 `sk_test_` + 测试 webhook。
+测试模式可先部署到 Preview，用 `sk_test_` + `pk_test_` + 测试 webhook。
+
+### Payment Element（Plan A 定价页）
+
+定价页使用 **Stripe Payment Element**（`PaymentGateway` 组件），浏览器端必须配置：
+
+```bash
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_xxxxxxxx
+```
+
+获取路径：Stripe Dashboard → **Developers → API keys** → **Publishable key**。
+
+注意：
+
+- `pk_live_` 必须与 `STRIPE_SECRET_KEY`（`sk_live_`）配对；测试环境同理用 `pk_test_` + `sk_test_`
+- `NEXT_PUBLIC_*` 在 **构建时** 注入，添加或修改后必须 **Redeploy**
+- 未配置时定价页 Pro 订阅弹窗无法加载支付表单
 
 ---
 

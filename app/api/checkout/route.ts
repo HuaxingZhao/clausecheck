@@ -16,8 +16,8 @@ import {
   stripeCurrencyKey,
   toStripeCents,
   type BillingCycle,
+  type CheckoutPlanId,
   type Currency,
-  type PaidPlanId,
 } from "@/lib/pricing.config";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
@@ -52,15 +52,18 @@ function resolvePrice(
   const match = priceId.match(/^(pro|team)_(monthly|annual)$/);
   if (!match) return null;
 
-  const plan = match[1] as PaidPlanId;
+  const plan = match[1];
+  if (plan === "team") return null;
+
   const cycle = match[2] as BillingCycle;
+  const checkoutPlan = plan as CheckoutPlanId;
   const isZh = currency === "CNY";
-  const planLabel = plan === "pro" ? (isZh ? "专业版" : "Pro") : isZh ? "团队版" : "Team";
+  const planLabel = checkoutPlan === "pro" ? (isZh ? "专业版" : "Pro") : isZh ? "团队版" : "Team";
   const cycleLabel =
     cycle === "annual" ? (isZh ? "年付" : "Annual") : isZh ? "月付" : "Monthly";
 
   if (cycle === "annual") {
-    const amount = annualBilledTotal(plan, currency);
+    const amount = annualBilledTotal(checkoutPlan, currency);
     return {
       amountCents: toStripeCents(amount, currency),
       name: `ClauseCheck ${planLabel} · ${cycleLabel}`,
@@ -69,7 +72,7 @@ function resolvePrice(
     };
   }
 
-  const amount = monthlyUnitPrice(plan, currency, "monthly");
+  const amount = monthlyUnitPrice(checkoutPlan, currency, "monthly");
   return {
     amountCents: toStripeCents(amount, currency),
     name: `ClauseCheck ${planLabel} · ${cycleLabel}`,

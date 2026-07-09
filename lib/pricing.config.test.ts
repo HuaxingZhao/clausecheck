@@ -7,6 +7,7 @@ import {
   addOnTotalPrice,
   annualBilledTotal,
   cnyFromUsd,
+  isCheckoutEnabled,
   monthlyUnitPrice,
   usdFromCny,
   validatePricingConfig,
@@ -24,6 +25,13 @@ describe("pricing.config validation", () => {
     assert.equal(ANNUAL_DISCOUNT, 0.85);
     assert.equal(ADD_ON_CONFIG.priceUsd, 5);
     assert.equal(ADD_ON_CONFIG.priceCny, 39);
+  });
+
+  it("enables checkout only for Pro in phase 1", () => {
+    assert.equal(isCheckoutEnabled("trial"), false);
+    assert.equal(isCheckoutEnabled("pro"), true);
+    assert.equal(isCheckoutEnabled("team"), false);
+    assert.equal(isCheckoutEnabled("enterprise"), false);
   });
 });
 

@@ -13,7 +13,10 @@ export interface PlanCardProps {
   featured?: boolean;
   disabled?: boolean;
   loading?: boolean;
-  onSelect: (planId: "pro" | "team" | "trial") => void;
+  /** Visual-only card; CTA opens placeholder guidance instead of checkout. */
+  placeholder?: boolean;
+  onSelect: (planId: "pro" | "trial") => void;
+  onPlaceholderClick?: () => void;
 }
 
 export default function PlanCard({
@@ -24,7 +27,9 @@ export default function PlanCard({
   featured = false,
   disabled = false,
   loading = false,
+  placeholder = false,
   onSelect,
+  onPlaceholderClick,
 }: PlanCardProps) {
   const t = useTranslations("pricing");
   const planKey = planId as "trial" | "pro" | "team";
@@ -35,14 +40,32 @@ export default function PlanCard({
       ? { main: currency === "USD" ? "$0" : "¥0", period: "" }
       : formatPlanPrice(planId, currency, billingCycle, locale === "zh" ? "zh-CN" : "en-US");
 
+  function handleClick() {
+    if (placeholder) {
+      onPlaceholderClick?.();
+      return;
+    }
+    if (planId === "trial") onSelect("trial");
+    else if (planId === "pro") onSelect("pro");
+  }
+
+  const ctaLabel = placeholder
+    ? t(`${planKey}.comingSoonCta`)
+    : loading
+      ? t("processing")
+      : t(`${planKey}.cta`);
+
   return (
     <div
-      className={`pricing-card pricing-card-v2 flex flex-col ${featured ? "featured" : ""}`}
+      className={`pricing-card pricing-card-v2 flex flex-col ${featured ? "featured" : ""} ${placeholder ? "opacity-95" : ""}`}
     >
       <div className="flex items-start justify-between gap-2 mb-1">
         <h3 className="text-xl">{t(`${planKey}.name`)}</h3>
-        {planId === "pro" && (
+        {planId === "pro" && !placeholder && (
           <span className="pricing-badge">{t("pro.badge")}</span>
+        )}
+        {placeholder && (
+          <span className="pricing-badge pricing-badge-boost text-xs">{t("comingSoonBadge")}</span>
         )}
       </div>
       <p className="text-xs text-ink-muted mb-3 font-sans">{t(`${planKey}.audience`)}</p>
@@ -61,13 +84,16 @@ export default function PlanCard({
           <li key={h}>{h}</li>
         ))}
       </ul>
+      {placeholder && (
+        <p className="text-xs text-ink-muted font-sans mb-4">{t(`${planKey}.placeholderNote`)}</p>
+      )}
       <Button
-        variant={featured ? "default" : "outline"}
+        variant={featured && !placeholder ? "default" : "outline"}
         className="w-full"
         disabled={disabled || loading}
-        onClick={() => onSelect(planId === "trial" ? "trial" : planId)}
+        onClick={handleClick}
       >
-        {loading ? t("processing") : t(`${planKey}.cta`)}
+        {ctaLabel}
       </Button>
     </div>
   );

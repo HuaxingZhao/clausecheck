@@ -10,7 +10,10 @@ export const ANNUAL_SAVINGS_PERCENT = Math.round((1 - ANNUAL_DISCOUNT) * 100);
 
 export type PlanId = "trial" | "pro" | "team" | "enterprise";
 export type SelfServePlanId = Exclude<PlanId, "enterprise">;
+/** Plans with list prices shown on cards (includes future Team). */
 export type PaidPlanId = "pro" | "team";
+/** Phase 1: only Pro accepts real checkout. Team/Enterprise are visual placeholders. */
+export type CheckoutPlanId = "pro";
 export type BillingCycle = "monthly" | "annual";
 export type Currency = "USD" | "CNY";
 export type PurchaseType = "subscription" | "addon";
@@ -20,7 +23,10 @@ export interface PlanDefinition {
   quotaPerCycle: number;
   monthlyUsd: number | null;
   monthlyCny: number | null;
+  /** Reserved for future self-serve expansion. */
   selfServe: boolean;
+  /** When true, Payment Element / Stripe APIs may be invoked for this plan. */
+  checkoutEnabled: boolean;
 }
 
 export const PLAN_DEFINITIONS: Record<PlanId, PlanDefinition> = {
@@ -30,6 +36,7 @@ export const PLAN_DEFINITIONS: Record<PlanId, PlanDefinition> = {
     monthlyUsd: 0,
     monthlyCny: 0,
     selfServe: true,
+    checkoutEnabled: false,
   },
   pro: {
     id: "pro",
@@ -37,13 +44,15 @@ export const PLAN_DEFINITIONS: Record<PlanId, PlanDefinition> = {
     monthlyUsd: 29,
     monthlyCny: 199,
     selfServe: true,
+    checkoutEnabled: true,
   },
   team: {
     id: "team",
     quotaPerCycle: 30,
     monthlyUsd: 79,
     monthlyCny: 499,
-    selfServe: true,
+    selfServe: false,
+    checkoutEnabled: false,
   },
   enterprise: {
     id: "enterprise",
@@ -51,8 +60,15 @@ export const PLAN_DEFINITIONS: Record<PlanId, PlanDefinition> = {
     monthlyUsd: null,
     monthlyCny: null,
     selfServe: false,
+    checkoutEnabled: false,
   },
 };
+
+export const CHECKOUT_ENABLED_PLANS: readonly CheckoutPlanId[] = ["pro"];
+
+export function isCheckoutEnabled(plan: PlanId): boolean {
+  return PLAN_DEFINITIONS[plan].checkoutEnabled;
+}
 
 export const ADD_ON_CONFIG = {
   quotaPerPack: 1,
@@ -97,7 +113,7 @@ export function toStripeCents(amount: number, _currency: Currency): number {
   return Math.round(amount * 100);
 }
 
-export function checkoutPriceId(plan: PaidPlanId, cycle: BillingCycle): string {
+export function checkoutPriceId(plan: CheckoutPlanId, cycle: BillingCycle): string {
   return `${plan}_${cycle}`;
 }
 
@@ -176,6 +192,13 @@ export function validatePricingConfig(): { valid: boolean; errors: string[] } {
 
   if (ANNUAL_DISCOUNT <= 0 || ANNUAL_DISCOUNT >= 1) {
     errors.push("ANNUAL_DISCOUNT must be between 0 and 1");
+  }
+
+  if (!PLAN_DEFINITIONS.pro.checkoutEnabled) {
+    errors.push("Pro must have checkoutEnabled");
+  }
+  if (PLAN_DEFINITIONS.team.checkoutEnabled || PLAN_DEFINITIONS.enterprise.checkoutEnabled) {
+    errors.push("Team and Enterprise must not enable checkout in phase 1");
   }
 
   return { valid: errors.length === 0, errors };

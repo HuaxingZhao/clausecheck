@@ -31,9 +31,9 @@ export default function PricingPage() {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     const plan = params.get("plan");
-    if (plan !== "pro" && plan !== "team" && plan !== "boost") return;
+    if (plan !== "pro" && plan !== "boost") return;
     window.history.replaceState({}, "", `/${locale}/pricing`);
-    if (plan === "pro" || plan === "team") {
+    if (plan === "pro") {
       setSelectedPlan(plan);
     }
   }, [locale, setSelectedPlan]);

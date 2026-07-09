@@ -7,12 +7,13 @@ import {
   annualBilledTotal,
   checkoutPriceId,
   getPaymentMethodTypes,
+  isCheckoutEnabled,
   monthlyUnitPrice,
   stripeCurrencyKey,
   toStripeCents,
   type BillingCycle,
+  type CheckoutPlanId,
   type Currency,
-  type PaidPlanId,
 } from "@/lib/pricing.config";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
@@ -22,7 +23,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
 const intentSchema = z.discriminatedUnion("purchaseType", [
   z.object({
     purchaseType: z.literal("subscription"),
-    plan: z.enum(["pro", "team"]),
+    plan: z.literal("pro"),
     billingCycle: z.enum(["monthly", "annual"]),
     currency: z.enum(["USD", "CNY"]),
   }),
@@ -35,7 +36,7 @@ const intentSchema = z.discriminatedUnion("purchaseType", [
 
 async function createSubscriptionIntent(
   customerId: string,
-  plan: PaidPlanId,
+  plan: CheckoutPlanId,
   cycle: BillingCycle,
   currency: Currency,
   stripeCurrency: "usd" | "cny",
@@ -152,7 +153,13 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const plan = body.plan as PaidPlanId;
+    const plan = body.plan as CheckoutPlanId;
+    if (!isCheckoutEnabled(plan)) {
+      return NextResponse.json(
+        { error: "Checkout is not available for this plan" },
+        { status: 403 }
+      );
+    }
     const cycle = body.billingCycle as BillingCycle;
     const paymentMethodTypes = getPaymentMethodTypes(currency, cycle, "subscription");
     const priceKey = checkoutPriceId(plan, cycle);

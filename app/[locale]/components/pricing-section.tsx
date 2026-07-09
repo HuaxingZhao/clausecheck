@@ -10,23 +10,24 @@ import CurrencySelector from "./pricing/CurrencySelector";
 import PlanCard from "./pricing/PlanCard";
 import QuotaMeter from "./pricing/QuotaMeter";
 import AddOnModal from "./pricing/AddOnModal";
-import ContactSalesForm from "./pricing/ContactSalesForm";
 import PaymentGateway from "./pricing/PaymentGateway";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { PaidPlanId } from "@/lib/pricing.config";
+import type { CheckoutPlanId } from "@/lib/pricing.config";
+
+type PlaceholderPlan = "team" | "enterprise";
 
 export interface PricingSectionProps {
   locale: string;
   scrollTo?: (id: string) => void;
   compact?: boolean;
   onRequireAuth?: () => void;
-  payingPlan?: "pro" | "team" | "boost" | null;
-  /** Parent can register a function to open the add-on modal (e.g. from results page). */
+  payingPlan?: "pro" | "boost" | null;
   registerAddOnOpener?: (open: () => void) => void;
 }
 
@@ -52,7 +53,8 @@ export default function PricingSection({
   const setSelectedPlan = usePricingStore((s) => s.setSelectedPlan);
 
   const [addOnOpen, setAddOnOpen] = useState(false);
-  const [checkoutPlan, setCheckoutPlan] = useState<PaidPlanId | null>(null);
+  const [checkoutPlan, setCheckoutPlan] = useState<CheckoutPlanId | null>(null);
+  const [placeholderPlan, setPlaceholderPlan] = useState<PlaceholderPlan | null>(null);
 
   const showAddOnEntry = canPurchaseAddOn({ usedQuota, quotaLimit });
 
@@ -71,7 +73,7 @@ export default function PricingSection({
     else router.push(`/${locale}#upload`);
   }
 
-  function handleSubscribe(plan: "pro" | "team" | "trial") {
+  function handleSubscribe(plan: "pro" | "trial") {
     if (plan === "trial") {
       handleTrial();
       return;
@@ -139,15 +141,28 @@ export default function PricingSection({
             currency={currency}
             billingCycle={billingCycle}
             locale={locale}
-            loading={payingPlan === "team"}
-            disabled={!!checkoutPlan}
+            placeholder
             onSelect={handleSubscribe}
+            onPlaceholderClick={() => setPlaceholderPlan("team")}
           />
-          <div className="pricing-card pricing-card-v2 flex flex-col">
-            <h3 className="text-xl mb-1">{t("enterprise.name")}</h3>
+          <div className="pricing-card pricing-card-v2 flex flex-col opacity-95">
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <h3 className="text-xl">{t("enterprise.name")}</h3>
+              <span className="pricing-badge pricing-badge-boost text-xs">
+                {t("comingSoonBadge")}
+              </span>
+            </div>
             <p className="text-xs text-ink-muted mb-3 font-sans">{t("enterprise.audience")}</p>
-            <p className="text-sm text-ink-light font-sans mb-4 flex-1">{t("enterprise.note")}</p>
-            <ContactSalesForm />
+            <p className="text-sm text-ink-light font-sans mb-4 flex-1">
+              {t("enterprise.placeholderNote")}
+            </p>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => setPlaceholderPlan("enterprise")}
+            >
+              {t("enterprise.comingSoonCta")}
+            </Button>
           </div>
         </div>
 
@@ -184,9 +199,7 @@ export default function PricingSection({
       <Dialog open={!!checkoutPlan} onOpenChange={(open) => !open && setCheckoutPlan(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {checkoutPlan ? t(`${checkoutPlan}.name`) : t("title")}
-            </DialogTitle>
+            <DialogTitle>{checkoutPlan ? t(`${checkoutPlan}.name`) : t("title")}</DialogTitle>
           </DialogHeader>
           {checkoutPlan && (
             <PaymentGateway
@@ -202,6 +215,35 @@ export default function PricingSection({
               }}
               onCancel={() => setCheckoutPlan(null)}
             />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!placeholderPlan}
+        onOpenChange={(open) => !open && setPlaceholderPlan(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {placeholderPlan ? t(`${placeholderPlan}.placeholderTitle`) : ""}
+            </DialogTitle>
+          </DialogHeader>
+          {placeholderPlan && (
+            <div className="space-y-4 font-sans text-sm text-ink-light">
+              <p>{t(`${placeholderPlan}.placeholderBody`)}</p>
+              <p>
+                <a
+                  href="mailto:support@clausecheck.cc"
+                  className="text-accent hover:text-accent-dark"
+                >
+                  support@clausecheck.cc
+                </a>
+              </p>
+              <Button variant="outline" onClick={() => setPlaceholderPlan(null)}>
+                {t("placeholderClose")}
+              </Button>
+            </div>
           )}
         </DialogContent>
       </Dialog>

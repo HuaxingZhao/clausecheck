@@ -11,14 +11,14 @@ import {
 import { getStripe } from "@/lib/stripe-client";
 import { canPurchaseAddOn, usePricingStore } from "@/stores/usePricingStore";
 import { Button } from "@/components/ui/button";
-import type { BillingCycle, Currency, PaidPlanId, PurchaseType } from "@/lib/pricing.config";
+import type { BillingCycle, Currency, CheckoutPlanId, PurchaseType } from "@/lib/pricing.config";
 
 export interface PaymentGatewayProps {
   purchaseType: PurchaseType;
   currency: Currency;
   billingCycle: BillingCycle;
   locale: string;
-  plan?: PaidPlanId;
+  plan?: CheckoutPlanId;
   packs?: number;
   onSuccess?: () => void;
   onRequireAuth?: () => void;

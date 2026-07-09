@@ -687,6 +687,8 @@
     "monthly": "月付",
     "savingsBadge": "省{percent}%",
     "cnyWalletNote": "人民币年付或加油包支持微信/支付宝；月付订阅仅支持银行卡。",
+    "comingSoonBadge": "即将推出",
+    "placeholderClose": "关闭",
     "resetNote": "配额在订阅周年日零点重置。",
     "processing": "处理中…",
     "footnote": "加油包仅对当前计费周期有效。年付较月付节省 15%。",
@@ -722,12 +724,20 @@
         "✅ 管理后台",
         "✅ 全员 Word 导出"
       ],
-      "cta": "立即订阅"
+      "cta": "立即订阅",
+      "comingSoonCta": "了解详情",
+      "placeholderNote": "团队版筹备中，暂不支持自助订阅。",
+      "placeholderTitle": "团队版 — 即将推出",
+      "placeholderBody": "我们正在完善共享配额、席位管理与律所账单功能。如需提前开通或大批量需求，请发邮件联系我们，团队版开放订阅时将优先通知您。"
     },
     "enterprise": {
       "name": "企业版",
       "audience": "中大型机构",
-      "note": "定制配额、SSO 与采购流程。请联系销售 — 无自助购买入口。"
+      "note": "定制配额、SSO 与采购流程。请联系销售 — 无自助购买入口。",
+      "comingSoonCta": "联系我们",
+      "placeholderNote": "定制许可量、SSO 与采购流程，仅销售协助开通。",
+      "placeholderTitle": "企业版 — 联系我们",
+      "placeholderBody": "企业版按机构用量、安全与采购要求单独配置。请邮件说明律所规模与需求，我们将在一个工作日内回复。"
     },
     "addOn": {
       "badge": "加油包",
