@@ -1,9 +1,11 @@
 ---
 description: ClauseCheck product architecture, pipelines, and constraints (always read first)
-alwaysApply: true
+alwaysApply: false
 ---
 
 # ClauseCheck — Project Memory
+
+> **Superseded for daily use by `clausecheck-project`.** Keep this file as a deep architecture reference only.
 
 Bilingual (EN/ZH) Next.js contract risk scanner. **Not legal advice** — decision support + negotiation deliverables.
 
