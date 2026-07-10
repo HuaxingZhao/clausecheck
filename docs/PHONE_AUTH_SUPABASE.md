@@ -136,3 +136,16 @@ SELECT action, meta, created_at FROM audit_log ORDER BY created_at DESC LIMIT 10
 | `public.audit_log` | 登录 / 配额 / 支付事件 |
 
 邮箱密码与 Google 登录保留；手机号可单独注册（邮箱可选）。
+
+---
+
+## 9. 中国大陆 +86（免企业资质）
+
+Twilio 对中国大陆送达差。个人开发者可用 **阿里云号码认证 · 短信认证（系统赠送签名/模板）** + **Supabase Send SMS Hook**。
+
+完整步骤与 Edge Function：
+
+→ [docs/ALIYUN_SMS_HOOK.md](./ALIYUN_SMS_HOOK.md)  
+→ 代码：`supabase/functions/send-sms/index.ts`
+
+要点：OTP 仍由 Supabase 生成/校验；Hook 只负责投递；`+86` → 阿里云，其它 → Twilio（在 Hook 内分流）。
