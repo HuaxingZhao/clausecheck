@@ -7,9 +7,13 @@ description: >-
   pipeline, scenario prompts, review UI, i18n, or revision export.
 ---
 
+# Canonical entry point
+
+The canonical project entry is now **`clausecheck-project`**. Redirect agents there for current project memory and living progress, and update its `PROGRESS.md` after meaningful work. Keep this skill as an optional deep workflow reference.
+
 # ClauseCheck Development Skill
 
-Read `.cursor/rules/clausecheck.mdc` first (always-applied core memory).
+Read `.cursor/skills/clausecheck-project/SKILL.md` and its `PROGRESS.md` first; use `.cursor/rules/clausecheck.mdc` only for deeper architecture detail.
 
 ## When to use this skill
 

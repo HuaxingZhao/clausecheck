@@ -6,7 +6,7 @@ import LangSwitch from "./lang-switch";
 
 interface SiteNavProps {
   locale: string;
-  authUser?: { email: string; pro: boolean } | null;
+  authUser?: { email?: string | null; phone?: string | null; pro: boolean } | null;
   showProBadge?: boolean;
   onSignIn: () => void;
   onLogout: () => void;
@@ -20,6 +20,7 @@ export default function SiteNav({
   onLogout,
 }: SiteNavProps) {
   const t = useTranslations();
+  const displayName = authUser?.email || authUser?.phone || null;
 
   return (
     <nav className="border-b border-border bg-paper/80 backdrop-blur sticky top-0 z-40">
@@ -49,12 +50,14 @@ export default function SiteNav({
           <LangSwitch />
           {authUser ? (
             <>
-              <Link
-                href={`/${locale}/account`}
-                className="hidden sm:inline text-xs text-ink-muted max-w-[140px] truncate hover:text-ink transition-colors"
-              >
-                {authUser.email}
-              </Link>
+              {displayName && (
+                <Link
+                  href={`/${locale}/account`}
+                  className="hidden sm:inline text-xs text-ink-muted max-w-[140px] truncate hover:text-ink transition-colors"
+                >
+                  {displayName}
+                </Link>
+              )}
               <Link
                 href={`/${locale}/account`}
                 className="text-xs hover:text-ink transition-colors font-medium"

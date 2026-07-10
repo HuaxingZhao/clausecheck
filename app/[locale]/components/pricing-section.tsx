@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import type { CheckoutPlanId } from "@/lib/pricing.config";
 
-type PlaceholderPlan = "team" | "enterprise";
+type PlaceholderPlan = "enterprise";
 
 export interface PricingSectionProps {
   locale: string;
@@ -29,6 +29,8 @@ export interface PricingSectionProps {
   onRequireAuth?: () => void;
   payingPlan?: "pro" | "boost" | null;
   registerAddOnOpener?: (open: () => void) => void;
+  /** Lets parent pages open Pro checkout (e.g. `?plan=pro`). */
+  registerCheckoutOpener?: (open: (plan: "pro") => void) => void;
 }
 
 export default function PricingSection({
@@ -38,6 +40,7 @@ export default function PricingSection({
   onRequireAuth,
   payingPlan = null,
   registerAddOnOpener,
+  registerCheckoutOpener,
 }: PricingSectionProps) {
   const router = useRouter();
   const t = useTranslations("pricing");
@@ -63,9 +66,18 @@ export default function PricingSection({
     setAddOnOpen(true);
   }, [showAddOnEntry]);
 
+  const handleCheckoutOpen = useCallback((plan: "pro") => {
+    setSelectedPlan(plan);
+    setCheckoutPlan(plan);
+  }, [setSelectedPlan]);
+
   useEffect(() => {
     registerAddOnOpener?.(handleAddOnOpen);
   }, [registerAddOnOpener, handleAddOnOpen]);
+
+  useEffect(() => {
+    registerCheckoutOpener?.(handleCheckoutOpen);
+  }, [registerCheckoutOpener, handleCheckoutOpen]);
 
   function handleTrial() {
     setSelectedPlan("trial");
@@ -78,8 +90,7 @@ export default function PricingSection({
       handleTrial();
       return;
     }
-    setSelectedPlan(plan);
-    setCheckoutPlan(plan);
+    handleCheckoutOpen(plan);
   }
 
   return (
@@ -118,7 +129,7 @@ export default function PricingSection({
 
         <p className="text-center text-xs text-ink-muted font-sans mb-8">{t("resetNote")}</p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <PlanCard
             planId="trial"
             currency={currency}
@@ -135,15 +146,6 @@ export default function PricingSection({
             loading={payingPlan === "pro"}
             disabled={!!checkoutPlan}
             onSelect={handleSubscribe}
-          />
-          <PlanCard
-            planId="team"
-            currency={currency}
-            billingCycle={billingCycle}
-            locale={locale}
-            placeholder
-            onSelect={handleSubscribe}
-            onPlaceholderClick={() => setPlaceholderPlan("team")}
           />
           <div className="pricing-card pricing-card-v2 flex flex-col opacity-95">
             <div className="flex items-start justify-between gap-2 mb-1">

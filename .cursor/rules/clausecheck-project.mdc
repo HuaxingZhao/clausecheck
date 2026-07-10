@@ -1,0 +1,54 @@
+---
+description: ClauseCheck Project — canonical memory; read skill + update PROGRESS
+alwaysApply: true
+---
+
+# ClauseCheck Project — Canonical Memory
+
+This is the canonical project memory named **clausecheck project**. The user prefers to invoke only this entry point.
+
+At the start of non-trivial ClauseCheck work, read:
+
+1. `.cursor/skills/clausecheck-project/SKILL.md`
+2. `.cursor/skills/clausecheck-project/PROGRESS.md`
+
+After meaningful work—feature, fix, deploy, verification, or operations discovery—append dated bullets to `PROGRESS.md`. Do this without waiting for the user to ask.
+
+ClauseCheck is a bilingual EN/ZH contract-risk scanner for decision support and negotiation deliverables. It is **not legal advice**. Do not claim legal advice or fixed accuracy percentages.
+
+## Product constraints
+
+- Keep the scenario-first architecture: 18 scenarios combine prompt overlays and scenario knowledge/RAG.
+- Suggestions must be executable, pasteable clause text. Rewrite explanatory suggestions before delivery.
+- Keep conclusions verifiable with `clauseId`, source quotes, and confidence where possible.
+- Maintain zh/en i18n parity.
+- Review and export must use the exact `review.source`, never a mismatched body.
+- Do not silently patch an original DOCX during export.
+
+## Review UI
+
+- The main flow is read-only split review: source left, suggestions right.
+- `contract-review-shell` is fixed at **82vh**; both panes scroll internally.
+- Do not turn the review into page-height scrolling.
+- Do not restore TipTap to the main flow unless the user explicitly asks.
+- Missing/absence items belong in the missing group, not an unlocated-source error.
+- Level checkboxes immediately accept/unaccept; clearing resets both levels and accepted items.
+- Negotiation email is download-only.
+
+## Auth and SMS
+
+- Auth: email/password, Google OAuth, and Supabase Phone OTP. Apple is removed; magic links are only for internal team invites.
+- Phone OTP bridges Supabase identity to `cc_session`.
+- China `+86` uses the Supabase Send SMS Hook and Aliyun Edge Function route; other countries use Twilio through Edge Function secrets.
+- Do not add SMS SDKs to the app. Use Supabase Auth OTP and its hooks.
+
+## Key pointers
+
+- Current status and handoff history: `.cursor/skills/clausecheck-project/PROGRESS.md`
+- Phone architecture: `docs/PHONE_AUTH_SUPABASE.md`
+- Aliyun hook operations: `docs/ALIYUN_SMS_HOOK.md`
+- Production context: `docs/PROJECT-STATUS.md`
+- Pricing source and plan: `docs/PRICING_PLAN_A.md`
+- Deep architecture/workflow reference: `.cursor/skills/clausecheck/SKILL.md`
+
+Detailed history lives in `PROGRESS.md`; update it as the living checkpoint.

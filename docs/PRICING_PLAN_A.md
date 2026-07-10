@@ -8,11 +8,11 @@ ClauseCheck Plan A pricing is defined in **`lib/pricing.config.ts`** (single sou
 |------|------|----------|-------|
 | Trial | ✅ | ❌ | Start free — scroll to upload |
 | Pro | ✅ | ✅ | Stripe Payment Element; monthly/annual |
-| Team | ✅ placeholder | ❌ | Prices shown; CTA opens guidance dialog only |
-| Enterprise | ✅ placeholder | ❌ | No form submission; email guidance only |
+| Team | ❌ hidden | ❌ | Kept in `pricing.config.ts` / backend for future; **not shown** on pricing UI |
+| Enterprise | ✅ placeholder | ❌ | Mailto `support@clausecheck.cc` guidance only |
 | Add-on | ✅ | ✅ | Pro-tier quota exhausted only |
 
-`checkoutEnabled` in `pricing.config.ts` gates all server routes. Team/Enterprise fields are reserved for phase 2.
+`checkoutEnabled` in `pricing.config.ts` gates all server routes. Team/Enterprise fields are reserved for phase 2; Team is intentionally off the customer-facing grid.
 
 ## Plans
 

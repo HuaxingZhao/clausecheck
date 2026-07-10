@@ -19,7 +19,11 @@ interface InviteStatsResponse {
 export default function InvitePage() {
   const t = useTranslations("invite");
   const locale = useLocale();
-  const [authUser, setAuthUser] = useState<{ email: string; pro: boolean } | null>(null);
+  const [authUser, setAuthUser] = useState<{
+    email?: string | null;
+    phone?: string | null;
+    pro: boolean;
+  } | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<InviteStatsResponse | null>(null);
@@ -38,7 +42,7 @@ export default function InvitePage() {
         setAuthOpen(true);
         return;
       }
-      setAuthUser({ email: me.email, pro: !!me.pro });
+      setAuthUser({ email: me.email, phone: me.phone, pro: !!me.pro });
 
       const res = await fetch(`/api/invite/stats?locale=${locale}`, { credentials: "include" });
       if (!res.ok) {
