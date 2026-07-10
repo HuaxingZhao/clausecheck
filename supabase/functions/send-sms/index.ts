@@ -168,8 +168,21 @@ async function sendTwilioSms(e164: string, otp: string): Promise<void> {
       body,
     }
   );
-  const data = (await res.json()) as { status?: string; message?: string; code?: number };
+  const rawResponse = await res.text();
+  let data: { status?: string; message?: string; code?: number } & Record<string, unknown>;
+  try {
+    data = JSON.parse(rawResponse) as typeof data;
+  } catch {
+    data = { message: rawResponse || `HTTP ${res.status}` };
+  }
+
   if (!res.ok || (data.status !== "queued" && data.status !== "sent" && data.status !== "accepted")) {
+    // Log Twilio's response body in the Edge Function dashboard. Do not log
+    // credentials or the OTP request body.
+    console.error("Twilio SMS rejected:", {
+      httpStatus: res.status,
+      response: data,
+    });
     throw new Error(`Twilio failed: ${data.code ?? res.status} ${data.message ?? JSON.stringify(data)}`);
   }
 }
