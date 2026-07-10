@@ -2,6 +2,27 @@
 
 ClauseCheck 使用 **Supabase Auth Phone Provider** 发短信 OTP，验证成功后写入本地 `users` 表并签发现有 `cc_session` Cookie。
 
+## Current status (2026-07-10)
+
+### Done
+
+- 手机 OTP 已接入 Supabase Auth Phone，并由应用 API send/verify 桥接到 `cc_session`；登录面板已有手机号 Tab。Neon migration 为 `20260715_phone_auth_and_audit_log.sql`，并记录 `audit_log`。
+- 中国大陆 `+86` 已实测端到端可发码并登录：Supabase Send SMS Hook → `send-sms` Edge Function → 阿里云 PNVS `SendSmsVerifyCode`（系统签名/模板）。
+- `send-sms` 已部署到项目 `hwtibqeugchlwbcxuduu`，使用 `--no-verify-jwt`。Aliyun `ALIYUN_*` secrets 在 +86 验证时已存在。
+- Vercel 构建已通过将 `supabase/functions` 排除出 Next TypeScript 检查及 Deno 入口 `// @ts-nocheck` 修复；不要重新部署旧的 `6f1f402`。
+- 登出会清除会话；手机号没有密码，因此再次登录需重新请求 OTP（预期行为）。
+
+### Partial / blocked
+
+- 新加坡 `+65` 尚未可用：非 `+86` 由 Hook 内的 Twilio 路径发送，而诊断时 Edge Secrets 没有 `TWILIO_*`。需配置 `TWILIO_ACCOUNT_SID`、`TWILIO_AUTH_TOKEN`，以及 `TWILIO_MESSAGING_SERVICE_SID` 或 `TWILIO_FROM_NUMBER`。Twilio 拒绝详情日志已在 `9be76d7` 推送并部署。
+- Supabase Phone Provider 的 Test Phone Numbers（如 `8613918082120=123456`）会跳过真实短信与 Hook；测试真实投递前请清除该条目，或仅对该测试号使用固定 OTP。
+- Dashboard 的 Send SMS Hook 必须启用并指向 `https://hwtibqeugchlwbcxuduu.supabase.co/functions/v1/send-sms`，且 Edge 的 `SEND_SMS_HOOK_SECRET` 必须与 Dashboard Hook Secret（`v1,whsec_...`）完全一致。
+
+### Remaining ops checklist
+
+- Vercel 必须为同一 Supabase 项目配置 `NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_ANON_KEY`、`SUPABASE_SERVICE_ROLE_KEY`。
+- 若 Neon 尚未执行，运行 `20260715_phone_auth_and_audit_log.sql`。
+
 **硬性约束：**
 
 - 应用代码**只**调用 `supabase.auth.signInWithOtp` / `verifyOtp`

@@ -22,6 +22,7 @@ Bilingual (EN/ZH) Next.js contract risk scanner. **Not legal advice** — decisi
 |------|------|
 | 邮箱+密码 | `POST /api/auth/login` / `register`；`users.password_hash`（scrypt） |
 | Google OAuth | `/api/auth/google`（Vercel 已配） |
+| Phone OTP | Supabase Auth；`+86` 经阿里云 Hook，其他地区经 Twilio |
 | Apple | **已移除** |
 | Magic link | 仅团队邀请内部；主 UI 不用 |
 
