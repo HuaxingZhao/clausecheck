@@ -2,13 +2,18 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-10 — Production verified (phone + pricing)
+
+- User confirmed production OK after merge: Singapore `+65` OTP, pricing UI (no Team card), and related checks.
+- Phone auth (+86 Aliyun / +65 Twilio) and Plan A pricing cleanup are live on `main` / www.clausecheck.cc.
+
 ## 2026-07-10 — Twilio +65, merge prep, pricing cleanup
 
 ### Twilio / +65
 
 - Edge Secrets already had `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_MESSAGING_SERVICE_SID`.
 - Twilio account is Full/active; Messaging Service `Clausecheck` (`MG86…`) includes From `+16575665402`.
-- Twilio message log shows **delivered** SMS to Singapore `+65…` (2026-07-10); site OTP retest recommended once this branch is on production.
+- Twilio message log shows **delivered** SMS to Singapore `+65…`; **user confirmed end-to-end OTP on production**.
 - Local `.env.local` now also has `TWILIO_MESSAGING_SERVICE_SID` + `TWILIO_FROM_NUMBER` (not committed).
 
 ### Pricing product cleanup
@@ -20,7 +25,7 @@ Living checkpoint for `clausecheck project`. Add dated bullets after every meani
 
 ### Branch / merge
 
-- Merged `feat/supabase-phone-auth` → `main` as `7852acb` (includes Aliyun Hook, Twilio logging, phone identity UI, clausecheck-project memory, pricing cleanup). Vercel should auto-deploy production from `main`.
+- Merged `feat/supabase-phone-auth` → `main` as `7852acb` (includes Aliyun Hook, Twilio logging, phone identity UI, clausecheck-project memory, pricing cleanup). Deployed and verified on production.
 
 ## 2026-07-10 — Canonical memory and phone-auth checkpoint
 
@@ -39,7 +44,7 @@ Living checkpoint for `clausecheck project`. Add dated bullets after every meani
 - Migration: `20260715_phone_auth_and_audit_log.sql`, including `audit_log`.
 - China `+86`: Supabase Send SMS Hook → `send-sms` Edge Function → Aliyun PNVS `SendSmsVerifyCode`; **user verified this works**.
 - Hook URL: `https://hwtibqeugchlwbcxuduu.supabase.co/functions/v1/send-sms` with `--no-verify-jwt`.
-- Singapore `+65`: Twilio path configured; delivery confirmed at Twilio API level — confirm end-to-end OTP on site after deploy.
+- Singapore `+65`: Twilio path configured; **production OTP verified by user** (2026-07-10).
 - Supabase Dashboard test phone numbers skip real SMS and bypass the hook.
 - Logout clears the session, so a new OTP is required; this is expected.
 
@@ -50,8 +55,9 @@ Living checkpoint for `clausecheck project`. Add dated bullets after every meani
 
 ### Open next
 
-1. After Vercel production deploy: confirm +65 OTP end-to-end on www.clausecheck.cc.
-2. Continue updating this file after meaningful work.
+1. No blocking ops for phone auth / pricing cleanup.
+2. Next product work when ready (e.g. forgot-password, Enterprise lead form, invite copy vs Trial=1).
+3. Continue updating this file after meaningful work.
 
 ## 2026-07-07 — Baseline production checkpoint
 
