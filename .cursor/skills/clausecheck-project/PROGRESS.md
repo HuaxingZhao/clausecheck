@@ -20,7 +20,7 @@ Living checkpoint for `clausecheck project`. Add dated bullets after every meani
 
 ### Branch / merge
 
-- `main` already had PR #4 (base phone OTP). This branch still carries Aliyun Hook, Twilio logging, phone identity UI, and clausecheck-project memory — merge remaining commits to `main`.
+- Merged `feat/supabase-phone-auth` → `main` as `7852acb` (includes Aliyun Hook, Twilio logging, phone identity UI, clausecheck-project memory, pricing cleanup). Vercel should auto-deploy production from `main`.
 
 ## 2026-07-10 — Canonical memory and phone-auth checkpoint
 
@@ -50,7 +50,7 @@ Living checkpoint for `clausecheck project`. Add dated bullets after every meani
 
 ### Open next
 
-1. Confirm +65 OTP end-to-end on production after merge.
+1. After Vercel production deploy: confirm +65 OTP end-to-end on www.clausecheck.cc.
 2. Continue updating this file after meaningful work.
 
 ## 2026-07-07 — Baseline production checkpoint
