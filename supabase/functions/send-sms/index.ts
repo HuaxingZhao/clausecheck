@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Supabase Auth Send SMS Hook → 阿里云号码认证（免资质预置签名/模板）
  *
