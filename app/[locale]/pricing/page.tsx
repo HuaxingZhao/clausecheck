@@ -1,24 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import PricingSection from "../components/pricing-section";
 import SiteNav from "../components/site-nav";
 import AuthPanel from "../components/auth-panel";
 import CreditsRemainingBadge from "../components/credits-remaining-badge";
-import { usePricingStore } from "@/stores/usePricingStore";
 
 export default function PricingPage() {
   const t = useTranslations("nav");
   const locale = useLocale();
-  const setSelectedPlan = usePricingStore((s) => s.setSelectedPlan);
   const [authUser, setAuthUser] = useState<{
     email?: string | null;
     phone?: string | null;
     pro: boolean;
   } | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
+  const openCheckoutRef = useRef<((plan: "pro") => void) | null>(null);
+  const openAddOnRef = useRef<(() => void) | null>(null);
+  const deepLinkHandled = useRef(false);
 
   useEffect(() => {
     fetch("/api/auth/me", { credentials: "include" })
@@ -31,16 +32,22 @@ export default function PricingPage() {
       .catch(() => {});
   }, []);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
+  const tryDeepLink = useCallback(() => {
+    if (typeof window === "undefined" || deepLinkHandled.current) return;
     const params = new URLSearchParams(window.location.search);
     const plan = params.get("plan");
     if (plan !== "pro" && plan !== "boost") return;
+    if (plan === "pro" && !openCheckoutRef.current) return;
+    if (plan === "boost" && !openAddOnRef.current) return;
+    deepLinkHandled.current = true;
     window.history.replaceState({}, "", `/${locale}/pricing`);
-    if (plan === "pro") {
-      setSelectedPlan(plan);
-    }
-  }, [locale, setSelectedPlan]);
+    if (plan === "pro") openCheckoutRef.current?.("pro");
+    if (plan === "boost") openAddOnRef.current?.();
+  }, [locale]);
+
+  useEffect(() => {
+    tryDeepLink();
+  }, [tryDeepLink]);
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -72,6 +79,14 @@ export default function PricingPage() {
         locale={locale}
         compact
         onRequireAuth={() => setAuthOpen(true)}
+        registerCheckoutOpener={(open) => {
+          openCheckoutRef.current = open;
+          tryDeepLink();
+        }}
+        registerAddOnOpener={(open) => {
+          openAddOnRef.current = open;
+          tryDeepLink();
+        }}
       />
 
       <AuthPanel
