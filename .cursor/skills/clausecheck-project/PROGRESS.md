@@ -2,6 +2,13 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-12 — Core POST /api/review route
+
+- Added `app/api/review/route.ts` as the text-review API hub: validates `contractText`/`locale`/`scenarioId`, builds expert system prompt via `buildExpertSystemPrompt`, calls `reviewContract` from `@/lib/ai`, returns structured ScanResult JSON.
+- Mirrors `/api/scan` auth + document quota (401 / 402 INSUFFICIENT_CREDITS / 413 word limit) with credit refund on AI failure.
+- Did **not** add `lib/ai.ts` (would collide with existing `lib/ai/` package). Docs updated in `docs/AI_REVIEW_ENGINE.md`.
+- **Verified locally**: logged-in `POST /api/review` with NDA fixture → HTTP 200, 高风险, 5 flags, legalBasis 5/5.
+
 ## 2026-07-11 — Core AI review engine (expert prompt + RAG)
 
 - Extracted expert System Prompt into `lib/ai/expert-system-prompt.ts` (20y 资深非诉律师；强制 JSON；legalBasis 须引民法典或标注「基于商业惯例」；不构成法律意见).
