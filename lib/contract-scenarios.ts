@@ -364,23 +364,31 @@ contractType must state SaaS vs custom build vs managed services; flags must cov
 你是一名熟悉商业秘密保护与竞业/保密纠纷的律师。除通用风险外，必须重点审查：
 1. 保密信息定义：是否过宽（「所有信息」）、是否含公开信息、例外情形（已知、独立开发、合法披露）
 2. 保密期限：协议有效期、保密义务存续期（终止后多久）、永久保密是否合理
-3. 披露对象：关联方、顾问、员工、分包商的再披露条件
+3. 披露对象：关联方、顾问、员工、分包商的再披露条件及连带责任范围
 4. 残留义务：返还/销毁义务、备份留存、证明义务、审计权
 5. 救济措施：禁令、违约金、实际损失举证、律师费
 6. 双向/单向：义务是否对等、接收方合理注意标准
-7. 管辖与违约：违约认定、间接损失排除、与主合同的优先级
-输出要求：flags 须标注「定义过宽」「期限过长」类风险；negotiations 优先「定义收窄→例外清单→期限→返还销毁」；missingClauses 须含残余信息处理、争议解决；对明显不对等单向 NDA 须提示 sign_with_changes。`,
+7. 管辖与违约：违约认定、间接损失排除、与主合同的优先级（管辖依据《民事诉讼法》，勿归于民法典）
+8. 例外条款有效性：公开信息/独立开发/强制披露例外是否被掏空或需对方书面确认才生效
+9. 单方变更/通知权：未尽事宜是否可由披露方单方书面通知补全
+10. 原件持有与证据劣势：是否仅一方执有原件、接收方无法留存
+11. 关联方连带责任范围：对员工/顾问/关联方违约是否无限连带
+输出要求：flags 不少于 6 条，须覆盖定义过宽、期限过长、例外空洞、违约金、管辖不利，并尽量覆盖单方变更/原件/连带；negotiations 优先「定义收窄→例外清单→期限→返还销毁→管辖」；missingClauses 须含残余信息处理；对明显不对等单向 NDA 须提示 sign_with_changes。`,
     promptOverlayEn: `
 [Scenario: NDA / confidentiality — expert review]
 Beyond generic risks, prioritize:
 1. Definition: overbreadth, public-domain carve-outs, known info, independent development, compelled disclosure
 2. Term: agreement life, survival period post-termination, perpetual duties
-3. Permitted recipients: affiliates, advisors, employees, subcontractors
+3. Permitted recipients: affiliates, advisors, employees, subcontractors — and joint liability scope
 4. Residual duties: return/destruction, backup retention, certification, audit
 5. Remedies: injunction, liquidated damages, proof of loss, fee-shifting
 6. Mutual vs one-way fairness, reasonable care standard
-7. Breach, consequential damages exclusion, precedence vs master agreement
-Flag overbroad definitions and excessive survival; negotiations ordered narrow definition→carve-outs→term→return/destroy; missingClauses must cover residual information and dispute resolution.`,
+7. Breach, consequential damages exclusion; forum under Civil Procedure Law (not Civil Code)
+8. Carve-out effectiveness: whether exceptions are hollow or require counterparty written confirmation
+9. Unilateral amendment / notice rights filling gaps
+10. Original-document possession and evidentiary disadvantage
+11. Affiliate/employee joint liability overbreadth
+Require ≥6 flags covering definition, term, hollow carve-outs, penalties, adverse forum, and preferably unilateral change / originals / joint liability; negotiations ordered narrow definition→carve-outs→term→return/destroy→forum.`,
   },
   {
     id: "ip_license",

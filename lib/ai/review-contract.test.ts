@@ -16,9 +16,11 @@ describe("expert system prompt", () => {
     const prompt = buildExpertSystemPrompt({ locale: "zh", deep: false });
     assert.match(prompt, /20 年/);
     assert.match(prompt, /资深非诉律师/);
-    assert.match(prompt, /法律依据/);
+    assert.match(prompt, /法律依据引用规范/);
     assert.match(prompt, /基于商业惯例/);
-    assert.match(prompt, /民法典/);
+    assert.match(prompt, /第501条/);
+    assert.match(prompt, /民事诉讼法/);
+    assert.match(prompt, /禁止以「建议」/);
     assert.match(prompt, /"flags"/);
     assert.match(prompt, /不构成法律意见/);
   });

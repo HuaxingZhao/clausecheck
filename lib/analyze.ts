@@ -120,19 +120,21 @@ ${truncated}
   parsed.scenarioId = isValidScenarioId(scenarioId) ? scenarioId : DEFAULT_SCENARIO_ID;
 
   const minFlags = deep ? 8 : 6;
-  if (parsed.flags.length < minFlags - 2) {
+  let flagRetryUsed = false;
+  if (parsed.flags.length < minFlags) {
+    flagRetryUsed = true;
     const retry = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: deep ? "gpt-4o" : "gpt-4o-mini",
       temperature: 0.2,
-      max_tokens: 3800,
+      max_tokens: deep ? 5500 : 3800,
       messages: [
         { role: "system", content: systemPrompt },
         {
           role: "user",
           content:
             locale === "en"
-              ? `Your previous analysis had only ${parsed.flags.length} flags. Re-analyze and return at least ${minFlags} distinct flags with quotes. Contract:\n\n---\n${truncated}\n---`
-              : `上次分析仅 ${parsed.flags.length} 条 flags。请重新分析，至少返回 ${minFlags} 条不同风险条款并含原文引用。合同：\n\n---\n${truncated}\n---`,
+              ? `Previous review returned only ${parsed.flags.length} flags (below the minimum of ${minFlags}). Re-examine the entire contract, find all material risks, and return at least ${minFlags} distinct flags with clauseId, quotes, paste-ready suggestions, and legalBasis. Do not start suggestions with "Suggest". Contract:\n\n---\n${truncated}\n---`
+              : `上一次审查结果 flags 数量不足（仅 ${parsed.flags.length} 条，要求不少于 ${minFlags} 条）。请务必重新审视合同，找出所有潜在风险点，确保 flags 不少于 ${minFlags} 条；每条须含 clauseId、quote、可直接粘贴的 suggestion（禁止以「建议」开头）、legalBasis。合同：\n\n---\n${truncated}\n---`,
         },
       ],
       response_format: { type: "json_object" },
@@ -140,7 +142,7 @@ ${truncated}
     const retryRaw = retry.choices[0]?.message?.content;
     if (retryRaw) {
       const retried = normalize(JSON.parse(retryRaw) as ScanResult, locale);
-      if (retried.flags.length > parsed.flags.length) parsed = retried;
+      if (retried.flags.length >= parsed.flags.length) parsed = retried;
     }
   }
 
@@ -152,7 +154,11 @@ ${truncated}
     );
   }
 
-  return finalizeFirstPass(clauseIndex, truncated, parsed);
+  const finalized = finalizeFirstPass(clauseIndex, truncated, parsed);
+  if (flagRetryUsed) {
+    (finalized as ScanResult & { _flagRetryUsed?: boolean })._flagRetryUsed = true;
+  }
+  return finalized;
 }
 
 /** Phase 1 — main AI pass + quote snap + review lock (fast path). */

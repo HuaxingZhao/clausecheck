@@ -4,6 +4,7 @@ export {
   getRefinePrompt,
   CLAUSE_INDEX_RULES_ZH,
   CLAUSE_INDEX_RULES_EN,
+  LEGAL_BASIS_ARTICLE_WHITELIST,
 } from "./expert-system-prompt";
 export {
   retrieveComplianceRules,
@@ -18,3 +19,7 @@ export {
   type ReviewContractOptions,
   type ReviewContractResult,
 } from "./review-contract";
+export {
+  validateReviewOutput,
+  type ValidateReviewOutputResult,
+} from "./validate-review-output";

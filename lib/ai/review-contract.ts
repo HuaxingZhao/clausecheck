@@ -42,6 +42,9 @@ export interface ReviewContractResult {
     locale: "zh" | "en";
     charCount: number;
     systemPromptChars: number;
+    /** True when a low-flag count triggered one automatic retry. */
+    flagRetryUsed?: boolean;
+    flagCount?: number;
   };
 }
 
@@ -119,6 +122,15 @@ export async function reviewContract(
         ).analyzeContractFirstPass(text, apiKey, analyzeOpts)
       : await analyzeContractFull(text, apiKey, analyzeOpts);
 
+  const flagRetryUsed = Boolean(
+    (result as ScanResult & { _flagRetryUsed?: boolean })._flagRetryUsed
+  );
+  if ("_flagRetryUsed" in result) {
+    delete (result as ScanResult & { _flagRetryUsed?: boolean })._flagRetryUsed;
+  }
+
+  // Safety net: if pipeline somehow still returns <6 flags, one extra dedicated retry
+  // is already performed inside analyzeContract (max 1). Document count here.
   return {
     result,
     retrieval,
@@ -128,6 +140,8 @@ export async function reviewContract(
       locale,
       charCount: Math.min(text.length, maxChars),
       systemPromptChars: systemPrompt.length,
+      flagRetryUsed,
+      flagCount: result.flags?.length ?? 0,
     },
   };
 }
