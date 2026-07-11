@@ -2,6 +2,16 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-11 — Core AI review engine (expert prompt + RAG)
+
+- Extracted expert System Prompt into `lib/ai/expert-system-prompt.ts` (20y 资深非诉律师；强制 JSON；legalBasis 须引民法典或标注「基于商业惯例」；不构成法律意见).
+- Added RAG retrieval `lib/ai/retrieve-compliance-rules.ts` over scenario knowledge packs; wired into `lib/analyze.ts` production path.
+- Added `reviewContract()` in `lib/ai/review-contract.ts` (retrieve → assemble prompt → pipeline).
+- NDA risky fixture `fixtures/contracts/nda-risky-zh.txt`; tests `lib/ai/review-contract.test.ts`; scripts `npm run test:review` / `test:review:dry`; gated API `POST /api/ai/review-contract`.
+- Docs: `docs/AI_REVIEW_ENGINE.md`. Enhanced NDA knowledge pack (term, forum, Civil Code cites).
+- **User verified** `npm run test:review:dry` + live `npm run test:review`: NDA scored 高风险, 5 flags, legalBasis 5/5, suggestion 5/5 (definition / 20y term / penalty / destruction / forum).
+- Note: user pasted Aliyun + SMS hook secrets in chat while re-setting Edge secrets — **rotate those credentials** in Aliyun RAM + Supabase Secrets + Dashboard Hook if not already rotated.
+
 ## 2026-07-10 — Production verified (phone + pricing)
 
 - User confirmed production OK after merge: Singapore `+65` OTP, pricing UI (no Team card), and related checks.
