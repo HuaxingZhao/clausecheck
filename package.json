@@ -13,7 +13,9 @@
     "deploy:env": "bash scripts/push-vercel-env.sh",
     "db:check": "node scripts/db-check.mjs",
     "db:verify-consume-credit": "node scripts/verify-consume-credit.mjs",
-    "test": "node --import tsx --test lib/generateRevisionDocx.test.ts lib/pricing.config.test.ts",
+    "test": "node --import tsx --test lib/generateRevisionDocx.test.ts lib/pricing.config.test.ts lib/ai/review-contract.test.ts",
+    "test:review": "tsx scripts/test-review-contract.ts",
+    "test:review:dry": "tsx scripts/test-review-contract.ts --dry-run",
     "test:docx": "node --import tsx --test lib/generateRevisionDocx.test.ts",
     "test:smoke": "playwright test e2e/smoke.spec.ts",
     "test:e2e": "playwright test e2e/smoke.spec.ts"

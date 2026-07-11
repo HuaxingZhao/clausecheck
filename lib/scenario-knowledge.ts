@@ -120,29 +120,55 @@ const PACKS: Partial<Record<ContractScenarioId, ScenarioKnowledgePack>> = {
   nda: {
     mandatoryChecksZh: [
       "保密信息定义是否过宽",
-      "保密期限与终止后存续期",
+      "保密期限与终止后存续期（是否明显过长）",
       "例外情形（公开信息、独立开发、强制披露）",
       "返还/销毁义务",
+      "管辖法院 / 仲裁地是否对接收方不利",
+      "违约金或无限责任是否显失公平",
     ],
     mandatoryChecksEn: [
       "Definition overbreadth",
-      "Term and survival",
+      "Term and survival (overlong duration)",
       "Carve-outs (public domain, independent dev, compelled disclosure)",
       "Return/destruction duties",
+      "Adverse forum / arbitration seat",
+      "Penalty or uncapped liability fairness",
     ],
     statutes: [
       {
-        title: "民法典 · 保密与诚信",
-        summaryZh: "商业秘密保护须采取合理保密措施；保密义务范围应与信息价值相匹配。",
-        summaryEn: "Trade secret protection requires reasonable measures; confidentiality scope must match information value.",
+        title: "民法典 · 第501条（缔约过失与保密）",
+        summaryZh: "当事人在订立合同过程中知悉的商业秘密或其他应当保密的信息，无论合同是否成立，不得泄露或不正当使用；泄露或不正当使用造成损失的，应当承担赔偿责任。",
+        summaryEn: "Civil Code art. 501: confidential information learned in contracting must not be disclosed or misused; damages may apply.",
+      },
+      {
+        title: "民法典 · 合同编 · 格式条款与显失公平",
+        summaryZh: "格式条款提供方应合理提示免除/减轻其责任等条款；显失公平的民事法律行为，受损害方有权请求撤销。保密期限、管辖约定明显不对等时可结合商业惯例评估。",
+        summaryEn: "Standard terms and gross unfairness doctrines; overlong confidentiality or one-sided forum may be challengeable.",
+      },
+      {
+        title: "民法典 · 合同编 · 争议解决约定",
+        summaryZh: "当事人可协议选择被告住所地、合同履行地、合同签订地、原告住所地、标的物所在地等与争议有实际联系的地点的人民法院管辖（法律另有规定除外）。",
+        summaryEn: "Parties may agree a court with a real connection to the dispute; one-sided distant forums warrant scrutiny.",
       },
     ],
     templates: [
       {
         nameZh: "保密例外",
         nameEn: "Confidentiality carve-outs",
-        textZh: "下列信息不属于保密信息：（一）接收前已为公众所知；（二）接收方独立开发；（三）依法强制披露。",
-        textEn: "Excluded: (1) public domain before receipt; (2) independently developed; (3) legally compelled disclosure.",
+        textZh: "下列信息不属于保密信息：（一）接收前已为公众所知；（二）接收方独立开发；（三）依法强制披露（披露前在法律允许范围内书面通知披露方）。",
+        textEn: "Excluded: (1) public domain before receipt; (2) independently developed; (3) legally compelled disclosure (with prior written notice where legally permitted).",
+      },
+      {
+        nameZh: "保密期限",
+        nameEn: "Confidentiality term",
+        textZh: "保密义务自披露之日起【三】年内有效；涉及商业秘密的，在该信息构成商业秘密期间持续有效，但最长不超过【五】年，法律另有强制规定的除外。",
+        textEn: "Confidentiality survives for 【three】 years from disclosure; trade secrets survive while they remain secrets, capped at 【five】 years unless mandatory law requires otherwise.",
+      },
+      {
+        nameZh: "争议解决",
+        nameEn: "Dispute resolution",
+        textZh: "因本协议引起的争议，由双方协商解决；协商不成的，提交【接收方住所地】有管辖权的人民法院诉讼解决 / 提交【双方同意的仲裁机构】仲裁。",
+        textEn: "Disputes shall first be negotiated; failing that, submitted to a competent court at the Receiving Party's domicile or to agreed arbitration.",
       },
     ],
   },
