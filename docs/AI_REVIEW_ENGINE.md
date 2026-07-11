@@ -10,7 +10,11 @@ ClauseCheck review is **decision support**, not legal advice.
 | `lib/ai/retrieve-compliance-rules.ts` | Scenario knowledge retrieval (keyword-ranked RAG over packs) |
 | `lib/ai/review-contract.ts` | `reviewContract()` workflow orchestrator |
 | `lib/analyze.ts` | Production scan path — uses the same expert prompt + retrieval |
+| `app/api/review/route.ts` | **Core review API** — JSON `{ contractText, locale, scenarioId? }` → AI → ScanResult |
+| `app/api/scan/route.ts` | File upload → extract text → first-pass analyze (existing UI flow) |
 | `fixtures/contracts/nda-risky-zh.txt` | NDA with typical risks (overlong term, adverse forum, etc.) |
+
+> Note: AI helpers live under `lib/ai/` (package `@/lib/ai`). Do **not** add a sibling `lib/ai.ts` — it conflicts with the directory module.
 
 ## Workflow
 
@@ -22,6 +26,18 @@ contract text
   → analysis pipeline (snap quotes / rewrite / critic)
   → ScanResult (flags with level, quote, legalBasis, suggestion)
 ```
+
+## Core API
+
+```bash
+# Logged-in (when Postgres credits enabled) — consumes 1 document quota
+curl -X POST http://localhost:3000/api/review \
+  -H "content-type: application/json" \
+  -H "cookie: cc_session=…" \
+  -d '{"contractText":"…","locale":"zh","scenarioId":"nda"}'
+```
+
+Auth / quota mirrors `/api/scan`: empty text → 400; insufficient quota → 402; word limit → 413; AI failure refunds credit.
 
 ## Test
 
