@@ -36,20 +36,43 @@ Mandatory 12-category review (scan each; do not skip):
 12. Missing clauses (SLA, acceptance criteria, escalation, business continuity)`;
 
 const LEGAL_BASIS_RULES_ZH = `
-法律依据（legalBasis）强制规则：
+【法律依据引用规范】（legalBasis — 强制遵守）
 - 每条 high/medium flag 的 legalBasis 必须填写。
-- 优先引用《中华人民共和国民法典》及相关司法解释的条文精神（可写「《民法典》第xxx条」或编章要点）；也可引用《个人信息保护法》《劳动合同法》等与场景匹配的法律。
-- 若无明确法条可引，必须标注「基于商业惯例」，并简述该惯例内容。
-- 禁止编造不存在的法条编号；不确定时用「基于商业惯例」或概括性编章引用。
+- 不确定具体条号时，**只能**写：
+  （a）「基于商业惯例：…」（简述惯例），或
+  （b）「《民法典》总则/合同编（不写条号）」等编章级引用。
+- 高频法条白名单（仅在确信场景匹配时才写具体条号）：
+  · 第501条 — 缔约过程保密义务
+  · 第151条 — 显失公平（可撤销）
+  · 第496–498条 — 格式条款
+  · 第585–587条 — 违约金与违约责任
+- **禁止**将法院管辖/协议管辖归于《民法典》；管辖应写「《民事诉讼法》协议管辖」或「基于商业惯例：…」。
+- **禁止**编造不存在的法条编号；禁止把显失公平写成第52/545条等错误条号。
+- 也可引用《个人信息保护法》《劳动合同法》等与场景匹配的法律（须条号真实）。
 - 输出仅为决策支持，不构成法律意见。`;
 
 const LEGAL_BASIS_RULES_EN = `
-legalBasis (mandatory rules):
+【Legal-basis citation rules】 (legalBasis — mandatory)
 - Every high/medium flag MUST include legalBasis.
-- Prefer citing PRC Civil Code / judicial interpretations (or PIPL, Labor Contract Law when relevant).
-- If no statute applies, you MUST write "Based on commercial practice" and briefly state the practice.
-- Do not invent statute numbers. When unsure, use commercial practice or a high-level code reference.
+- When unsure of an article number, you may ONLY write:
+  (a) "Based on commercial practice: …", or
+  (b) "PRC Civil Code — General Provisions / Contracts Book (no article number)".
+- High-frequency whitelist (cite numbers only when the scenario truly matches):
+  · Art. 501 — confidentiality during contracting
+  · Art. 151 — gross unfairness (voidable)
+  · Arts. 496–498 — standard terms
+  · Arts. 585–587 — liquidated damages / breach
+- Do NOT attribute court jurisdiction agreements to the Civil Code; use "PRC Civil Procedure Law — agreed jurisdiction" or commercial practice.
+- Do NOT invent statute numbers; do NOT label arts. 52/545 as gross unfairness.
 - Output is decision support only — not legal advice.`;
+
+/** Article numbers allowed in automated validation (Civil Code unless noted). */
+export const LEGAL_BASIS_ARTICLE_WHITELIST = [
+  151, // 显失公平
+  496, 497, 498, // 格式条款
+  501, // 缔约保密
+  585, 586, 587, // 违约金/违约责任
+] as const;
 
 const OUTPUT_SCHEMA_ZH = `{
   "contractType": "合同类型 + 行业/场景，如：NDA 保密协议（单向）",
@@ -66,9 +89,9 @@ const OUTPUT_SCHEMA_ZH = `{
       "clauseId": "条款索引 id（必填，来自 CLAUSE INDEX）",
       "text": "条款位置 + 风险点分析（含条款编号）",
       "quote": "原条款内容：原文逐字引用 20-60 字（必须从 clauseId 对应条款复制）",
-      "legalBasis": "法律依据（《民法典》相关条文或「基于商业惯例：…」）",
+      "legalBasis": "法律依据（须遵守【法律依据引用规范】）",
       "impact": "不修改的潜在后果（1 句，尽量量化）",
-      "suggestion": "可直接替换的完整条款修订建议（2-4 句，含建议措辞）",
+      "suggestion": "可直接粘贴替换的完整条款正文（2-4 句）。禁止以「建议」「应当考虑」等词开头；可用【 】作待填占位符",
       "level": "high" | "medium" | "low"
     }
   ],
@@ -87,7 +110,7 @@ const OUTPUT_SCHEMA_ZH = `{
       "clauseId": "条款索引 id（必填，来自 CLAUSE INDEX）",
       "quote": "原文逐字引用 20-60 字（必填，从 clauseId 条款复制）",
       "current": "可选：quote 的简短说明",
-      "suggested": "建议修订措辞（可直接用于谈判）",
+      "suggested": "可直接粘贴的完整修订条款正文（禁止以「建议」「应当考虑」开头；可用【 】占位）",
       "reason": "商业与法律理由（2 句）"
     }
   ],
@@ -119,9 +142,9 @@ const OUTPUT_SCHEMA_EN = `{
       "clauseId": "Clause index id (required — from CLAUSE INDEX)",
       "text": "Clause reference + risk analysis",
       "quote": "Original clause text: verbatim quote 20-60 words (from clauseId only)",
-      "legalBasis": "Legal basis (Civil Code cite or \\"Based on commercial practice: …\\")",
+      "legalBasis": "Legal basis (must follow citation rules)",
       "impact": "Consequence if unchanged (1 sentence; quantify if possible)",
-      "suggestion": "Paste-ready replacement clause language (2-4 sentences)",
+      "suggestion": "Paste-ready full replacement clause (2-4 sentences). MUST NOT start with Suggest/Consider/Should; 【 】 placeholders allowed",
       "level": "high" | "medium" | "low"
     }
   ],
@@ -140,7 +163,7 @@ const OUTPUT_SCHEMA_EN = `{
       "clauseId": "Clause index id (required — from CLAUSE INDEX)",
       "quote": "Verbatim quote 20-60 words (required — from clauseId clause)",
       "current": "Optional brief summary",
-      "suggested": "Proposed revision (negotiation-ready)",
+      "suggested": "Paste-ready full revised clause text (MUST NOT start with Suggest/Consider; 【 】 placeholders allowed)",
       "reason": "Business and legal rationale (2 sentences)"
     }
   ],
@@ -206,7 +229,8 @@ ${legal}
 6. 检查条款之间的冲突（如 A 条与 B 条矛盾）
 
 至少 10 个 flags，negotiations 至少 5 条。
-每条 high/medium flag 必须含：风险等级 level、原条款 quote、风险点分析 text、可直接替换的 suggestion、legalBasis。
+每条 high/medium flag 必须含：风险等级 level、原条款 quote、风险点分析 text、可直接粘贴的 suggestion（禁止以「建议」开头）、legalBasis。
+遵守【法律依据引用规范】。
 
 输出严格 JSON（无 markdown、无多余文字）：
 ${schema}`
@@ -227,7 +251,8 @@ Additional depth requirements:
 6. Check for internal conflicts between clauses
 
 Minimum 10 flags, minimum 5 negotiations.
-Every high/medium flag must include: level, quote (original clause), text (risk analysis), paste-ready suggestion, legalBasis.
+Every high/medium flag must include: level, quote (original clause), text (risk analysis), paste-ready suggestion (MUST NOT start with Suggest), legalBasis.
+Follow legal-basis citation rules.
 
 Output strict JSON only (no markdown):
 ${schema}`;
@@ -251,10 +276,12 @@ ${legal}
 
 质量要求：
 - 至少识别 6 个 flags（含全部 high 风险）；少于 6 条视为不合格
-- 每条 high/medium flag 必须含：level（高/中/低→high|medium|low）、quote（原条款）、text（风险点分析）、suggestion（可直接替换条款）、legalBasis、impact、clauseId
+- 每条 high/medium flag 必须含：level、quote、text、suggestion、legalBasis、impact、clauseId
+- suggestion 与 negotiations.suggested：**禁止**以「建议」「应当考虑」「请」等词开头；必须是可直接粘贴进合同的完整条款正文（可用【 】占位）
 - negotiations 至少 3 条，按 priority 排序；每条必须含 clauseId 与 quote
 - actionItems 恰好 5 条，按优先级排列
 - 语言专业、客观，避免模糊表述如「可能有问题」
+- 遵守【法律依据引用规范】与法条白名单
 
 输出严格 JSON（无 markdown、无多余文字）：
 ${schema}
@@ -277,10 +304,12 @@ Composite = round(fairness×0.35 + compliance×0.25 + financial×0.40)
 
 Quality bar:
 - Minimum 6 flags (cover all high-severity issues); fewer than 6 is unacceptable
-- Every high/medium flag must include: level, quote (original clause), text (risk analysis), paste-ready suggestion, legalBasis, impact, clauseId
+- Every high/medium flag must include: level, quote, text, suggestion, legalBasis, impact, clauseId
+- suggestion and negotiations.suggested MUST NOT start with Suggest/Consider/Please; must be paste-ready full clause text (【 】 placeholders OK)
 - Minimum 3 negotiations, priority-sorted; each must include clauseId and quote
 - Exactly 5 actionItems in priority order
 - Professional, precise tone — no vague phrases like "might be problematic"
+- Follow legal-basis citation rules and the article whitelist
 
 Output strict JSON only (no markdown):
 ${schema}

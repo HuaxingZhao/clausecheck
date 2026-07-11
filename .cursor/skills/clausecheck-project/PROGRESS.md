@@ -2,6 +2,14 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-12 — Expert prompt hardening + review QA gates
+
+- Upgraded `lib/ai/expert-system-prompt.ts`: legal-basis whitelist (151/496–498/501/585–587), ban Civil Code for forum, force paste-ready suggestions (no「建议」prefix).
+- Expanded NDA mandatory checks (carve-out effectiveness, unilateral amendment, originals, joint liability) in `scenario-knowledge.ts` + `contract-scenarios.ts`.
+- Flags fallback: `analyze.ts` retries once when `flags.length < minFlags` (6/8) with explicit re-scan user message; `reviewContract` meta exposes `flagRetryUsed`.
+- Added `lib/ai/validate-review-output.ts` + `scripts/validate-review-output.ts` (WARN unknown articles; FAIL advisory suggestions / low flags / clauseReady=0).
+- Re-ran NDA fixture review + validator — see latest `tmp/nda-review-full.json` run.
+
 ## 2026-07-12 — Core POST /api/review route
 
 - Added `app/api/review/route.ts` as the text-review API hub: validates `contractText`/`locale`/`scenarioId`, builds expert system prompt via `buildExpertSystemPrompt`, calls `reviewContract` from `@/lib/ai`, returns structured ScanResult JSON.
