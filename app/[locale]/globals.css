@@ -2417,13 +2417,13 @@ footer {
   @apply sm:shrink-0 whitespace-nowrap;
 }
 .beta-subscribe-msg {
-  @apply text-xs font-sans mt-2;
+  @apply text-sm font-sans mt-3 min-h-[1.25rem];
 }
 .beta-subscribe-msg.is-ok {
-  @apply text-emerald-700;
+  @apply text-emerald-700 font-medium;
 }
 .beta-subscribe-msg.is-error {
-  @apply text-red-700;
+  @apply text-red-700 font-medium;
 }
 .beta-section {
   @apply py-14 md:py-16;

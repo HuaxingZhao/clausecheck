@@ -16,7 +16,11 @@ export async function POST(req: NextRequest) {
     const parsed = bodySchema.safeParse(json);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "INVALID_EMAIL", message: "Enter a valid email address" },
+        {
+          ok: false,
+          error: "INVALID_EMAIL",
+          message: "Enter a valid email address",
+        },
         { status: 400 }
       );
     }
@@ -27,7 +31,6 @@ export async function POST(req: NextRequest) {
       parsed.data.source ?? "beta_page"
     );
 
-    // Optional notify admins via Resend (non-blocking failure)
     const apiKey = process.env.RESEND_API_KEY?.trim();
     const from = process.env.EMAIL_FROM?.trim();
     const to = process.env.ADMIN_EMAILS?.split(",")[0]?.trim();
@@ -50,11 +53,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       ok: true,
       alreadySubscribed: !result.created,
+      message: result.created ? "subscribed" : "already",
     });
   } catch (err: unknown) {
     console.error("beta subscribe error:", err);
+    const detail = err instanceof Error ? err.message : String(err);
+    const needsMigration =
+      /beta_waitlist/i.test(detail) || /does not exist/i.test(detail);
     return NextResponse.json(
-      { error: "SUBSCRIBE_FAILED", message: "Could not save signup" },
+      {
+        ok: false,
+        error: needsMigration ? "MIGRATION_REQUIRED" : "SUBSCRIBE_FAILED",
+        message: needsMigration
+          ? "Waitlist table missing — run beta_waitlist migration"
+          : "Could not save signup",
+      },
       { status: 500 }
     );
   }

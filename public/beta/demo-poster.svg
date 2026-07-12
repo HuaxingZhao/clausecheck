@@ -7,9 +7,9 @@
   </defs>
   <rect width="1280" height="720" fill="url(#g)"/>
   <text x="80" y="160" font-family="Georgia,serif" font-size="56" fill="#F8F6F1">ClauseCheck</text>
-  <text x="80" y="230" font-family="system-ui,sans-serif" font-size="28" fill="#C9A227">AI contract review · lawyer-calibrated</text>
-  <text x="80" y="320" font-family="system-ui,sans-serif" font-size="20" fill="#E5E0D8">30s risk grading · multi-jurisdiction packs · DPA draft generation</text>
+  <text x="80" y="230" font-family="system-ui,sans-serif" font-size="28" fill="#C9A227">AI contract review - lawyer-calibrated</text>
+  <text x="80" y="320" font-family="system-ui,sans-serif" font-size="20" fill="#E5E0D8">30s risk grading - multi-jurisdiction packs - DPA drafts</text>
   <circle cx="1100" cy="360" r="64" fill="#C9A227"/>
   <polygon points="1088,330 1088,390 1140,360" fill="#1A365D"/>
-  <text x="80" y="640" font-family="system-ui,sans-serif" font-size="16" fill="#9A948C">Demo placeholder · replace with /assets/beta-demo.mp4</text>
+  <text x="80" y="640" font-family="system-ui,sans-serif" font-size="16" fill="#9A948C">Product preview</text>
 </svg>

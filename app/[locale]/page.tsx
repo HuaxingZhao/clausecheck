@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import { checkQuota, recordScan, setPro, isPro, syncProFromServer, saveProEmail, getProEmail, applyServerQuota, type ServerQuotaStatus } from "@/lib/quota";
 import { trackEvent } from "@/lib/analytics";
+import { fileForUpload, readJsonSafe } from "@/lib/upload-safe";
 import type { ScanResult, ScanError } from "@/lib/types";
 import type { ContractScenarioId } from "@/lib/contract-scenarios";
 import { DEFAULT_SCENARIO_ID } from "@/lib/contract-scenarios";
@@ -319,7 +320,10 @@ export default function Home() {
 
     try {
       const form = new FormData();
-      form.append("file", file);
+      // Safari: CJK / unicode filenames can break multipart FormData
+      const { uploadFile, originalName } = fileForUpload(file);
+      form.append("file", uploadFile);
+      form.append("originalFileName", originalName);
       form.append("locale", locale);
       form.append("scenario", scenario);
       if (jurisdiction && jurisdiction !== "auto") {
@@ -329,10 +333,14 @@ export default function Home() {
       const res = await fetch("/api/scan", {
         method: "POST",
         body: form,
+        credentials: "include",
       });
-      const data = (await res.json()) as
+      const data = (await readJsonSafe(
+        res
+      )) as
         | (ScanResult & { contractText?: string; refineNeeded?: boolean })
-        | ScanError;
+        | ScanError
+        | Record<string, never>;
 
       if (!res.ok) {
         const errData = data as ScanError & {
@@ -354,7 +362,11 @@ export default function Home() {
         if (res.status === 402 && errData.error === "INSUFFICIENT_CREDITS") {
           await invalidateCredits();
         }
-        throw new Error(errData.error || errData.message || "Scan failed");
+        throw new Error(
+          (errData as { error?: string; message?: string }).error ||
+            (errData as { message?: string }).message ||
+            (locale === "zh" ? "扫描失败，请重试" : "Scan failed, please retry")
+        );
       }
 
       const {
@@ -415,7 +427,16 @@ export default function Home() {
         setScanStage(0);
       }
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Scan failed, please retry";
+      const message =
+        err instanceof Error
+          ? err.message === "The string did not match the expected pattern."
+            ? locale === "zh"
+              ? "上传失败（Safari 对部分中文文件名不兼容）。请将文件重命名为英文后再试，或换用 Chrome。"
+              : "Upload failed (Safari filename quirk). Rename the file to English letters and retry, or use Chrome."
+            : err.message
+          : locale === "zh"
+            ? "扫描失败，请重试"
+            : "Scan failed, please retry";
       setError(message);
       setScanStage(0);
     } finally {

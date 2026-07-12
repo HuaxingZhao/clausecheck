@@ -2,8 +2,12 @@ import { z } from "zod";
 import { DEFAULT_SCENARIO_ID, isValidScenarioId } from "@/lib/contract-scenarios";
 import { parseJurisdictionParam } from "@/lib/jurisdiction";
 
-/** Session user id — must be UUID; never accept from client body. */
-export const sessionUserIdSchema = z.string().uuid();
+/** Session user id from JWT — UUID preferred; allow opaque text ids from legacy rows. */
+export const sessionUserIdSchema = z
+  .string()
+  .min(1)
+  .max(128)
+  .regex(/^[A-Za-z0-9_.:-]+$/, "INVALID_SESSION");
 
 export const scanFormFieldsSchema = z.object({
   locale: z.enum(["zh", "en"]).default("zh"),

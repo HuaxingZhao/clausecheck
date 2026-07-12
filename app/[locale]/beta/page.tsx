@@ -4,8 +4,7 @@ import { getTranslations } from "next-intl/server";
 import BetaSubscribeForm from "../components/beta-subscribe-form";
 import FAQItem from "../components/faq-item";
 
-/** Marketing landing — statically generated; form posts to /api/beta/subscribe. */
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -93,16 +92,15 @@ export default async function BetaPage({
         </div>
         <div className="beta-hero-media">
           <div className="beta-demo-frame">
-            <video
+            {/* Demo MP4 optional — poster always shows so the hero never looks broken */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/beta/demo-poster.svg"
+              alt={t("demo.aria")}
+              width={800}
+              height={450}
               className="beta-demo-video"
-              controls
-              playsInline
-              preload="metadata"
-              poster="/beta/demo-poster.svg"
-              aria-label={t("demo.aria")}
-            >
-              <source src="/assets/beta-demo.mp4" type="video/mp4" />
-            </video>
+            />
             <p className="beta-demo-caption">{t("demo.caption")}</p>
           </div>
         </div>
