@@ -913,11 +913,12 @@
       "submitting": "提交中…",
       "success": "已加入名单，邀请函将很快发送到邮箱。",
       "already": "你已在 Beta 名单中，请留意收件箱。",
-      "error": "订阅失败，请重试。"
+      "error": "订阅失败，请重试。",
+      "invalidEmail": "请输入有效邮箱地址。"
     },
     "demo": {
-      "aria": "30 秒产品演示",
-      "caption": "30 秒演示 · 可将成片放到 /assets/beta-demo.mp4"
+      "aria": "产品界面示意",
+      "caption": "产品演示预览 · 完整视频即将上线"
     },
     "values": {
       "label": "为什么是 ClauseCheck",

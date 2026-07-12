@@ -913,11 +913,12 @@
       "submitting": "Sending…",
       "success": "You're on the list — we'll email your invite soon.",
       "already": "You're already on the beta list. Watch your inbox.",
-      "error": "Could not subscribe. Please try again."
+      "error": "Could not subscribe. Please try again.",
+      "invalidEmail": "Please enter a valid email address."
     },
     "demo": {
-      "aria": "30-second product demo",
-      "caption": "30-second walkthrough · replace media at /assets/beta-demo.mp4"
+      "aria": "Product UI preview",
+      "caption": "Product preview — full demo video coming soon"
     },
     "values": {
       "label": "Why ClauseCheck",

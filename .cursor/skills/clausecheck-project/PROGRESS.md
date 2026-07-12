@@ -2,6 +2,13 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-12 — Beta scan / subscribe / assets hotfix
+
+- Root causes (prod smoke after #5): Safari CJK FormData → `The string did not match the expected pattern`; beta SVG corrupt UTF-8 middle-dot; missing `/assets/beta-demo.mp4`; subscribe autofill not in React state; possible missing `beta_waitlist` migration.
+- Fix: `lib/upload-safe.ts` (ascii filename + safe JSON); scan client uses it; `sessionUserIdSchema` opaque-id regex; beta form reads FormData email; subscribe API clearer migration errors; ASCII-only `public/beta/*.svg`; hero uses poster img (no broken video).
+- Branch: `fix/beta-scan-hotfix`. Tests 54/54.
+- Ops: confirm Supabase ran `20260712_create_beta_waitlist.sql` if subscribe still 500.
+
 ## 2026-07-12 — Beta launch build unblock
 
 - Fixed `feedback-preview` next-intl type error (drop unused Provider).
