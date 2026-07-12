@@ -427,16 +427,22 @@ export default function Home() {
         setScanStage(0);
       }
     } catch (err: unknown) {
-      const message =
-        err instanceof Error
-          ? err.message === "The string did not match the expected pattern."
-            ? locale === "zh"
-              ? "上传失败（Safari 对部分中文文件名不兼容）。请将文件重命名为英文后再试，或换用 Chrome。"
-              : "Upload failed (Safari filename quirk). Rename the file to English letters and retry, or use Chrome."
-            : err.message
-          : locale === "zh"
-            ? "扫描失败，请重试"
-            : "Scan failed, please retry";
+      const raw = err instanceof Error ? err.message : "";
+      let message =
+        locale === "zh" ? "扫描失败，请重试" : "Scan failed, please retry";
+      if (raw === "The string did not match the expected pattern.") {
+        message =
+          locale === "zh"
+            ? "上传失败（Safari 对部分中文文件名不兼容）。请将文件重命名为英文后再试，或换用 Chrome。"
+            : "Upload failed (Safari filename quirk). Rename the file to English letters and retry, or use Chrome.";
+      } else if (/Request failed \(50[234]\)/i.test(raw) || /504|timeout/i.test(raw)) {
+        message =
+          locale === "zh"
+            ? "扫描超时（服务器繁忙或合同较长）。请稍后重试；配额仅在成功出结果后扣除。"
+            : "Scan timed out (server busy or long contract). Please retry shortly; quota is charged only after a successful result.";
+      } else if (raw) {
+        message = raw;
+      }
       setError(message);
       setScanStage(0);
     } finally {

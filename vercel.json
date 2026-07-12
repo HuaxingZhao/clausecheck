@@ -1,7 +1,7 @@
 {
   "functions": {
-    "app/api/scan/route.ts": { "maxDuration": 90 },
-    "app/api/scan/refine/route.ts": { "maxDuration": 60 },
+    "app/api/scan/route.ts": { "maxDuration": 300 },
+    "app/api/scan/refine/route.ts": { "maxDuration": 120 },
     "app/api/extract/route.ts": { "maxDuration": 60 },
     "app/api/revise/route.ts": { "maxDuration": 90 },
     "app/api/export/pdf/route.ts": { "maxDuration": 30 }

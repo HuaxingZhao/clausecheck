@@ -10,7 +10,7 @@ import {
   assertExperienceWordLimit,
   consumeUserCredit,
   creditsSystemEnabled,
-  refundUserCredit,
+  getUserCreditBalance,
 } from "@/lib/credits/user-credits";
 import {
   parseScanFormFields,
@@ -24,13 +24,13 @@ import {
   trackBusinessEvent,
 } from "@/lib/monitoring";
 
-export const maxDuration = 90;
+/** Vercel Pro allows up to 300s — AI first-pass can exceed 90s on long CN PDFs. */
+export const maxDuration = 300;
 
 const FREE_MAX_CHARS = 12000;
 const PRO_MAX_CHARS = 80000;
 
 export async function POST(req: NextRequest) {
-  let creditConsumed = false;
   let creditUserId: string | null = null;
   const reviewStartedAt = Date.now();
   let monitorUserId: string | null = null;
@@ -167,9 +167,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Check quota before AI — but consume only after success.
+    // Otherwise a Vercel 504 can kill the function after debit with no refund.
     if (useCredits && userId) {
-      const consumed = await consumeUserCredit(userId);
-      if (!consumed) {
+      const balance = await getUserCreditBalance(userId);
+      if (balance < 1) {
         return NextResponse.json(
           {
             error: "INSUFFICIENT_QUOTA",
@@ -178,7 +180,6 @@ export async function POST(req: NextRequest) {
           { status: 402 }
         );
       }
-      creditConsumed = true;
       creditUserId = userId;
     }
 
@@ -188,26 +189,30 @@ export async function POST(req: NextRequest) {
     }
 
     const deep = tier === "pro" || tier === "pay_per_use";
-    const maxChars = deep ? PRO_MAX_CHARS : useCredits ? charCount : FREE_MAX_CHARS;
+    // Cap free path — full experience docs (≤20k) still fit; avoid unbounded prompts.
+    const maxChars = deep
+      ? PRO_MAX_CHARS
+      : Math.min(charCount, useCredits ? 20_000 : FREE_MAX_CHARS);
 
-    let result;
-    try {
-      result = await analyzeContractFirstPass(extracted.text, apiKey, {
-        deep,
-        maxChars,
-        locale,
-        scenarioId,
-        jurisdiction,
-      });
-    } catch (analysisErr) {
-      if (creditConsumed && creditUserId) {
-        try {
-          await refundUserCredit(creditUserId);
-        } catch (refundErr) {
-          console.error("credit refund failed:", refundErr);
-        }
+    const result = await analyzeContractFirstPass(extracted.text, apiKey, {
+      deep,
+      maxChars,
+      locale,
+      scenarioId,
+      jurisdiction,
+    });
+
+    if (useCredits && creditUserId) {
+      const consumed = await consumeUserCredit(creditUserId);
+      if (!consumed) {
+        return NextResponse.json(
+          {
+            error: "INSUFFICIENT_QUOTA",
+            message: "文档审阅配额不足，请升级或购买加油包",
+          },
+          { status: 402 }
+        );
       }
-      throw analysisErr;
     }
 
     if (useCredits && access == null) {

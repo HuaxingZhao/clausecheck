@@ -154,14 +154,15 @@ ${truncated}
     parsed.detectedJurisdiction = toDetectedJurisdiction(jurisdiction);
   }
 
+  // Flag retry is a second full LLM call — skip on free/fast path to avoid Vercel 504.
   const minFlags = deep ? 8 : 6;
   let flagRetryUsed = false;
-  if (parsed.flags.length < minFlags) {
+  if (deep && parsed.flags.length < minFlags) {
     flagRetryUsed = true;
     const retry = await openai.chat.completions.create({
-      model: deep ? "gpt-4o" : "gpt-4o-mini",
+      model: "gpt-4o",
       temperature: 0.2,
-      max_tokens: deep ? 5500 : 3800,
+      max_tokens: 5500,
       messages: [
         { role: "system", content: systemPrompt },
         {
