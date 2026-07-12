@@ -3,14 +3,23 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import type { ScanResult } from "@/lib/types";
+import ReviewFeedbackButtons from "./review-feedback-buttons";
+import { useReviewFeedback } from "./review-feedback-provider";
+import GenerateDpaCta from "./generate-dpa-cta";
+import { isDpaMissingClause } from "@/lib/dpa/detect-dpa";
 
 interface ResultsSupplementaryPanelProps {
   result: ScanResult;
+  onGenerateDpa?: () => void;
 }
 
-export default function ResultsSupplementaryPanel({ result }: ResultsSupplementaryPanelProps) {
+export default function ResultsSupplementaryPanel({
+  result,
+  onGenerateDpa,
+}: ResultsSupplementaryPanelProps) {
   const t = useTranslations("results");
   const [open, setOpen] = useState(false);
+  const fb = useReviewFeedback();
 
   const negotiations = result.negotiations ?? [];
   const restNego = negotiations.slice(3);
@@ -18,6 +27,7 @@ export default function ResultsSupplementaryPanel({ result }: ResultsSupplementa
   const missing = result.missingClauses ?? [];
   const actions = result.actionItems ?? [];
   const restActions = actions.slice(3);
+  const hasDpaMissing = missing.some(isDpaMissingClause);
 
   const hasContent =
     strengths.length > 0 ||
@@ -47,6 +57,15 @@ export default function ResultsSupplementaryPanel({ result }: ResultsSupplementa
         {open ? t("supplementaryCollapse") : t("supplementaryExpand", { count: itemCount })}
         <span aria-hidden>{open ? " ▴" : " ▾"}</span>
       </button>
+
+      {hasDpaMissing && onGenerateDpa && (
+        <div className="dpa-inline-banner mt-3">
+          <p className="dpa-inline-banner-text font-sans text-sm text-ink">
+            {t("missingClausesTitle")}: DPA
+          </p>
+          <GenerateDpaCta onClick={onGenerateDpa} />
+        </div>
+      )}
 
       {open && (
         <div className="report-supplementary-body">
@@ -89,6 +108,20 @@ export default function ResultsSupplementaryPanel({ result }: ResultsSupplementa
                     <div className="font-sans font-semibold text-sm text-ink mb-1">{c.name}</div>
                     {c.importance && <p className="text-sm text-ink mb-1">{c.importance}</p>}
                     {c.suggestion && <p className="text-sm text-accent-dark">{c.suggestion}</p>}
+                    {onGenerateDpa && isDpaMissingClause(c) && (
+                      <div className="mt-2">
+                        <GenerateDpaCta onClick={onGenerateDpa} compact />
+                      </div>
+                    )}
+                    <ReviewFeedbackButtons
+                      contractHash={fb.contractHash}
+                      feedbackMeta={fb.feedbackMeta}
+                      isAuthenticated={fb.isAuthenticated}
+                      onToast={fb.onToast}
+                      targetType="missingClause"
+                      targetId={`missing-${i}-${c.name.slice(0, 40)}`}
+                      compact
+                    />
                   </div>
                 ))}
               </div>

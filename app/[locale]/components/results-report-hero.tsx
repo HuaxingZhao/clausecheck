@@ -3,6 +3,8 @@
 import { useTranslations } from "next-intl";
 import type { ScanResult, SigningRecommendation } from "@/lib/types";
 import { getScenario } from "@/lib/contract-scenarios";
+import ReviewFeedbackButtons from "./review-feedback-buttons";
+import { useReviewFeedback } from "./review-feedback-provider";
 
 interface ResultsReportHeroProps {
   result: ScanResult;
@@ -47,6 +49,7 @@ export default function ResultsReportHero({
   const tDecision = useTranslations("decision");
   const tScenarios = useTranslations("scenarios");
   const tQuality = useTranslations("quality");
+  const fb = useReviewFeedback();
 
   const scenario = result.scenarioId ? getScenario(result.scenarioId) : null;
   const stats = result.qualityStats;
@@ -155,6 +158,15 @@ export default function ResultsReportHero({
           {refining ? t("heroActionsHintRefining") : t("heroActionsHint")}
         </p>
       </div>
+
+      <ReviewFeedbackButtons
+        contractHash={fb.contractHash}
+        feedbackMeta={fb.feedbackMeta}
+        isAuthenticated={fb.isAuthenticated}
+        onToast={fb.onToast}
+        targetType="summary"
+        targetId="report-summary"
+      />
     </div>
   );
 }

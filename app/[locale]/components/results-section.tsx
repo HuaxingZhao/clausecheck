@@ -1,7 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
-import type { ScanResult, RiskFlag } from "@/lib/types";
+import type { ScanResult } from "@/lib/types";
+import { EXPERT_PROMPT_VERSION_BASE } from "@/lib/feedback/prompt-version";
+import type { ReviewFeedbackMeta } from "@/lib/feedback/types";
+import { isDpaMissingClause, isDpaMissingFlag } from "@/lib/dpa/detect-dpa";
 
 import UpgradeBanner from "./upgrade-banner";
 import { trackEvent } from "@/lib/analytics";
@@ -12,6 +16,8 @@ import ResultsActionPlan from "./results-action-plan";
 import ResultsFlagsPanel from "./results-flags-panel";
 import ResultsSupplementaryPanel from "./results-supplementary-panel";
 import ResultsRefiningBanner from "./results-refining-banner";
+import { ReviewFeedbackProvider } from "./review-feedback-provider";
+import GenerateDpaModal from "./generate-dpa-modal";
 
 interface ResultsSectionProps {
   result: ScanResult;
@@ -21,11 +27,26 @@ interface ResultsSectionProps {
   isPro: boolean;
   locale: string;
   refining?: boolean;
+  isAuthenticated?: boolean;
+  onToast?: (message: string) => void;
   onDownload: () => void;
   scrollTo: (id: string) => void;
   onUpgradePro?: () => void;
   onPayPerUse?: () => void;
   sectionRef?: React.RefObject<HTMLElement>;
+}
+
+function resolveFeedbackMeta(result: ScanResult): ReviewFeedbackMeta {
+  if (result.feedbackMeta) return result.feedbackMeta;
+  return {
+    promptVersion: EXPERT_PROMPT_VERSION_BASE,
+    jurisdiction: result.detectedJurisdiction || "unknown",
+    ragMetadata: {
+      packId: "unknown",
+      retrievedChunkIds: [],
+      degraded: false,
+    },
+  };
 }
 
 export default function ResultsSection({
@@ -41,8 +62,16 @@ export default function ResultsSection({
   onPayPerUse,
   sectionRef,
   refining = false,
+  isAuthenticated = false,
+  onToast,
 }: ResultsSectionProps) {
   const t = useTranslations();
+  const feedbackMeta = resolveFeedbackMeta(result);
+  const [dpaOpen, setDpaOpen] = useState(false);
+
+  const showDpaCta =
+    (result.missingClauses ?? []).some(isDpaMissingClause) ||
+    result.flags.some(isDpaMissingFlag);
 
   return (
     <section ref={sectionRef} id="results" className="py-20 bg-paper-dark fade-section">
@@ -50,57 +79,76 @@ export default function ResultsSection({
         <div className="section-label">{t("results.label")}</div>
         <h2 className="results-page-title mb-6">{t("results.title")}</h2>
 
-        {refining && <ResultsRefiningBanner />}
+        <ReviewFeedbackProvider
+          contractText={contractText}
+          feedbackMeta={feedbackMeta}
+          isAuthenticated={isAuthenticated}
+          onToast={onToast}
+        >
+          {refining && <ResultsRefiningBanner />}
 
-        {!isPro && onUpgradePro && (
-          <UpgradeBanner
+          {!isPro && onUpgradePro && (
+            <UpgradeBanner
+              result={result}
+              onUpgrade={onUpgradePro}
+              onPayPerUse={onPayPerUse}
+            />
+          )}
+
+          <ResultsReportHero
             result={result}
+            riskCls={riskCls}
+            refining={refining}
+            onStartReview={() => {
+              trackEvent("review_opened", { locale });
+              scrollTo("contract-review");
+            }}
+            onDownload={onDownload}
+          />
+
+          <ResultsActionPlan result={result} />
+
+          <ResultsFlagsPanel
+            flags={result.flags}
+            timeTerms={result.timeTerms}
+            onGenerateDpa={showDpaCta ? () => setDpaOpen(true) : undefined}
+          />
+
+          <ResultsSupplementaryPanel
+            result={result}
+            onGenerateDpa={showDpaCta ? () => setDpaOpen(true) : undefined}
+          />
+
+          <ReportDeliverySection
+            result={result}
+            locale={locale}
+            isPro={isPro}
+            refining={refining}
+            onDownload={onDownload}
+          />
+
+          <ContractReviewSection
+            result={result}
+            contractText={contractText ?? null}
+            locale={locale}
+            isPro={isPro}
+            refining={refining}
+            sourceFile={sourceFile}
             onUpgrade={onUpgradePro}
-            onPayPerUse={onPayPerUse}
+            onBackToAnalysis={() => scrollTo("results")}
+          />
+        </ReviewFeedbackProvider>
+
+        {showDpaCta && (
+          <GenerateDpaModal
+            open={dpaOpen}
+            onOpenChange={setDpaOpen}
+            result={result}
+            locale={locale}
+            isPro={isPro}
+            onUpgrade={onUpgradePro}
           />
         )}
-
-        {/* 1. 结论：签不签 + 分数 + 元信息 + 主 CTA */}
-        <ResultsReportHero
-          result={result}
-          riskCls={riskCls}
-          refining={refining}
-          onStartReview={() => {
-            trackEvent("review_opened", { locale });
-            scrollTo("contract-review");
-          }}
-          onDownload={onDownload}
-        />
-
-        {/* 2. 行动：最坏情况 + 谈判 + 缺失 + 下一步 */}
-        <ResultsActionPlan result={result} />
-
-        {/* 3. 证据：时间敏感 + 风险条款（高/中默认，低折叠） */}
-        <ResultsFlagsPanel flags={result.flags} timeTerms={result.timeTerms} />
-
-        {/* 4. 补充：有利条款、完整谈判、交叉验证等（默认收起） */}
-        <ResultsSupplementaryPanel result={result} />
-
-        {/* 5. 导出报告 */}
-        <ReportDeliverySection
-          result={result}
-          locale={locale}
-          isPro={isPro}
-          refining={refining}
-          onDownload={onDownload}
-        />
-
-        {/* 6. 合同审阅 */}
-        <ContractReviewSection
-          result={result}
-          contractText={contractText ?? null}
-          locale={locale}
-          isPro={isPro}
-          refining={refining}
-          sourceFile={sourceFile}
-          onUpgrade={onUpgradePro}
-          onBackToAnalysis={() => scrollTo("results")}
-        />
 
         {!isPro && (
           <div className="text-center mt-12">

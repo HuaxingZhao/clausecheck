@@ -4,10 +4,15 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import type { RiskFlag, TimeTerm } from "@/lib/types";
 import { ConfidenceBadge } from "./analysis-quality-banner";
+import ReviewFeedbackButtons from "./review-feedback-buttons";
+import { useReviewFeedback } from "./review-feedback-provider";
+import GenerateDpaCta from "./generate-dpa-cta";
+import { isDpaMissingFlag } from "@/lib/dpa/detect-dpa";
 
 interface ResultsFlagsPanelProps {
   flags: RiskFlag[];
   timeTerms?: TimeTerm[];
+  onGenerateDpa?: () => void;
 }
 
 const timeIcons: Record<string, string> = {
@@ -26,19 +31,25 @@ function flagCls(f: RiskFlag): string {
 
 function FlagRow({
   flag,
+  flagId,
   levelLabel,
   t,
   tQuality,
   compact,
+  onGenerateDpa,
 }: {
   flag: RiskFlag;
+  flagId: string;
   levelLabel: (level: string) => string;
   t: ReturnType<typeof useTranslations<"results">>;
   tQuality: ReturnType<typeof useTranslations<"quality">>;
   compact?: boolean;
+  onGenerateDpa?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const hasDetail = !!(flag.quote || flag.impact || flag.suggestion || flag.legalBasis);
+  const fb = useReviewFeedback();
+  const showDpa = Boolean(onGenerateDpa && isDpaMissingFlag(flag));
 
   return (
     <div className={`flag-item flag-item--panel ${flagCls(flag)}`}>
@@ -84,11 +95,29 @@ function FlagRow({
           )}
         </div>
       )}
+      {showDpa && onGenerateDpa && (
+        <div className="px-2 pb-1">
+          <GenerateDpaCta onClick={onGenerateDpa} compact />
+        </div>
+      )}
+      <ReviewFeedbackButtons
+        contractHash={fb.contractHash}
+        feedbackMeta={fb.feedbackMeta}
+        isAuthenticated={fb.isAuthenticated}
+        onToast={fb.onToast}
+        targetType="flag"
+        targetId={flagId}
+        compact
+      />
     </div>
   );
 }
 
-export default function ResultsFlagsPanel({ flags, timeTerms }: ResultsFlagsPanelProps) {
+export default function ResultsFlagsPanel({
+  flags,
+  timeTerms,
+  onGenerateDpa,
+}: ResultsFlagsPanelProps) {
   const t = useTranslations("results");
   const tQuality = useTranslations("quality");
   const [showLow, setShowLow] = useState(false);
@@ -142,9 +171,11 @@ export default function ResultsFlagsPanel({ flags, timeTerms }: ResultsFlagsPane
         <FlagRow
           key={`hm-${i}`}
           flag={f}
+          flagId={f.clauseId?.trim() || `flag-${f.level || "x"}-${i}`}
           levelLabel={levelLabel}
           t={t}
           tQuality={tQuality}
+          onGenerateDpa={onGenerateDpa}
         />
       ))}
 
@@ -164,10 +195,12 @@ export default function ResultsFlagsPanel({ flags, timeTerms }: ResultsFlagsPane
                 <FlagRow
                   key={`low-${i}`}
                   flag={f}
+                  flagId={f.clauseId?.trim() || `flag-low-${i}`}
                   levelLabel={levelLabel}
                   t={t}
                   tQuality={tQuality}
                   compact
+                  onGenerateDpa={onGenerateDpa}
                 />
               ))}
               <button

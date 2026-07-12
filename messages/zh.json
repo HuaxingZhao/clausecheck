@@ -57,7 +57,33 @@
     "wordLimitModalTitle": "文档超出字数限制",
     "wordLimitModalBody": "文档超出体验版2万字限制，升级专业版即可解锁8万字深度审查",
     "wordLimitModalClose": "我知道了",
-    "viewPricing": "查看定价"
+    "viewPricing": "查看定价",
+    "jurisdiction": {
+      "label": "适用法律（可选）",
+      "hint": "默认自动识别合同中的管辖条款。手动选择将覆盖 AI 自动检测。",
+      "options": {
+        "auto": "自动识别",
+        "usCalifornia": "美国 — 加州",
+        "usNewYork": "美国 — 纽约",
+        "englandWales": "英格兰与威尔士",
+        "chinaPrc": "中国大陆",
+        "international": "国际商业惯例"
+      }
+    },
+    "sample": {
+      "trigger": "试用示例合同 ▾",
+      "hint": "演示入口 — 加载内置样本，无需上传文件即可体验风险分级。",
+      "replaceConfirm": "将替换当前已选内容，是否继续？",
+      "loadedHint": "样本已加载 — 可点击「开始扫描」。",
+      "options": {
+        "highRisk": "高风险 SaaS 协议（加州）",
+        "highRiskHint": "无上限赔偿、$100 责任上限",
+        "standard": "标准 SaaS 协议（加州）",
+        "standardHint": "符合行业惯例的条款",
+        "chinaNda": "风险型 NDA（中国法）",
+        "chinaNdaHint": "过长保密期、不利管辖 — 中国法"
+      }
+    }
   },
   "scenarios": {
     "label": "合同类型",
@@ -696,6 +722,42 @@
     "editorStepHint": "全屏打开您的原始合同。点击每项建议可跳转到对应条款，保存后下载。",
     "editorLoading": "正在准备建议…"
   },
+  "feedback": {
+    "groupLabel": "审查反馈",
+    "accurate": "准确",
+    "missedIssue": "漏判风险",
+    "falsePositive": "误报/过度警告",
+    "commentLabel": "简要说明（可选）",
+    "commentPlaceholder": "哪里需要改进？",
+    "submit": "提交",
+    "submitting": "提交中…",
+    "cancel": "取消",
+    "received": "已收到反馈",
+    "submitSuccess": "感谢，反馈已保存",
+    "submitError": "反馈保存失败，请重试",
+    "signInHint": "登录后可追踪你的反馈历史"
+  },
+  "dpa": {
+    "cta": "生成合规 DPA 模板 →",
+    "modalTitle": "生成数据处理协议（DPA）",
+    "modalHint": "独立 DPA 草稿，不构成法律意见。商业条款一律以 [TO BE NEGOTIATED] 占位。",
+    "jurisdiction": "管辖区",
+    "dataCategories": "数据类别",
+    "controllerName": "控制者名称",
+    "processorName": "处理者名称",
+    "processingPurpose": "处理目的",
+    "generate": "生成",
+    "generating": "生成中…",
+    "close": "关闭",
+    "generateError": "DPA 生成失败，请重试",
+    "downloadError": "下载失败，请重试",
+    "downloadWord": "下载 Word",
+    "downloadPdf": "下载 PDF",
+    "upgradeToDownload": "升级以下载完整版",
+    "freePreviewHint": "免费版仅展示带水印预览（约 30%）。Pro 可解锁完整文档。",
+    "unlockedBadge": "完整文档已解锁（Pro）",
+    "disclaimerFoot": "AI-generated draft. Review by qualified counsel before use.（AI 生成草稿，使用前须经具备资质的律师审阅。）"
+  },
   "pricing": {
     "label": "定价",
     "title": "面向法律专业人士的分级方案",
@@ -829,6 +891,98 @@
     "planPro": "专业版",
     "planBoost": "单次加油包",
     "backPricing": "返回定价"
+  },
+  "beta": {
+    "meta": {
+      "title": "加入 Beta — ClauseCheck",
+      "description": "由真实反馈校准的 AI 合同审查。多法域隔离、隐私优先。与创始成员一起共创产品。"
+    },
+    "nav": {
+      "tryProduct": "体验产品"
+    },
+    "hero": {
+      "badge": "Beta · 与我们共创",
+      "title": "AI 合同审查，由真实律师反馈校准",
+      "subtitle": "加入 Beta。塑造产品。获得终身 Pro 权益。",
+      "finePrint": "仅为决策支持，不构成法律意见。不会滥发邮件。"
+    },
+    "form": {
+      "emailLabel": "邮箱",
+      "placeholder": "you@company.com",
+      "submit": "申请 Beta 资格",
+      "submitting": "提交中…",
+      "success": "已加入名单，邀请函将很快发送到邮箱。",
+      "already": "你已在 Beta 名单中，请留意收件箱。",
+      "error": "订阅失败，请重试。"
+    },
+    "demo": {
+      "aria": "30 秒产品演示",
+      "caption": "30 秒演示 · 可将成片放到 /assets/beta-demo.mp4"
+    },
+    "values": {
+      "label": "为什么是 ClauseCheck",
+      "title": "从发现风险到解决风险",
+      "risk": {
+        "title": "🔍 30 秒风险分级",
+        "body": "上传合同，获得按严重程度排序的风险与可粘贴红线建议——面向谈判，而非空泛建议。",
+        "alt": "风险分级报告示意"
+      },
+      "jurisdiction": {
+        "title": "🛡️ 多法域安全隔离",
+        "body": "每次审查只加载一个 Jurisdiction Pack；RAG 按管辖区元数据过滤，避免《民法典》渗入加州合同。",
+        "alt": "法域 Pack 隔离示意"
+      },
+      "dpa": {
+        "title": "📝 缺少 DPA？一键生成",
+        "body": "审查发现缺失 DPA 时，可生成适配管辖区的草稿——免费预览，Pro 解锁完整下载。",
+        "alt": "DPA 免费版与 Pro 对比"
+      }
+    },
+    "perks": {
+      "label": "Beta 福利",
+      "title": "创始成员权益",
+      "items": [
+        "创始成员 Pro 终身 7 折",
+        "赠送 5 次 DPA 完整生成",
+        "账户展示 Founding Member 徽章"
+      ]
+    },
+    "trust": {
+      "line": "v0.9-beta · 50+ 单测全绿 · SHA-256 隐私优先（反馈仅存哈希，不存合同原文）"
+    },
+    "faq": {
+      "label": "常见问题",
+      "title": "加入前想知道的",
+      "items": [
+        {
+          "q": "合同数据安全吗？",
+          "a": "扫描仅用于当次审查。产品反馈只存规范化文本的 SHA-256 哈希，从不存合同原文。我们不会用你的上传内容训练模型。"
+        },
+        {
+          "q": "支持哪些法域？",
+          "a": "当前内置中国、加州、纽约/美国一般、英格兰与威尔士、国际商业惯例。社区可通过 Pack 贡献指南扩展新法域。"
+        },
+        {
+          "q": "「律师校准」是什么意思？",
+          "a": "Beta 用户可在报告条目上标记准确 / 漏判 / 误报。这些信号成为黄金数据集，用来改进 Prompt——你是共创者，不是免费测试工。"
+        },
+        {
+          "q": "这是法律意见吗？",
+          "a": "不是。ClauseCheck 提供决策支持与谈判材料。高利害交易仍需具备资质的律师。"
+        },
+        {
+          "q": "提交邮箱之后呢？",
+          "a": "我们分批发送邀请链接。早期成员获得创始权益，并有直接反馈通道。"
+        }
+      ]
+    },
+    "footerCta": {
+      "title": "准备好一起共创了吗？",
+      "subtitle": "同一表单，同一创始权益。没有硬推销。",
+      "questions": "有问题？",
+      "email": "hello@clausecheck.app",
+      "backHome": "← 返回首页"
+    }
   },
   "faq": {
     "label": "常见问题",
