@@ -2,6 +2,12 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-12 — Beta UX: subscribe success + no fake video
+
+- Email CTA already worked (green “already on list”); users mistook it for no reaction / clicked fake play button.
+- Subscribe success now replaces the form with a green banner + “Try the product” button.
+- Hero media: real `dpa-preview.png` + click-through to `/#upload`; removed fake video play affordance; copy clarifies “not a video”.
+
 ## 2026-07-12 — Beta scan / subscribe / assets hotfix
 
 - Root causes (prod smoke after #5): Safari CJK FormData → `The string did not match the expected pattern`; beta SVG corrupt UTF-8 middle-dot; missing `/assets/beta-demo.mp4`; subscribe autofill not in React state; possible missing `beta_waitlist` migration.

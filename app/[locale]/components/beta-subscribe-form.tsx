@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { readJsonSafe } from "@/lib/upload-safe";
 
@@ -21,7 +22,6 @@ export default function BetaSubscribeForm({
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // Prefer FormData so Safari/Chrome autofill is included even if React state lagged
     const fd = new FormData(e.currentTarget);
     const emailValue = String(fd.get("email") || email || "")
       .trim()
@@ -63,11 +63,25 @@ export default function BetaSubscribeForm({
       setMessage(
         body.alreadySubscribed ? t("form.already") : t("form.success")
       );
-      setEmail("");
     } catch (err) {
       setStatus("error");
       setMessage(err instanceof Error ? err.message : t("form.error"));
     }
+  }
+
+  if (status === "ok") {
+    return (
+      <div
+        className={`beta-subscribe beta-subscribe--${variant} beta-subscribe-done`}
+        role="status"
+        aria-live="polite"
+      >
+        <p className="beta-subscribe-banner is-ok">{message}</p>
+        <Link href={`/${locale}#upload`} className="btn btn-primary beta-subscribe-btn">
+          {t("form.tryProduct")}
+        </Link>
+      </div>
+    );
   }
 
   return (
