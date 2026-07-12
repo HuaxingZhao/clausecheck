@@ -1,0 +1,28 @@
+{
+  "jurisdiction": "us_california",
+  "packId": "us-ca",
+  "feedbackType": "false_positive,missed_issue",
+  "generatedAt": "content:b5abdc58",
+  "examples": [
+    {
+      "inputSnippet": "[flag:UNILATERAL_TERMINATION] 30-day termination for convenience is market standard for SaaS; over-flagged as high risk",
+      "expectedBehavior": "Do not raise this as a high/medium risk unless the contract text clearly supports a material, non-market-standard harm. Prefer sign_with_changes for industry-standard unfavorable terms.",
+      "reasoning": "Users marked this pattern as a false positive / over-warning. Calibrate severity downward when facts match."
+    },
+    {
+      "inputSnippet": "[flag:UNILATERAL_TERMINATION] Termination for convenience (30 days) is market standard for SaaS — false positive high risk",
+      "expectedBehavior": "Do not raise this as a high/medium risk unless the contract text clearly supports a material, non-market-standard harm. Prefer sign_with_changes for industry-standard unfavorable terms.",
+      "reasoning": "Users marked this pattern as a false positive / over-warning. Calibrate severity downward when facts match."
+    },
+    {
+      "inputSnippet": "[missingClause:MISSING_DPA] CPRA service provider processing CA personal info but no DPA / SCC attached — should flag missing DPA",
+      "expectedBehavior": "Actively scan for this risk class and emit a flag or missingClause with paste-ready suggestion when the contract is silent or one-sided.",
+      "reasoning": "Users marked this pattern as a missed issue. Ensure the pack checklist covers it."
+    },
+    {
+      "inputSnippet": "[missingClause:MISSING_DPA] No DPA for CA personal info processing — should have flagged missing DPA",
+      "expectedBehavior": "Actively scan for this risk class and emit a flag or missingClause with paste-ready suggestion when the contract is silent or one-sided.",
+      "reasoning": "Users marked this pattern as a missed issue. Ensure the pack checklist covers it."
+    }
+  ]
+}

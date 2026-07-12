@@ -2,6 +2,105 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-12 — Beta launch build unblock
+
+- Fixed `feedback-preview` next-intl type error (drop unused Provider).
+- Added `sample_contract_loaded` to `AnalyticsEvent`.
+- Fixed `packs/cn.ts` import path `../types`.
+- `npm test` 52/52 + `npm run build` green.
+
+## 2026-07-12 — Beta launch release plan + smoke checklist
+
+- Commit plan (A–I dependency order): `docs/deploy/beta-launch-release-plan.md` — exclude temp/secrets; High risk = Packs/RAG.
+- DB: `feedback` + `beta_waitlist` migrations + rollback; no backfill required.
+- Smoke: `docs/deploy/smoke-test-beta-launch.md` (health, /beta, subscribe, bounty, admin feedback, DPA, review regression).
+- Blocker reminder: prod still on older SHA — `/beta` 404 until merge + migrate + deploy.
+
+## 2026-07-12 — Jurisdiction Pack Bounty launch kit
+
+- Page: `/community/bounty` — board + 4-step flow + resources + FAQ + Claim CTA (GitHub Issue prefill); ISR status from Issues `bounty` label.
+- Issue template: `.github/ISSUE_TEMPLATE/pack-bounty.md` (+ `config.yml`); PR template aligned for pack PRs.
+- Ops kit: `docs/community/bounty-launch-kit.md` (social / email / review checklist / reward SOP / timeline).
+- Note: NY & E&W bounties = expand built-ins `us-ny` / `uk`; SG / DE / NSW = new packs.
+
+## 2026-07-12 — Feedback → few-shot automation pipeline
+
+- Admin dashboard `/admin/feedback-dashboard` (ADMIN_EMAILS only): overview %, jurisdiction pie, 30d trend by promptVersion, Bad Case list + CSV/JSON export.
+- API: `GET /api/admin/feedback` (summary / `?format=csv|json`); queries in `lib/db/feedback-queries.ts` (PG + JSON read-only).
+- Script: `npm run extract:fewshots -- --jurisdiction=… --feedbackType=… [--minFrequency=3] [--dry-run] [--local-json]` → `packs/{id}/fewshots-auto.json`.
+- Pack load injects auto few-shots into `systemPromptAddon` (≤800 tokens); logs injected count.
+- Dev preview: `/en/dev/feedback-dashboard-preview` (non-production).
+- Screenshots: `docs/screenshots/feedback-dashboard-overview.png`, `feedback-dashboard-bad-cases.png`, `fewshots-auto-json.png`.
+
+## 2026-07-12 — Beta landing + Product Hunt kit
+
+- `/beta` SSG landing: hero + demo frame + 3 value visuals + perks + trust + FAQ + dual email CTA.
+- `POST /api/beta/subscribe` → `beta_waitlist` (Postgres / JSON); optional Resend notify.
+- Assets under `public/beta/`; demo video slot `public/assets/beta-demo.mp4`.
+- PH kit: `docs/launch/product-hunt-kit.md` (taglines, description, first comment, checklist, social copy).
+
+## 2026-07-12 — Jurisdiction Pack community contribution
+
+- Docs: `docs/contributing-jurisdiction-packs.md` (interface, naming, patterns, PR flow).
+- Scaffold: `npm run new-pack -- --id=xx --name="…"` → pack + `tests/packs/{id}.test.ts` + registry.
+- Pre-check: `npm run validate:pack` (patterns / token ≤2000 / boilerplate vs Base / +− tests); CI on `packs/` PRs.
+- Registry refactored to extensible `PACK_FACTORIES` (string ids). README Contributing link.
+
+## 2026-07-12 — Missing DPA → generate draft + Pro gate
+
+- Independent prompt `lib/prompts/dpa-generator.ts`; generate via `POST /api/generate-dpa` (gpt-4o-mini / stub).
+- Free: ~30% preview + watermark + Upgrade CTA; Pro/PPU: full markdown + Word/PDF download.
+- Report CTA when `missingClause.type === "dpa"` or `flag.code === "MISSING_DPA"` (also heuristic); modal auto-fills jurisdiction / data categories.
+- Preview: `/en/dev/dpa-preview`. Disclaimer forced on every draft.
+
+## 2026-07-12 — Review feedback loop (Beta golden-set)
+
+- Report UI: Accurate / Missed Issue / False Positive on summary + each flag + missingClause; optional comment; local lock after submit.
+- `POST /api/feedback` → `feedback` table (hash-only; never stores contract body); anonymous OK with sign-in hint.
+- `ScanResult.feedbackMeta` carries `promptVersion` + `ragMetadata` from analyze; client SHA-256 of normalized text.
+- Preview: `/en/dev/feedback-preview`. Migration: `supabase/migrations/20260712_create_feedback.sql`.
+
+## 2026-07-12 — Expert prompt Base + Jurisdiction Pack plugins
+
+- Split monolith `expert-system-prompt.ts` into jurisdiction-agnostic **Base** + one loaded **Pack** (`cn` / `us-ca` / `us-ny` / `uk` / `intl`).
+- Pack interface: `lib/prompts/jurisdiction-packs/types.ts` (re-export `src/prompts/jurisdiction-packs/types.ts`).
+- Resolve: client override → text heuristic (`governingLawPatterns`) → `intl` default.
+- Wired through `analyze` / `reviewContract`; meta exposes `jurisdictionPackId`.
+- Tests: CA pack excludes PRC articles; CN pack excludes CPRA / common-law boilerplate E.
+
+## 2026-07-12 — RAG jurisdiction metadata filter
+
+- Knowledge chunks carry `jurisdiction` / `doc_type` / optional `effective_date`; backfill via `scripts/backfill-knowledge-jurisdiction.ts` → `lib/rag/jurisdiction-overrides.json`.
+- `retrieveComplianceRules({ jurisdiction })` pre-filters `IN (requested, GENERAL)`, excludes `UNKNOWN`, degrades to GENERAL with `degraded: true`.
+- Wired through `analyze` / `reviewContract` / `/api/review` from client jurisdiction override.
+- Tests: CA excludes CN statutes; CN excludes US-CA; auto warns.
+
+## 2026-07-12 — Try sample contract on upload
+
+- Upload: `SampleContractPicker` loads high-risk / standard CA SaaS + China NDA fixtures as static `.txt` imports (webpack `asset/source`); sets file + jurisdiction + scenario; confirm-before-replace; scrolls to Start Scan.
+- No backend changes.
+
+## 2026-07-12 — Jurisdiction picker UI + reasonable CA SaaS fixture
+
+- Upload: Governing Law optional select + dynamic `ReviewDisclaimer` (CN/US/England/Intl).
+- `jurisdiction` wired through `/api/scan`, `/api/scan/refine`, `/api/review` → analyze override of `detectedJurisdiction`.
+- Fixture `fixtures/saas-ca-reasonable.json` + `fixtures/contracts/saas-ca-reasonable-en.txt`; compare vs hostile `saas-ca`.
+- Comparator: hostile → `do_not_sign` CLEAN PASS; reasonable → `sign_with_changes` CLEAN PASS (boilerplate validator now contract-aware).
+
+## 2026-07-12 — Boilerplate FAIL + SaaS signing calibration
+
+- Global Add-ons E: missing Severability / Entire Agreement / Waiver / Force Majeure **must** go in `missingClauses` (non-China).
+- Validator: `BOILERPLATE_NOT_REPORTED` is FAIL (non-China only); China path unchanged.
+- Signing Recommendation: SaaS/Tech US/UK — industry-standard unfavorable → `sign_with_changes`; deal-breakers only → `do_not_sign`.
+- Re-ran `npm run test:review -- --fixture=saas-ca`.
+
+## 2026-07-12 — Global multi-jurisdiction expert prompt
+
+- Refactored `lib/ai/expert-system-prompt.ts`: Jurisdiction Detection & Routing; dual-track citation (China Civil Code whitelist vs common-law `riskRationale` safe templates); Global/Common Law Add-ons (LoL, indemnity, TFC, data/SCCs, boilerplate).
+- Types: `ScanResult.detectedJurisdiction` / governing & dispute quotes; `RiskFlag.riskRationale`. `analyze.ts` maps `riskRationale` → `legalBasis` for UI compat.
+- Validator jurisdiction-aware: non-China FAIL on PRC Civil Code leak / case-name / fabricated statute sections; WARN on Global Add-on gaps.
+- Fixture `fixtures/contracts/saas-ca-risky-en.txt`; `npm run test:review -- --fixture=saas-ca`.
+
 ## 2026-07-12 — Expert prompt hardening + review QA gates
 
 - Upgraded `lib/ai/expert-system-prompt.ts`: legal-basis whitelist (151/496–498/501/585–587), ban Civil Code for forum, force paste-ready suggestions (no「建议」prefix).
