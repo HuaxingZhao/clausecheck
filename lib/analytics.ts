@@ -18,7 +18,8 @@ export type AnalyticsEvent =
   | "review_completed"
   | "payment_success"
   | "export_failed"
-  | "invite_redeemed";
+  | "invite_redeemed"
+  | "sample_contract_loaded";
 
 export function trackEvent(
   name: AnalyticsEvent,

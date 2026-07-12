@@ -8,11 +8,13 @@ import {
   isValidScenarioId,
 } from "./contract-scenarios";
 import {
-  buildExpertSystemPrompt,
+  buildExpertSystemPromptDetailed,
   CLAUSE_INDEX_RULES_EN,
   CLAUSE_INDEX_RULES_ZH,
 } from "./ai/expert-system-prompt";
 import { retrieveComplianceRules } from "./ai/retrieve-compliance-rules";
+import { getExpertPromptVersion } from "./feedback/prompt-version";
+import type { ReviewFeedbackMeta } from "./feedback/types";
 import {
   runAnalysisPipeline,
   pipelineRefineNeeded,
@@ -29,6 +31,11 @@ import type {
   SigningRecommendation,
   NegotiationPoint,
 } from "./types";
+import {
+  jurisdictionOverridePromptBlock,
+  toDetectedJurisdiction,
+  type JurisdictionOverride,
+} from "./jurisdiction";
 
 /* ================================================================== */
 /*  Analyze                                                            */
@@ -39,6 +46,8 @@ export interface AnalyzeOptions {
   maxChars?: number;
   locale?: "zh" | "en";
   scenarioId?: ContractScenarioId;
+  /** Client Governing Law override; when set, forces detectedJurisdiction. */
+  jurisdiction?: JurisdictionOverride;
 }
 
 export async function analyzeContract(
@@ -51,13 +60,16 @@ export async function analyzeContract(
     maxChars = 12000,
     locale = "zh",
     scenarioId = DEFAULT_SCENARIO_ID,
+    jurisdiction,
   } = options;
 
   const openai = new OpenAI({ apiKey });
   const truncated = text.slice(0, maxChars);
   const scenario = getScenario(scenarioId);
   const scenarioOverlay = getScenarioPromptOverlay(scenario.id, locale);
-  const retrieval = retrieveComplianceRules(truncated, scenario.id, locale);
+  const retrieval = retrieveComplianceRules(truncated, scenario.id, locale, {
+    jurisdiction: jurisdiction ?? undefined,
+  });
   const knowledgeBlock = retrieval.knowledgeBlock;
 
   // Step 1 — build clause index from extracted text
@@ -65,12 +77,28 @@ export async function analyzeContract(
   const indexJson = formatClauseIndexForPrompt(clauseIndex, 80, 100);
   const indexRules = locale === "en" ? CLAUSE_INDEX_RULES_EN : CLAUSE_INDEX_RULES_ZH;
 
-  const systemPrompt = buildExpertSystemPrompt({
+  const promptBuilt = buildExpertSystemPromptDetailed({
     locale,
     deep,
     scenarioOverlay,
     knowledgeBlock,
+    jurisdiction: jurisdiction ?? undefined,
+    contractText: truncated,
   });
+  const systemPrompt = promptBuilt.prompt;
+
+  const feedbackMeta: ReviewFeedbackMeta = {
+    promptVersion: getExpertPromptVersion(),
+    jurisdiction:
+      jurisdiction ??
+      promptBuilt.pack.id ??
+      "auto",
+    ragMetadata: {
+      packId: promptBuilt.pack.id,
+      retrievedChunkIds: retrieval.rules.map((r) => r.id),
+      degraded: retrieval.degraded,
+    },
+  };
 
   const scenarioLine =
     scenario.id !== "general"
@@ -79,9 +107,13 @@ export async function analyzeContract(
         : `\n审阅场景：${scenario.id}。须按该场景专业标准输出，避免泛泛而谈。\n`
       : "";
 
+  const jurisdictionLine = jurisdiction
+    ? jurisdictionOverridePromptBlock(jurisdiction, locale)
+    : "";
+
   const userPrompt =
     locale === "en"
-      ? `Analyze the following contract. Apply the full review checklist.${scenarioLine}${indexRules}
+      ? `Analyze the following contract. Apply the full review checklist.${scenarioLine}${jurisdictionLine}${indexRules}
 
 CLAUSE INDEX:
 ${indexJson}
@@ -90,7 +122,7 @@ CONTRACT TEXT:
 ---
 ${truncated}
 ---`
-      : `请分析以下合同，逐项适用审查清单。${scenarioLine}${indexRules}
+      : `请分析以下合同，逐项适用审查清单。${scenarioLine}${jurisdictionLine}${indexRules}
 
 条款索引 CLAUSE INDEX：
 ${indexJson}
@@ -118,6 +150,9 @@ ${truncated}
 
   let parsed = normalize(JSON.parse(raw) as ScanResult, locale);
   parsed.scenarioId = isValidScenarioId(scenarioId) ? scenarioId : DEFAULT_SCENARIO_ID;
+  if (jurisdiction) {
+    parsed.detectedJurisdiction = toDetectedJurisdiction(jurisdiction);
+  }
 
   const minFlags = deep ? 8 : 6;
   let flagRetryUsed = false;
@@ -146,6 +181,10 @@ ${truncated}
     }
   }
 
+  if (jurisdiction) {
+    parsed.detectedJurisdiction = toDetectedJurisdiction(jurisdiction);
+  }
+
   if (parsed.flags.length === 0) {
     throw new Error(
       locale === "en"
@@ -155,6 +194,7 @@ ${truncated}
   }
 
   const finalized = finalizeFirstPass(clauseIndex, truncated, parsed);
+  finalized.feedbackMeta = feedbackMeta;
   if (flagRetryUsed) {
     (finalized as ScanResult & { _flagRetryUsed?: boolean })._flagRetryUsed = true;
   }
@@ -198,7 +238,11 @@ export async function refineScanResult(
   }
 
   const piped = await runAnalysisPipeline(openai, truncated, result, pipeOpts);
-  return attachContractReview(clauseIndex, piped.result);
+  const out = attachContractReview(clauseIndex, piped.result);
+  if (result.feedbackMeta && !out.feedbackMeta) {
+    out.feedbackMeta = result.feedbackMeta;
+  }
+  return out;
 }
 
 export { pipelineRefineNeeded };
@@ -272,6 +316,14 @@ function normalize(parsed: ScanResult, locale: "zh" | "en"): ScanResult {
   parsed.contractType = toTextField(parsed.contractType) || undefined;
   parsed.actionItems = (parsed.actionItems || []).map(toTextField).filter(Boolean);
   parsed.strengths = (parsed.strengths || []).map(toTextField).filter(Boolean);
+  parsed.governingLawQuote = toTextField(parsed.governingLawQuote) || undefined;
+  parsed.disputeResolutionQuote =
+    toTextField(parsed.disputeResolutionQuote) || undefined;
+  if (parsed.detectedJurisdiction) {
+    parsed.detectedJurisdiction = String(
+      parsed.detectedJurisdiction
+    ).trim() as ScanResult["detectedJurisdiction"];
+  }
 
   if (!parsed.executiveSummary && parsed.summary) {
     parsed.executiveSummary = parsed.summary.split("\n")[0]?.slice(0, 500);
@@ -285,18 +337,37 @@ function normalize(parsed: ScanResult, locale: "zh" | "en"): ScanResult {
 }
 
 function normalizeFlag(f: RiskFlag): RiskFlag {
-  const raw = f as RiskFlag & { clauseId?: string };
+  const raw = f as RiskFlag & { clauseId?: string; riskRationale?: string };
+  const riskRationale = raw.riskRationale
+    ? toTextField(raw.riskRationale)
+    : undefined;
+  const legalBasisRaw = f.legalBasis ? toTextField(f.legalBasis) : undefined;
+  const text = toTextField(f.text);
+  const suggestion = toTextField(f.suggestion);
+  const category = f.category ? toTextField(f.category) : undefined;
+  let code = f.code ? toTextField(f.code) : undefined;
+  if (
+    !code &&
+    /\bDPA\b|data\s+processing\s+agreement|数据处理协议/i.test(
+      `${category || ""} ${text} ${suggestion}`
+    ) &&
+    /miss|缺|absent|without|没有|未提供|缺少/i.test(`${text} ${suggestion}`)
+  ) {
+    code = "MISSING_DPA";
+  }
   return {
     icon: f.icon || "⚠️",
-    text: toTextField(f.text),
-    suggestion: toTextField(f.suggestion),
+    text,
+    suggestion,
     level: f.level || "medium",
-    category: f.category ? toTextField(f.category) : undefined,
+    category,
     clauseId: raw.clauseId ? toTextField(raw.clauseId) : undefined,
     quote: f.quote ? toTextField(f.quote) : undefined,
-    legalBasis: f.legalBasis ? toTextField(f.legalBasis) : undefined,
+    legalBasis: legalBasisRaw || riskRationale || undefined,
+    riskRationale: riskRationale || undefined,
     impact: f.impact ? toTextField(f.impact) : undefined,
     confidence: f.confidence,
+    code,
   };
 }
 
@@ -336,11 +407,17 @@ function normalizeMissingClauses(clauses?: MissingClause[]): MissingClause[] {
   if (!clauses?.length) return [];
   return clauses.map((c) => {
     const raw = c as MissingClause & { clause?: string; risk?: string };
-    return {
-      name: raw.name || raw.clause || "",
-      importance: raw.importance || raw.risk || "",
-      suggestion: raw.suggestion || "",
-    };
+    const name = raw.name || raw.clause || "";
+    const importance = raw.importance || raw.risk || "";
+    const suggestion = raw.suggestion || "";
+    const type =
+      raw.type ||
+      (/\bDPA\b|data\s+processing\s+agreement|数据处理协议|数据保护协议/i.test(
+        `${name} ${importance} ${suggestion}`
+      )
+        ? "dpa"
+        : undefined);
+    return { name, importance, suggestion, type };
   });
 }
 

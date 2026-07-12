@@ -1,9 +1,55 @@
 /**
  * Expert-level System Prompt for ClauseCheck contract review.
- * Hardcoded persona + structured JSON contract. Not legal advice.
+ * Architecture: Base (jurisdiction-agnostic) + one Jurisdiction Pack.
+ * Not legal advice.
  */
 
+import {
+  resolveJurisdictionPack,
+  type JurisdictionPack,
+  type ResolveJurisdictionPackResult,
+} from "@/lib/prompts/jurisdiction-packs";
+import type { JurisdictionOverride } from "@/lib/jurisdiction";
+
 export type PromptLocale = "zh" | "en";
+
+/** Detected / routed jurisdiction family for validation & UI. */
+export type JurisdictionFamily =
+  | "china_prc"
+  | "us_california"
+  | "us_general"
+  | "england_wales"
+  | "common_law_other"
+  | "international_commercial"
+  | "unknown";
+
+/** Re-export whitelist from CN pack (validators). */
+export { LEGAL_BASIS_ARTICLE_WHITELIST } from "@/lib/prompts/jurisdiction-packs";
+
+export const GLOBAL_ADDON_COVERAGE_KEYS = [
+  "liability_cap",
+  "indemnification",
+  "termination_convenience",
+  "data_protection",
+  "boilerplate",
+] as const;
+
+/** Slim routing — pack-specific rules live in the loaded Jurisdiction Pack only. */
+const JURISDICTION_ROUTING_ZH = `
+【Jurisdiction Detection & Routing — 审查第一步】
+1. 从合同中提取并填写：governingLawQuote、disputeResolutionQuote、detectedJurisdiction。
+2. detectedJurisdiction 取值：china_prc | us_california | us_general | england_wales | common_law_other | international_commercial | unknown。
+3. 若未明确约定 Governing Law：默认 international_commercial。
+4. **仅适用下方已加载的 Jurisdiction Pack**；禁止套用未加载法域的法条、判例或 boilerplate 强制规则。
+5. 若用户 OVERRIDE 与合同原文冲突：以 OVERRIDE 的 Pack 为准，并在 text 中注明差异。`;
+
+const JURISDICTION_ROUTING_EN = `
+【Jurisdiction Detection & Routing — complete FIRST】
+1. Extract and populate: governingLawQuote, disputeResolutionQuote, detectedJurisdiction.
+2. detectedJurisdiction values: china_prc | us_california | us_general | england_wales | common_law_other | international_commercial | unknown.
+3. If Governing Law is silent: default to international_commercial.
+4. Apply ONLY the Jurisdiction Pack loaded below; do not apply statutes, case law, or mandatory boilerplate from unloaded jurisdictions.
+5. If a user OVERRIDE conflicts with the contract text: follow the loaded Pack and note the conflict in flag text.`;
 
 const REVIEW_CHECKLIST_ZH = `
 必查 12 类风险（逐项扫描，不可遗漏）：
@@ -35,46 +81,10 @@ Mandatory 12-category review (scan each; do not skip):
 11. Amendments & entire agreement (oral changes, conflicting clauses)
 12. Missing clauses (SLA, acceptance criteria, escalation, business continuity)`;
 
-const LEGAL_BASIS_RULES_ZH = `
-【法律依据引用规范】（legalBasis — 强制遵守）
-- 每条 high/medium flag 的 legalBasis 必须填写。
-- 不确定具体条号时，**只能**写：
-  （a）「基于商业惯例：…」（简述惯例），或
-  （b）「《民法典》总则/合同编（不写条号）」等编章级引用。
-- 高频法条白名单（仅在确信场景匹配时才写具体条号）：
-  · 第501条 — 缔约过程保密义务
-  · 第151条 — 显失公平（可撤销）
-  · 第496–498条 — 格式条款
-  · 第585–587条 — 违约金与违约责任
-- **禁止**将法院管辖/协议管辖归于《民法典》；管辖应写「《民事诉讼法》协议管辖」或「基于商业惯例：…」。
-- **禁止**编造不存在的法条编号；禁止把显失公平写成第52/545条等错误条号。
-- 也可引用《个人信息保护法》《劳动合同法》等与场景匹配的法律（须条号真实）。
-- 输出仅为决策支持，不构成法律意见。`;
-
-const LEGAL_BASIS_RULES_EN = `
-【Legal-basis citation rules】 (legalBasis — mandatory)
-- Every high/medium flag MUST include legalBasis.
-- When unsure of an article number, you may ONLY write:
-  (a) "Based on commercial practice: …", or
-  (b) "PRC Civil Code — General Provisions / Contracts Book (no article number)".
-- High-frequency whitelist (cite numbers only when the scenario truly matches):
-  · Art. 501 — confidentiality during contracting
-  · Art. 151 — gross unfairness (voidable)
-  · Arts. 496–498 — standard terms
-  · Arts. 585–587 — liquidated damages / breach
-- Do NOT attribute court jurisdiction agreements to the Civil Code; use "PRC Civil Procedure Law — agreed jurisdiction" or commercial practice.
-- Do NOT invent statute numbers; do NOT label arts. 52/545 as gross unfairness.
-- Output is decision support only — not legal advice.`;
-
-/** Article numbers allowed in automated validation (Civil Code unless noted). */
-export const LEGAL_BASIS_ARTICLE_WHITELIST = [
-  151, // 显失公平
-  496, 497, 498, // 格式条款
-  501, // 缔约保密
-  585, 586, 587, // 违约金/违约责任
-] as const;
-
 const OUTPUT_SCHEMA_ZH = `{
+  "detectedJurisdiction": "china_prc" | "us_california" | "us_general" | "england_wales" | "common_law_other" | "international_commercial" | "unknown",
+  "governingLawQuote": "适用法律条款原文摘录（无则空字符串）",
+  "disputeResolutionQuote": "争议解决条款原文摘录（无则空字符串）",
   "contractType": "合同类型 + 行业/场景，如：NDA 保密协议（单向）",
   "executiveSummary": "4 句高管摘要：合同性质、核心风险、财务敞口、签署建议（面向非法律背景的决策者）",
   "signingRecommendation": "sign" | "sign_with_changes" | "do_not_sign",
@@ -89,7 +99,8 @@ const OUTPUT_SCHEMA_ZH = `{
       "clauseId": "条款索引 id（必填，来自 CLAUSE INDEX）",
       "text": "条款位置 + 风险点分析（含条款编号）",
       "quote": "原条款内容：原文逐字引用 20-60 字（必须从 clauseId 对应条款复制）",
-      "legalBasis": "法律依据（须遵守【法律依据引用规范】）",
+      "legalBasis": "按已加载 Pack：中国轨=法条/商业惯例；普通法轨=与 riskRationale 相同文案",
+      "riskRationale": "普通法/国际 Pack 必填：安全模板；中国 Pack 可镜像 legalBasis",
       "impact": "不修改的潜在后果（1 句，尽量量化）",
       "suggestion": "可直接粘贴替换的完整条款正文（2-4 句）。禁止以「建议」「应当考虑」等词开头；可用【 】作待填占位符",
       "level": "high" | "medium" | "low"
@@ -128,7 +139,10 @@ const OUTPUT_SCHEMA_ZH = `{
 }`;
 
 const OUTPUT_SCHEMA_EN = `{
-  "contractType": "Contract type + context, e.g.: NDA (one-way)",
+  "detectedJurisdiction": "china_prc" | "us_california" | "us_general" | "england_wales" | "common_law_other" | "international_commercial" | "unknown",
+  "governingLawQuote": "Verbatim excerpt of governing-law clause (empty string if silent)",
+  "disputeResolutionQuote": "Verbatim excerpt of dispute-resolution clause (empty string if silent)",
+  "contractType": "Contract type + context, e.g.: NDA (one-way) / SaaS MSA",
   "executiveSummary": "4-sentence executive summary for non-lawyer decision-makers",
   "signingRecommendation": "sign" | "sign_with_changes" | "do_not_sign",
   "signingRationale": "2-3 sentences explaining the signing recommendation",
@@ -142,7 +156,8 @@ const OUTPUT_SCHEMA_EN = `{
       "clauseId": "Clause index id (required — from CLAUSE INDEX)",
       "text": "Clause reference + risk analysis",
       "quote": "Original clause text: verbatim quote 20-60 words (from clauseId only)",
-      "legalBasis": "Legal basis (must follow citation rules)",
+      "legalBasis": "Per loaded Pack: China=statute/practice; Common-law=same as riskRationale",
+      "riskRationale": "Required on common-law/intl packs (safe templates); optional mirror on China pack",
       "impact": "Consequence if unchanged (1 sentence; quantify if possible)",
       "suggestion": "Paste-ready full replacement clause (2-4 sentences). MUST NOT start with Suggest/Consider/Should; 【 】 placeholders allowed",
       "level": "high" | "medium" | "low"
@@ -197,16 +212,40 @@ export interface BuildExpertSystemPromptOptions {
   scenarioOverlay?: string;
   /** Retrieved compliance / RAG block */
   knowledgeBlock?: string;
+  /** Client Governing Law override — selects Jurisdiction Pack. */
+  jurisdiction?: JurisdictionOverride | null;
+  /** Contract text for heuristic pack selection when jurisdiction is auto/omitted. */
+  contractText?: string;
+  /** Optional pre-resolved pack (tests / callers that already resolved). */
+  pack?: JurisdictionPack;
 }
 
-/** Base expert prompt (persona + checklist + legalBasis + JSON schema). */
+export interface BuildExpertSystemPromptResult {
+  prompt: string;
+  pack: JurisdictionPack;
+  packSource: ResolveJurisdictionPackResult["source"];
+}
+
+function formatPackHeader(pack: JurisdictionPack, locale: PromptLocale): string {
+  const bp =
+    pack.boilerplateRequirements.length > 0
+      ? pack.boilerplateRequirements.join(", ")
+      : locale === "zh"
+        ? "（本 Pack 无强制普通法 boilerplate 清单）"
+        : "(no mandatory common-law boilerplate list for this pack)";
+  return locale === "zh"
+    ? `⸻\n【已加载 Jurisdiction Pack】id=${pack.id} · ${pack.displayName}\n强制 boilerplate：${bp}\n仅执行本 Pack 的 systemPromptAddon；忽略其他法域规则。`
+    : `---\n【Loaded Jurisdiction Pack】id=${pack.id} · ${pack.displayName}\nMandatory boilerplate: ${bp}\nExecute ONLY this pack's systemPromptAddon; ignore other jurisdictions.`;
+}
+
+/** Base expert prompt (persona + slim routing + checklist + JSON schema). Pack NOT included. */
 export function buildExpertBasePrompt(
   locale: PromptLocale = "zh",
   deep = false
 ): string {
   const isZh = locale === "zh";
+  const routing = isZh ? JURISDICTION_ROUTING_ZH : JURISDICTION_ROUTING_EN;
   const checklist = isZh ? REVIEW_CHECKLIST_ZH : REVIEW_CHECKLIST_EN;
-  const legal = isZh ? LEGAL_BASIS_RULES_ZH : LEGAL_BASIS_RULES_EN;
   const schema = isZh ? OUTPUT_SCHEMA_ZH : OUTPUT_SCHEMA_EN;
   const persona = isZh ? PERSONA_ZH : PERSONA_EN;
 
@@ -216,21 +255,22 @@ export function buildExpertBasePrompt(
 
 你正在进行「深度合同尽职审查」，标准须达到可向董事会汇报的质量。
 
-${checklist}
+${routing}
 
-${legal}
+${checklist}
 
 额外深度要求：
 1. 识别合同类型及行业特殊风险（劳动、租赁、SaaS、投资、NDA 等）
 2. 每条 flag 必须引用原文 quote（原条款内容）
 3. worstCase：量化最坏情况（金额、期限、不可逆后果）
 4. strengths：至少 2 条对用户有利的条款（谈判筹码）
-5. missingClauses：至少 3 条该类型合同常见但本文缺失的条款
+5. missingClauses：至少 3 条该类型合同常见但本文缺失的条款；遵守已加载 Pack 的 boilerplate 强制规则
 6. 检查条款之间的冲突（如 A 条与 B 条矛盾）
+7. 遵守已加载 Pack 的引用规范与 Add-ons（若有）
 
 至少 10 个 flags，negotiations 至少 5 条。
-每条 high/medium flag 必须含：风险等级 level、原条款 quote、风险点分析 text、可直接粘贴的 suggestion（禁止以「建议」开头）、legalBasis。
-遵守【法律依据引用规范】。
+每条 high/medium flag 必须含：level、quote、text、可直接粘贴的 suggestion（禁止以「建议」开头）、legalBasis；普通法 Pack 另须 riskRationale。
+必须填写 detectedJurisdiction、governingLawQuote、disputeResolutionQuote。
 
 输出严格 JSON（无 markdown、无多余文字）：
 ${schema}`
@@ -238,21 +278,22 @@ ${schema}`
 
 You are performing DEEP contract due diligence — board-report quality.
 
-${checklist}
+${routing}
 
-${legal}
+${checklist}
 
 Additional depth requirements:
 1. Identify contract type and industry-specific risks
 2. Every flag must include original-text quote
 3. worstCase: quantify worst-case exposure where possible
 4. strengths: at least 2 terms favorable to the reviewing party
-5. missingClauses: at least 3 standard clauses absent from this contract
+5. missingClauses: at least 3 standard clauses absent; honor the loaded Pack's boilerplate rules
 6. Check for internal conflicts between clauses
+7. Follow the loaded Pack's citation rules and Add-ons (if any)
 
 Minimum 10 flags, minimum 5 negotiations.
-Every high/medium flag must include: level, quote (original clause), text (risk analysis), paste-ready suggestion (MUST NOT start with Suggest), legalBasis.
-Follow legal-basis citation rules.
+Every high/medium flag must include: level, quote, text, paste-ready suggestion (MUST NOT start with Suggest), legalBasis; on common-law packs also riskRationale.
+Must populate detectedJurisdiction, governingLawQuote, disputeResolutionQuote.
 
 Output strict JSON only (no markdown):
 ${schema}`;
@@ -263,74 +304,110 @@ ${schema}`;
 
 请以专业法律备忘录标准分析合同。
 
-${checklist}
+${routing}
 
-${legal}
+${checklist}
 
 ⸻
 评分标准（0=无风险，100=极度危险）：
 - fairness：权利义务对等性
-- compliance：与中国民法典、个人信息保护法、行业监管要求的契合度
+- compliance：与**已加载 Pack / 已识别管辖区**适用法及行业监管的契合度
 - financial：潜在经济损失（违约金、无限责任、不可退款项等）
 综合分 = round(fairness×0.35 + compliance×0.25 + financial×0.40)
 
 质量要求：
 - 至少识别 6 个 flags（含全部 high 风险）；少于 6 条视为不合格
-- 每条 high/medium flag 必须含：level、quote、text、suggestion、legalBasis、impact、clauseId
+- 每条 high/medium flag 必须含：level、quote、text、suggestion、legalBasis、impact、clauseId；普通法 Pack 另须 riskRationale
 - suggestion 与 negotiations.suggested：**禁止**以「建议」「应当考虑」「请」等词开头；必须是可直接粘贴进合同的完整条款正文（可用【 】占位）
 - negotiations 至少 3 条，按 priority 排序；每条必须含 clauseId 与 quote
 - actionItems 恰好 5 条，按优先级排列
 - 语言专业、客观，避免模糊表述如「可能有问题」
-- 遵守【法律依据引用规范】与法条白名单
+- **仅遵守已加载 Jurisdiction Pack**；禁止混用未加载法域规则
+- 填写 detectedJurisdiction / governingLawQuote / disputeResolutionQuote
 
 输出严格 JSON（无 markdown、无多余文字）：
 ${schema}
 
-深度模式专属字段（worstCase、strengths、missingClauses）在基础模式可省略或留空数组。`
+深度模式专属字段（worstCase、strengths）在基础模式可省略；missingClauses 遵守已加载 Pack 的 boilerplate 要求。`
     : `${persona}
 
 Analyze as a professional legal memo.
 
-${checklist}
+${routing}
 
-${legal}
+${checklist}
 
 ---
 Scoring (0=no risk, 100=extreme danger):
 - fairness: balance of rights and obligations
-- compliance: alignment with applicable law and industry norms
+- compliance: fit with **loaded Pack / detected jurisdiction** law and industry norms
 - financial: economic exposure (penalties, unlimited liability, non-refundable sums)
 Composite = round(fairness×0.35 + compliance×0.25 + financial×0.40)
 
 Quality bar:
 - Minimum 6 flags (cover all high-severity issues); fewer than 6 is unacceptable
-- Every high/medium flag must include: level, quote, text, suggestion, legalBasis, impact, clauseId
+- Every high/medium flag must include: level, quote, text, suggestion, legalBasis, impact, clauseId; on common-law packs also riskRationale
 - suggestion and negotiations.suggested MUST NOT start with Suggest/Consider/Please; must be paste-ready full clause text (【 】 placeholders OK)
 - Minimum 3 negotiations, priority-sorted; each must include clauseId and quote
 - Exactly 5 actionItems in priority order
 - Professional, precise tone — no vague phrases like "might be problematic"
-- Follow legal-basis citation rules and the article whitelist
+- **Follow ONLY the loaded Jurisdiction Pack** — do not mix unloaded jurisdictions
+- Populate detectedJurisdiction / governingLawQuote / disputeResolutionQuote
 
 Output strict JSON only (no markdown):
 ${schema}
 
-Omit worstCase/strengths/missingClauses in basic mode or use empty arrays.`;
+Omit worstCase/strengths in basic mode if needed; honor the loaded Pack's missingClauses / boilerplate rules.`;
 }
 
-/** Full system prompt = base + scenario overlay + retrieved knowledge. */
-export function buildExpertSystemPrompt(
+/** Resolve pack then compose base + pack addon (+ scenario + RAG). */
+export function buildExpertSystemPromptDetailed(
   options: BuildExpertSystemPromptOptions = {}
-): string {
+): BuildExpertSystemPromptResult {
   const {
     locale = "zh",
     deep = false,
     scenarioOverlay = "",
     knowledgeBlock = "",
+    jurisdiction,
+    contractText,
+    pack: packOverride,
   } = options;
 
-  return [buildExpertBasePrompt(locale, deep), scenarioOverlay, knowledgeBlock]
+  const resolved = packOverride
+    ? { pack: packOverride, source: "override" as const }
+    : resolveJurisdictionPack({
+        locale,
+        jurisdiction: jurisdiction ?? undefined,
+        contractText,
+      });
+
+  const packBlock = [
+    formatPackHeader(resolved.pack, locale),
+    resolved.pack.systemPromptAddon,
+  ].join("\n");
+
+  const prompt = [
+    buildExpertBasePrompt(locale, deep),
+    packBlock,
+    scenarioOverlay,
+    knowledgeBlock,
+  ]
     .filter(Boolean)
     .join("\n\n");
+
+  return {
+    prompt,
+    pack: resolved.pack,
+    packSource: resolved.source,
+  };
+}
+
+/** Full system prompt = base + one jurisdiction pack + scenario + knowledge. */
+export function buildExpertSystemPrompt(
+  options: BuildExpertSystemPromptOptions = {}
+): string {
+  return buildExpertSystemPromptDetailed(options).prompt;
 }
 
 export function getRefinePrompt(locale: PromptLocale = "zh"): string {
@@ -345,9 +422,9 @@ export function getRefinePrompt(locale: PromptLocale = "zh"): string {
 3. 是否存在条款冲突未识别？
 4. quote 是否准确对应原文？
 5. suggestion 是否可直接用于红线修订（完整可替换条款）？
-6. legalBasis 是否引用民法典/司法解释，或明确标注「基于商业惯例」？
-7. 是否补充 missingClauses？
-8. worstCase / negotiations 优先级是否合理？
+6. 是否遵守**已加载 Jurisdiction Pack**的引用规范（中国 Pack：legalBasis 白名单；普通法 Pack：riskRationale 安全模板、无判例/捏造 Section）？
+7. detectedJurisdiction 是否与 Governing Law / Pack 一致？有无跨法域泄漏？
+8. Pack 要求的 Global Add-ons / boilerplate / missingClauses / negotiations 是否合理？
 
 输入：{"original": "合同原文", "firstPass": {初版结果}}
 
@@ -362,9 +439,9 @@ Review checklist:
 3. Internal clause conflicts identified?
 4. Are quotes accurate?
 5. Are suggestions paste-ready full clauses?
-6. Does legalBasis cite Civil Code / interpretations, or say "Based on commercial practice"?
-7. missingClauses supplemented?
-8. Are negotiation priorities correct?
+6. Does output follow the **loaded Jurisdiction Pack** (China: legalBasis whitelist; common-law: safe riskRationale, no case names / fabricated sections)?
+7. Does detectedJurisdiction match Governing Law / Pack? Any cross-jurisdiction leakage?
+8. Pack-required Global Add-ons / boilerplate / missingClauses / negotiation priorities OK?
 
 Input: {"original": "contract text", "firstPass": {first pass result}}
 

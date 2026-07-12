@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { DEFAULT_SCENARIO_ID, isValidScenarioId } from "@/lib/contract-scenarios";
+import { parseJurisdictionParam } from "@/lib/jurisdiction";
 
 /** Session user id — must be UUID; never accept from client body. */
 export const sessionUserIdSchema = z.string().uuid();
@@ -13,6 +14,11 @@ export const scanFormFieldsSchema = z.object({
       const id = raw?.trim() || DEFAULT_SCENARIO_ID;
       return isValidScenarioId(id) ? id : DEFAULT_SCENARIO_ID;
     }),
+  /** Optional governing-law override; omit/auto → AI detect. */
+  jurisdiction: z
+    .string()
+    .optional()
+    .transform((raw) => parseJurisdictionParam(raw ?? undefined)),
 });
 
 export type ScanFormFields = z.infer<typeof scanFormFieldsSchema>;
@@ -24,10 +30,13 @@ export function parseScanFormFields(form: FormData): ScanFormFields {
 
   const localeRaw = form.get("locale");
   const scenarioRaw = form.get("scenario");
+  const jurisdictionRaw = form.get("jurisdiction");
 
   return scanFormFieldsSchema.parse({
     locale: localeRaw === "en" ? "en" : localeRaw === "zh" ? "zh" : undefined,
     scenario: scenarioRaw != null ? String(scenarioRaw) : undefined,
+    jurisdiction:
+      jurisdictionRaw != null ? String(jurisdictionRaw) : undefined,
   });
 }
 

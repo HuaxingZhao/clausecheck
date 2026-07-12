@@ -4,6 +4,10 @@ import { DEFAULT_SCENARIO_ID, isValidScenarioId } from "@/lib/contract-scenarios
 import { resolveAuthorizedScanTier } from "@/lib/server-quota";
 import type { ScanResult } from "@/lib/types";
 import type { PipelineOptions } from "@/lib/analysis-pipeline";
+import {
+  parseJurisdictionParam,
+  toDetectedJurisdiction,
+} from "@/lib/jurisdiction";
 
 export const maxDuration = 60;
 
@@ -22,6 +26,7 @@ export async function POST(req: NextRequest) {
       contractText?: string;
       locale?: string;
       scenarioId?: string;
+      jurisdiction?: string;
     };
 
     const result = body.result;
@@ -33,6 +38,7 @@ export async function POST(req: NextRequest) {
     const locale = body.locale === "en" ? "en" : "zh";
     const rawScenario = String(body.scenarioId ?? result.scenarioId ?? DEFAULT_SCENARIO_ID);
     const scenarioId = isValidScenarioId(rawScenario) ? rawScenario : DEFAULT_SCENARIO_ID;
+    const jurisdiction = parseJurisdictionParam(body.jurisdiction);
     const { tier } = await resolveAuthorizedScanTier(req);
     const deep = tier === "pro" || tier === "pay_per_use";
     const maxChars = deep ? PRO_MAX_CHARS : FREE_MAX_CHARS;
@@ -47,7 +53,12 @@ export async function POST(req: NextRequest) {
       maxChars,
       locale,
       scenarioId,
+      jurisdiction,
     });
+
+    if (jurisdiction) {
+      refined.detectedJurisdiction = toDetectedJurisdiction(jurisdiction);
+    }
 
     return NextResponse.json({ ...refined, refineComplete: true });
   } catch (err: unknown) {

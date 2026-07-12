@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="480" viewBox="0 0 800 480" role="img" aria-label="Risk grading demo">
+  <rect width="800" height="480" fill="#F8F6F1"/>
+  <rect x="40" y="40" width="720" height="400" rx="16" fill="#fff" stroke="#E5E0D8"/>
+  <text x="64" y="88" font-family="system-ui,sans-serif" font-size="22" font-weight="700" fill="#1A365D">Risk grading · 30s</text>
+  <text x="64" y="118" font-family="system-ui,sans-serif" font-size="13" fill="#6B6560">Sample SaaS MSA · California</text>
+  <circle cx="680" cy="100" r="42" fill="#FEF2F2" stroke="#DC2626" stroke-width="3"/>
+  <text x="680" y="106" text-anchor="middle" font-family="system-ui,sans-serif" font-size="20" font-weight="700" fill="#B91C1C">82</text>
+  <rect x="64" y="150" width="560" height="48" rx="10" fill="#FEF2F2"/>
+  <text x="84" y="180" font-family="system-ui,sans-serif" font-size="14" fill="#7F1D1D">High · Uncapped indemnity</text>
+  <rect x="64" y="214" width="560" height="48" rx="10" fill="#FFFBEB"/>
+  <text x="84" y="244" font-family="system-ui,sans-serif" font-size="14" fill="#78350F">Medium · Auto-renewal 180 days</text>
+  <rect x="64" y="278" width="560" height="48" rx="10" fill="#F0FDF4"/>
+  <text x="84" y="308" font-family="system-ui,sans-serif" font-size="14" fill="#14532D">Action · Paste-ready redlines</text>
+  <text x="64" y="380" font-family="system-ui,sans-serif" font-size="12" fill="#9A948C">ClauseCheck · decision support, not legal advice</text>
+</svg>

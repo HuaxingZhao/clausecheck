@@ -64,6 +64,25 @@ npm run verify:staging     # 上线前 env 检查（BASE_URL=... 可测远端）
 - **埋点**：`lib/analytics.ts` → `POST /api/events`（`analytics_events` 表）
 - **PDF**：行动摘要 → 时间条款 → flags → 补充详情（与网页报告一致）
 - **移动端审阅**：小屏原文/建议 Tab 切换，桌面保持左右分栏 82vh
+- **Jurisdiction Packs**：Base + 单 Pack 插件；审查时只加载一个法域
+
+## Contributing
+
+Want to add a new governing-law Pack (e.g. Singapore, Texas, Dubai)?
+
+→ **[Contributing Jurisdiction Packs](docs/contributing-jurisdiction-packs.md)**  
+→ **[Jurisdiction Pack Bounty](https://www.clausecheck.cc/en/community/bounty)** ([launch kit](docs/community/bounty-launch-kit.md))
+
+```bash
+npm run new-pack -- --id=sg --name="Singapore"
+npm run validate:pack -- --id=sg
+```
+
+## Beta & launch
+
+- Beta landing: **[/beta](https://clausecheck.app/beta)** (local: `http://localhost:3000/beta`)
+- Community bounty: **[/community/bounty](https://www.clausecheck.cc/en/community/bounty)** (local: `http://localhost:3000/en/community/bounty`)
+- Product Hunt kit: [docs/launch/product-hunt-kit.md](docs/launch/product-hunt-kit.md)
 
 ## License
 

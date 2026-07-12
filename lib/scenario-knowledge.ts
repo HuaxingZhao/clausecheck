@@ -1,9 +1,14 @@
 import type { ContractScenarioId } from "./contract-scenarios";
+import type { KnowledgeDocType, KnowledgeJurisdiction } from "./rag/knowledge-meta";
 
 export interface StatuteSnippet {
   title: string;
   summaryZh: string;
   summaryEn: string;
+  /** Optional explicit RAG jurisdiction; backfill/heuristics fill when omitted. */
+  jurisdiction?: KnowledgeJurisdiction;
+  docType?: KnowledgeDocType;
+  effectiveDate?: string;
 }
 
 export interface ClauseTemplate {
@@ -11,6 +16,9 @@ export interface ClauseTemplate {
   nameEn: string;
   textZh: string;
   textEn: string;
+  jurisdiction?: KnowledgeJurisdiction;
+  docType?: KnowledgeDocType;
+  effectiveDate?: string;
 }
 
 export interface ScenarioKnowledgePack {

@@ -1,0 +1,61 @@
+SOFTWARE-AS-A-SERVICE AGREEMENT
+(California — Industry-reasonable B2B draft for review testing)
+
+This Software-as-a-Service Agreement (the "Agreement") is entered into as of the Effective Date by and between CloudForge Analytics, Inc., a Delaware corporation with its principal place of business in San Francisco, California ("Provider"), and the customer entity executing an Order Form ("Customer").
+
+1. SERVICES
+Provider will make available its hosted analytics platform (the "Service") on a non-exclusive, non-transferable basis for Customer's internal business use. Provider may modify features from time to time, provided that Provider does not materially degrade core functionality during a paid Subscription Term without commercially reasonable notice and a migration path.
+
+2. FEES; REFUNDS
+Customer shall pay the Fees listed in the Order Form annually in advance. Fees are non-refundable except where Provider terminates for convenience or fails to cure a material breach within thirty (30) days after written notice, in which case Customer receives a pro-rata refund of prepaid unused Fees. Late amounts accrue interest at 1.5% per month or the maximum rate permitted by law, whichever is lower. Provider may increase Fees upon renewal by up to ten percent (10%) with at least sixty (60) days' prior written notice.
+
+3. DATA; PERSONAL INFORMATION; SECURITY
+Customer may upload Customer Data, including personal information, into the Service. Provider will process Customer Data solely to provide and improve the Service for Customer, and will not sell Customer Data or use it for third-party advertising. Cross-border transfers will be subject to the parties' signed Data Processing Addendum attached as Exhibit A (including Standard Contractual Clauses where required). Upon termination, Provider will make Customer Data available for export for thirty (30) days and thereafter delete or anonymize it within commercially reasonable timeframes, except as required by law.
+
+3A. DATA BREACH NOTIFICATION
+Provider will notify Customer without undue delay and in any event within seventy-two (72) hours after confirming a Security Incident affecting Customer Data, and will provide reasonable cooperation in Customer's investigation and remediation efforts.
+
+4. CONFIDENTIALITY
+Each party's confidentiality obligations survive for three (3) years after termination (or longer for trade secrets for so long as they remain trade secrets). Obligations are mutual and subject to standard carve-outs for publicly available information, independently developed materials, and compelled disclosure.
+
+5. INTELLECTUAL PROPERTY
+Customer retains all right, title, and interest in Customer Data. Provider retains all right, title, and interest in the Service, underlying software, and Provider's pre-existing materials. Feedback may be used by Provider on a royalty-free basis without transferring ownership of Customer Data.
+
+6. LIMITATION OF LIABILITY
+EXCEPT FOR EXCLUDED CLAIMS, EACH PARTY'S TOTAL AGGREGATE LIABILITY ARISING OUT OF OR RELATED TO THIS AGREEMENT SHALL NOT EXCEED THE GREATER OF: (A) THE FEES PAID OR PAYABLE BY CUSTOMER TO PROVIDER UNDER THIS AGREEMENT IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM; OR (B) ONE HUNDRED THOUSAND U.S. DOLLARS (US$100,000). EXCEPT FOR EXCLUDED CLAIMS, NEITHER PARTY SHALL BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, PUNITIVE, OR LOST PROFITS DAMAGES. "Excluded Claims" means a party's gross negligence or willful misconduct, breach of confidentiality, infringement of the other party's intellectual property, or amounts payable under the indemnification obligations in Section 7 (subject to the Customer indemnity cap below).
+
+7. INDEMNIFICATION
+7.1 Provider IP Indemnity. Provider shall indemnify, defend, and hold harmless Customer from third-party claims alleging that the Service infringes a U.S. patent, copyright, or trademark, and shall pay resulting damages and reasonable attorneys' fees awarded, subject to customary exclusions (Customer combinations, modifications, and use outside documentation).
+7.2 Customer Indemnity. Customer shall indemnify, defend, and hold harmless Provider from third-party claims arising from Customer Data or Customer's unlawful use of the Service. Customer's aggregate indemnification liability under this Section 7.2 shall not exceed the Limitation of Liability Cap in Section 6 and shall exclude consequential, incidental, special, and punitive damages to the extent permitted by law.
+
+8. TERM; TERMINATION
+The Initial Term is twelve (12) months and auto-renews for successive twelve-month periods unless either party gives written notice of non-renewal at least thirty (30) days before the end of the then-current term. Either party may terminate for convenience upon thirty (30) days' prior written notice. Either party may terminate for material breach uncured within thirty (30) days after written notice. Upon termination, Provider will assist with orderly wind-down and data export as set forth in Section 3.
+
+9. WARRANTIES; SERVICE LEVELS
+Provider warrants that the Service will perform materially in accordance with the documentation. Provider will use commercially reasonable efforts to maintain ninety-nine and five-tenths percent (99.5%) monthly uptime, excluding scheduled maintenance. If uptime falls below the commitment, Customer may request service credits as described in the Order Form (credits are Customer's sole remedy for uptime shortfalls). EXCEPT AS EXPRESSLY SET FORTH, PROVIDER DISCLAIMS IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE TO THE MAXIMUM EXTENT PERMITTED BY LAW.
+
+10. ASSIGNMENT
+Neither party may assign this Agreement without the other party's prior written consent, except to an affiliate or in connection with a merger, acquisition, or sale of substantially all assets, provided the assignee assumes this Agreement in writing.
+
+11. GOVERNING LAW; DISPUTE RESOLUTION
+This Agreement shall be governed by the laws of the State of California, without regard to conflict-of-laws principles. Exclusive venue lies in the state and federal courts located in San Francisco County, California. Before filing suit, the parties will attempt good-faith escalation between business executives for fifteen (15) days. The prevailing party may recover reasonable attorneys' fees as awarded by the court.
+
+12. ENTIRE AGREEMENT; AMENDMENTS
+This Agreement, including Order Forms and the Data Processing Addendum, constitutes the entire agreement between the parties and supersedes prior proposals relating to its subject matter. Amendments must be in a writing signed by both parties. Website posting alone does not amend this Agreement.
+
+13. SEVERABILITY
+If any provision of this Agreement is held unenforceable, that provision will be modified to the minimum extent necessary to make it enforceable, and the remaining provisions will continue in full force and effect.
+
+14. WAIVER
+Failure to enforce any provision of this Agreement is not a waiver of future enforcement of that or any other provision. Any waiver must be in writing and signed by the waiving party.
+
+15. FORCE MAJEURE
+Neither party is liable for delays or failures caused by events beyond its reasonable control, including natural disasters, war, terrorism, labor disputes (excluding the affected party's workforce), government actions, or widespread internet or utility failures, provided the affected party gives prompt notice and uses reasonable efforts to mitigate.
+
+16. NOTICES
+Notices under this Agreement must be in writing and delivered by email with confirmation of receipt, overnight courier, or certified mail to the addresses in the Order Form (or updated in writing). Notices are effective upon confirmed receipt (email) or one (1) business day after deposit with courier.
+
+17. ACCEPTANCE
+By executing an Order Form referencing this Agreement, Customer agrees to these terms.
+
+END OF AGREEMENT

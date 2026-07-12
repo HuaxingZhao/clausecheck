@@ -1,4 +1,5 @@
 import type { ContractScenarioId } from "./contract-scenarios";
+import type { ReviewFeedbackMeta } from "./feedback/types";
 
 /** 扫描结果 */
 export interface ScanResult {
@@ -41,6 +42,24 @@ export interface ScanResult {
   scenarioId?: ContractScenarioId;
   /** 分析质量统计（管线 v2） */
   qualityStats?: AnalysisQualityStats;
+  /** AI 识别的管辖区路由（全球化审查） */
+  detectedJurisdiction?:
+    | "china_prc"
+    | "us_california"
+    | "us_general"
+    | "england_wales"
+    | "common_law_other"
+    | "international_commercial"
+    | "unknown";
+  /** 适用法律条款原文摘录 */
+  governingLawQuote?: string;
+  /** 争议解决条款原文摘录 */
+  disputeResolutionQuote?: string;
+  /**
+   * Feedback / golden-set context from this review run.
+   * Used by report UI — never includes contract body.
+   */
+  feedbackMeta?: ReviewFeedbackMeta;
 }
 
 export type ConfidenceLevel = "high" | "medium" | "low";
@@ -120,12 +139,19 @@ export interface RiskFlag {
   quote?: string;
   /** 条款索引 id（来自 contract-index，分析时必须填写） */
   clauseId?: string;
-  /** 法律依据或商业影响（深度模式） */
+  /** 法律依据或商业影响（深度模式；普通法轨可与 riskRationale 同文） */
   legalBasis?: string;
+  /**
+   * 普通法/国际轨风险理由（安全模板）；中国轨可镜像 legalBasis。
+   * 前端展示仍主要用 legalBasis（normalize 会互相同步）。
+   */
+  riskRationale?: string;
   /** 若不修改的潜在后果 */
   impact?: string;
   /** 分析置信度 */
   confidence?: ConfidenceLevel;
+  /** Machine code for product CTAs (e.g. MISSING_DPA) */
+  code?: string;
 }
 
 /** 谈判要点 */
@@ -164,6 +190,8 @@ export interface MissingClause {
   importance: string;
   /** 建议增加的条款内容模板 */
   suggestion: string;
+  /** Machine type for product CTAs (e.g. "dpa") */
+  type?: string;
 }
 
 export interface ScanError {

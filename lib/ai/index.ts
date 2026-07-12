@@ -1,5 +1,6 @@
 export {
   buildExpertSystemPrompt,
+  buildExpertSystemPromptDetailed,
   buildExpertBasePrompt,
   getRefinePrompt,
   CLAUSE_INDEX_RULES_ZH,

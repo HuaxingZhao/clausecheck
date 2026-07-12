@@ -6,7 +6,7 @@
 import OpenAI from "openai";
 import { analyzeContractFull, type AnalyzeOptions } from "@/lib/analyze";
 import {
-  buildExpertSystemPrompt,
+  buildExpertSystemPromptDetailed,
   CLAUSE_INDEX_RULES_EN,
   CLAUSE_INDEX_RULES_ZH,
 } from "@/lib/ai/expert-system-prompt";
@@ -14,6 +14,10 @@ import {
   retrieveComplianceRules,
   type RetrieveComplianceRulesResult,
 } from "@/lib/ai/retrieve-compliance-rules";
+import type {
+  JurisdictionPack,
+  PackResolveSource,
+} from "@/lib/prompts/jurisdiction-packs";
 import {
   DEFAULT_SCENARIO_ID,
   getScenarioPromptOverlay,
@@ -22,6 +26,7 @@ import {
 } from "@/lib/contract-scenarios";
 import { buildContractIndex, formatClauseIndexForPrompt } from "@/lib/contract-index";
 import type { ScanResult } from "@/lib/types";
+import type { JurisdictionOverride } from "@/lib/jurisdiction";
 
 export interface ReviewContractOptions {
   locale?: "zh" | "en";
@@ -31,6 +36,8 @@ export interface ReviewContractOptions {
   /** When false, skip critic/rewrite pipeline (faster smoke tests). Default true. */
   refine?: boolean;
   apiKey?: string;
+  /** Client Governing Law override (skip AI auto-detect when set). */
+  jurisdiction?: JurisdictionOverride;
 }
 
 export interface ReviewContractResult {
@@ -45,6 +52,11 @@ export interface ReviewContractResult {
     /** True when a low-flag count triggered one automatic retry. */
     flagRetryUsed?: boolean;
     flagCount?: number;
+    jurisdictionFilter?: string | null;
+    ragDegraded?: boolean;
+    /** Loaded Jurisdiction Pack id (Base + Pack architecture). */
+    jurisdictionPackId?: string;
+    jurisdictionPackSource?: string;
   };
 }
 
@@ -61,24 +73,37 @@ function requireApiKey(explicit?: string): string {
  */
 export function assembleReviewSystemPrompt(
   contractText: string,
-  options: Pick<ReviewContractOptions, "locale" | "scenarioId" | "deep"> = {}
-): { systemPrompt: string; retrieval: RetrieveComplianceRulesResult } {
+  options: Pick<
+    ReviewContractOptions,
+    "locale" | "scenarioId" | "deep" | "jurisdiction"
+  > = {}
+): {
+  systemPrompt: string;
+  retrieval: RetrieveComplianceRulesResult;
+  pack: JurisdictionPack;
+  packSource: PackResolveSource;
+} {
   const locale = options.locale ?? "zh";
   const scenarioId = isValidScenarioId(options.scenarioId ?? DEFAULT_SCENARIO_ID)
     ? (options.scenarioId as ContractScenarioId)
     : DEFAULT_SCENARIO_ID;
   const deep = options.deep ?? false;
 
-  const retrieval = retrieveComplianceRules(contractText, scenarioId, locale);
-  const scenarioOverlay = getScenarioPromptOverlay(scenarioId, locale);
-  const systemPrompt = buildExpertSystemPrompt({
-    locale,
-    deep,
-    scenarioOverlay,
-    knowledgeBlock: retrieval.knowledgeBlock,
+  const retrieval = retrieveComplianceRules(contractText, scenarioId, locale, {
+    jurisdiction: options.jurisdiction ?? undefined,
   });
+  const scenarioOverlay = getScenarioPromptOverlay(scenarioId, locale);
+  const { prompt: systemPrompt, pack, packSource } =
+    buildExpertSystemPromptDetailed({
+      locale,
+      deep,
+      scenarioOverlay,
+      knowledgeBlock: retrieval.knowledgeBlock,
+      jurisdiction: options.jurisdiction ?? undefined,
+      contractText,
+    });
 
-  return { systemPrompt, retrieval };
+  return { systemPrompt, retrieval, pack, packSource };
 }
 
 /**
@@ -102,17 +127,20 @@ export async function reviewContract(
   const maxChars = options.maxChars ?? (deep ? 80000 : 12000);
   const apiKey = requireApiKey(options.apiKey);
 
-  const { systemPrompt, retrieval } = assembleReviewSystemPrompt(text, {
-    locale,
-    scenarioId,
-    deep,
-  });
+  const { systemPrompt, retrieval, pack, packSource } =
+    assembleReviewSystemPrompt(text, {
+      locale,
+      scenarioId,
+      deep,
+      jurisdiction: options.jurisdiction,
+    });
 
   const analyzeOpts: AnalyzeOptions = {
     locale,
     scenarioId,
     deep,
     maxChars,
+    jurisdiction: options.jurisdiction,
   };
 
   const result =
@@ -129,8 +157,6 @@ export async function reviewContract(
     delete (result as ScanResult & { _flagRetryUsed?: boolean })._flagRetryUsed;
   }
 
-  // Safety net: if pipeline somehow still returns <6 flags, one extra dedicated retry
-  // is already performed inside analyzeContract (max 1). Document count here.
   return {
     result,
     retrieval,
@@ -142,6 +168,10 @@ export async function reviewContract(
       systemPromptChars: systemPrompt.length,
       flagRetryUsed,
       flagCount: result.flags?.length ?? 0,
+      jurisdictionFilter: retrieval.jurisdictionFilter,
+      ragDegraded: retrieval.degraded,
+      jurisdictionPackId: pack.id,
+      jurisdictionPackSource: packSource,
     },
   };
 }

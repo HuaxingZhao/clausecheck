@@ -22,6 +22,7 @@ import {
   reportApi5xx,
   trackBusinessEvent,
 } from "@/lib/monitoring";
+import { parseJurisdictionParam } from "@/lib/jurisdiction";
 
 export const maxDuration = 90;
 
@@ -34,7 +35,8 @@ const PRO_MAX_CHARS = 80_000;
  * Accepts already-extracted contract text as JSON. File upload remains on
  * `POST /api/scan`. AI logic lives in `@/lib/ai` (`reviewContract` + expert prompt).
  *
- * Body: `{ contractText, locale?, scenarioId?, deep?, refine? }`
+ * Body: `{ contractText, locale?, scenarioId?, deep?, refine?, jurisdiction? }`
+- `jurisdiction` (optional): `us_california` | `us_new_york` | `england_wales` | `china_prc` | `international_commercial`. When set, overrides AI auto-detect for `detectedJurisdiction`. Omit / `auto` → AI detects from Governing Law.
  */
 const bodySchema = z.object({
   contractText: z.string(),
@@ -44,6 +46,8 @@ const bodySchema = z.object({
   deep: z.boolean().optional(),
   /** Default true — full pipeline; set false for faster smoke tests. */
   refine: z.boolean().optional().default(true),
+  /** Optional Governing Law override; omit/auto → AI detect. */
+  jurisdiction: z.string().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -217,10 +221,16 @@ export async function POST(req: NextRequest) {
     const deep =
       parsed.data.deep ?? (tier === "pro" || tier === "pay_per_use");
     const maxChars = deep ? PRO_MAX_CHARS : useCredits ? charCount : FREE_MAX_CHARS;
+    const jurisdiction = parseJurisdictionParam(parsed.data.jurisdiction);
 
-    // 2) Build expert system prompt (persona + schema + legalBasis rules).
+    // 2) Build expert system prompt (Base + one Jurisdiction Pack).
     // Full RAG (scenario overlay + knowledge) is applied inside reviewContract.
-    const systemPrompt = buildExpertSystemPrompt({ locale, deep });
+    const systemPrompt = buildExpertSystemPrompt({
+      locale,
+      deep,
+      jurisdiction,
+      contractText,
+    });
 
     // 3) Call AI review engine (OPENAI_API_KEY via env inside reviewContract).
     let out;
@@ -232,6 +242,7 @@ export async function POST(req: NextRequest) {
         maxChars,
         refine: parsed.data.refine,
         apiKey,
+        jurisdiction,
       });
     } catch (analysisErr) {
       if (creditConsumed && creditUserId) {

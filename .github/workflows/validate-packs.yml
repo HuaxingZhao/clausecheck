@@ -1,0 +1,29 @@
+name: Validate Jurisdiction Packs
+
+on:
+  pull_request:
+    paths:
+      - "lib/prompts/jurisdiction-packs/**"
+      - "tests/packs/**"
+      - "scripts/validate-pack.ts"
+      - "scripts/new-pack.ts"
+
+jobs:
+  validate-packs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - name: Validate all registered packs
+        run: npm run validate:pack -- --all
+      - name: Run community pack unit tests (if any)
+        run: |
+          if ls tests/packs/*.test.ts >/dev/null 2>&1; then
+            node --import tsx --test tests/packs/*.test.ts
+          else
+            echo "No community pack tests yet — skip"
+          fi

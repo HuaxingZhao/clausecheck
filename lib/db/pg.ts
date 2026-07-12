@@ -3,6 +3,8 @@ import { ensureCreditsSchema } from "./ensure-credits-schema";
 import { ensureDocumentQuotaSchema } from "./ensure-document-quota-schema";
 import { ensureInviteSchema } from "./ensure-invite-schema";
 import { ensurePhoneAuthSchema } from "./ensure-phone-auth-schema";
+import { ensureFeedbackSchema } from "./ensure-feedback-schema";
+import { ensureBetaWaitlistSchema } from "./ensure-beta-waitlist-schema";
 
 let sql: ReturnType<typeof postgres> | null = null;
 
@@ -129,6 +131,8 @@ export async function ensureSchema() {
       await ensureDocumentQuotaSchema(db);
       await ensureInviteSchema(db);
       await ensurePhoneAuthSchema(db);
+      await ensureFeedbackSchema(db);
+      await ensureBetaWaitlistSchema(db);
     })();
   }
   await schemaReady;

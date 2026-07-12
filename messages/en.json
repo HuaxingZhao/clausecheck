@@ -57,7 +57,33 @@
     "wordLimitModalTitle": "Document too long",
     "wordLimitModalBody": "This document exceeds the 20,000-character trial limit. Upgrade to Pro for up to 80,000 characters of deep review.",
     "wordLimitModalClose": "Got it",
-    "viewPricing": "View pricing"
+    "viewPricing": "View pricing",
+    "jurisdiction": {
+      "label": "Governing Law (Optional)",
+      "hint": "Leave as Auto-detect to infer from the contract. A manual choice overrides AI routing.",
+      "options": {
+        "auto": "Auto-detect",
+        "usCalifornia": "US — California",
+        "usNewYork": "US — New York",
+        "englandWales": "England & Wales",
+        "chinaPrc": "China PRC",
+        "international": "International Commercial"
+      }
+    },
+    "sample": {
+      "trigger": "Try a sample contract ▾",
+      "hint": "Demo only — loads a built-in fixture so you can see risk grading without uploading a file.",
+      "replaceConfirm": "This will replace your current content. Continue?",
+      "loadedHint": "Sample loaded — click Start Scan when ready.",
+      "options": {
+        "highRisk": "High-Risk SaaS Agreement (California)",
+        "highRiskHint": "Uncapped liability, $100 cap",
+        "standard": "Standard SaaS Agreement (California)",
+        "standardHint": "Industry-standard terms",
+        "chinaNda": "Risky NDA (China PRC)",
+        "chinaNdaHint": "Overlong term, adverse forum — Chinese law"
+      }
+    }
   },
   "scenarios": {
     "label": "Contract type",
@@ -696,6 +722,42 @@
     "editorStepHint": "Opens full-screen on your original contract. Click each suggestion to jump to that clause, then save and download.",
     "editorLoading": "Preparing suggestions…"
   },
+  "feedback": {
+    "groupLabel": "Report feedback",
+    "accurate": "Accurate",
+    "missedIssue": "Missed Issue",
+    "falsePositive": "False Positive",
+    "commentLabel": "Brief description (optional)",
+    "commentPlaceholder": "What should we improve?",
+    "submit": "Submit",
+    "submitting": "Submitting…",
+    "cancel": "Cancel",
+    "received": "Feedback received",
+    "submitSuccess": "Thanks — feedback saved",
+    "submitError": "Could not save feedback. Please try again.",
+    "signInHint": "Sign in to track your feedback history"
+  },
+  "dpa": {
+    "cta": "Generate Compliant DPA Template →",
+    "modalTitle": "Generate Data Processing Agreement",
+    "modalHint": "Independent DPA draft — not legal advice. Commercial terms stay as [TO BE NEGOTIATED].",
+    "jurisdiction": "Jurisdiction",
+    "dataCategories": "Data categories",
+    "controllerName": "Controller name",
+    "processorName": "Processor name",
+    "processingPurpose": "Processing purpose",
+    "generate": "Generate",
+    "generating": "Generating…",
+    "close": "Close",
+    "generateError": "Could not generate DPA. Please try again.",
+    "downloadError": "Download failed. Please try again.",
+    "downloadWord": "Download Word",
+    "downloadPdf": "Download PDF",
+    "upgradeToDownload": "Upgrade to Download",
+    "freePreviewHint": "Free plan shows a watermarked preview (~30%). Pro unlocks the full document.",
+    "unlockedBadge": "Full document unlocked (Pro)",
+    "disclaimerFoot": "AI-generated draft. Review by qualified counsel before use."
+  },
   "pricing": {
     "label": "Pricing",
     "title": "Plans for legal professionals",
@@ -829,6 +891,98 @@
     "planPro": "Pro",
     "planBoost": "Single boost",
     "backPricing": "Back to pricing"
+  },
+  "beta": {
+    "meta": {
+      "title": "Join the Beta — ClauseCheck",
+      "description": "AI contract review calibrated with lawyer feedback. Multi-jurisdiction safe. Privacy-first. Co-create the product with founding members."
+    },
+    "nav": {
+      "tryProduct": "Try the product"
+    },
+    "hero": {
+      "badge": "Beta · co-create with us",
+      "title": "AI Contract Review, Calibrated by Real Lawyers",
+      "subtitle": "Join the beta. Shape the product. Get lifetime Pro perks.",
+      "finePrint": "Decision support only — not legal advice. No spam."
+    },
+    "form": {
+      "emailLabel": "Email",
+      "placeholder": "you@company.com",
+      "submit": "Request beta access",
+      "submitting": "Sending…",
+      "success": "You're on the list — we'll email your invite soon.",
+      "already": "You're already on the beta list. Watch your inbox.",
+      "error": "Could not subscribe. Please try again."
+    },
+    "demo": {
+      "aria": "30-second product demo",
+      "caption": "30-second walkthrough · replace media at /assets/beta-demo.mp4"
+    },
+    "values": {
+      "label": "Why ClauseCheck",
+      "title": "From risk discovery to risk resolution",
+      "risk": {
+        "title": "🔍 Risk grading in 30s",
+        "body": "Upload a contract, get severity-ranked flags with paste-ready redlines — built for negotiation, not vague advice.",
+        "alt": "Risk grading report preview"
+      },
+      "jurisdiction": {
+        "title": "🛡️ Multi-jurisdiction safe",
+        "body": "Base + one Jurisdiction Pack per review. RAG filters by jurisdiction metadata so PRC statutes do not leak into a California deal.",
+        "alt": "Jurisdiction pack isolation diagram"
+      },
+      "dpa": {
+        "title": "📝 Missing DPA? Generate one",
+        "body": "When the review finds a missing DPA, generate a jurisdiction-aware draft — free preview, Pro unlock for full download.",
+        "alt": "DPA free versus Pro preview"
+      }
+    },
+    "perks": {
+      "label": "Beta perks",
+      "title": "Founding member benefits",
+      "items": [
+        "Lifetime 30% off Pro for founding members",
+        "5 free DPA generations included",
+        "Founding Member badge on your account"
+      ]
+    },
+    "trust": {
+      "line": "v0.9-beta · 50+ unit tests green · SHA-256 privacy-first (hash only, never store contract body in feedback)"
+    },
+    "faq": {
+      "label": "FAQ",
+      "title": "Before you join",
+      "items": [
+        {
+          "q": "Is my contract data safe?",
+          "a": "Scans use your document for the active review only. Product feedback stores a SHA-256 hash of normalized text — never the contract body. We do not train models on your uploads."
+        },
+        {
+          "q": "Which jurisdictions are supported?",
+          "a": "Shipping packs include China (PRC), California, New York / US general, England & Wales, and international commercial. Community packs can be contributed via our open Pack guide."
+        },
+        {
+          "q": "How does lawyer calibration work?",
+          "a": "Beta members flag Accurate / Missed Issue / False Positive on report items. Those signals become a golden set to improve prompts — you co-create the quality bar with us."
+        },
+        {
+          "q": "Is this legal advice?",
+          "a": "No. ClauseCheck is decision support and negotiation material. High-stakes deals still need qualified counsel."
+        },
+        {
+          "q": "What happens after I subscribe?",
+          "a": "We email invite links in waves. Early members get founding perks and a direct channel to share product feedback."
+        }
+      ]
+    },
+    "footerCta": {
+      "title": "Ready to co-create?",
+      "subtitle": "Same form. Same founding perks. No hard sell.",
+      "questions": "Questions?",
+      "email": "hello@clausecheck.app",
+      "backHome": "← Back to home"
+    }
   },
   "pricingZh": {
     "label": "定价",

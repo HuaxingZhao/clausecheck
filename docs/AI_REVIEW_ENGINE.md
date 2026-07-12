@@ -6,13 +6,17 @@ ClauseCheck review is **decision support**, not legal advice.
 
 | File | Role |
 |------|------|
-| `lib/ai/expert-system-prompt.ts` | Hardcoded senior non-litigation counsel System Prompt + JSON schema + legalBasis rules |
-| `lib/ai/retrieve-compliance-rules.ts` | Scenario knowledge retrieval (keyword-ranked RAG over packs) |
+| `lib/ai/expert-system-prompt.ts` | Base expert prompt (persona, 12-category checklist, JSON schema) + assembles **one** Jurisdiction Pack |
+| `lib/prompts/jurisdiction-packs/` | Plugin packs (`cn`, `us-ca`, `us-ny`, `uk`, `intl`) — citation rules, add-ons, boilerplate |
+| `src/prompts/jurisdiction-packs/types.ts` | Re-export of `JurisdictionPack` interface (canonical code under `lib/prompts/…`) |
+| `lib/ai/retrieve-compliance-rules.ts` | Scenario knowledge retrieval with jurisdiction pre-filter (`CN` / `US-CA` / … + `GENERAL`) |
+| `lib/rag/*` | Chunk metadata, inference, filter, prompt formatting, overrides JSON |
 | `lib/ai/review-contract.ts` | `reviewContract()` workflow orchestrator |
 | `lib/analyze.ts` | Production scan path — uses the same expert prompt + retrieval |
 | `app/api/review/route.ts` | **Core review API** — JSON `{ contractText, locale, scenarioId? }` → AI → ScanResult |
 | `app/api/scan/route.ts` | File upload → extract text → first-pass analyze (existing UI flow) |
 | `fixtures/contracts/nda-risky-zh.txt` | NDA with typical risks (overlong term, adverse forum, etc.) |
+| `fixtures/contracts/saas-ca-risky-en.txt` | California SaaS MSA (customer-hostile) for common-law track QA |
 
 > Note: AI helpers live under `lib/ai/` (package `@/lib/ai`). Do **not** add a sibling `lib/ai.ts` — it conflicts with the directory module.
 
@@ -20,11 +24,12 @@ ClauseCheck review is **decision support**, not legal advice.
 
 ```text
 contract text
-  → retrieveComplianceRules(scenario)
-  → buildExpertSystemPrompt(persona + overlay + knowledge)
+  → resolveJurisdictionPack(override | heuristic)
+  → retrieveComplianceRules(scenario, jurisdiction)
+  → buildExpertSystemPrompt(base + one pack + overlay + knowledge)
   → OpenAI JSON review
   → analysis pipeline (snap quotes / rewrite / critic)
-  → ScanResult (flags with level, quote, legalBasis, suggestion)
+  → ScanResult (detectedJurisdiction, flags with level, quote, legalBasis/riskRationale, suggestion)
 ```
 
 ## Core API
