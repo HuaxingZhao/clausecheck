@@ -1,0 +1,45 @@
+SOFTWARE-AS-A-SERVICE AGREEMENT
+(California — Customer-hostile draft for review testing)
+
+This Software-as-a-Service Agreement (the "Agreement") is entered into as of the Effective Date by and between CloudForge Analytics, Inc., a Delaware corporation with its principal place of business in San Francisco, California ("Provider"), and the customer entity executing an Order Form ("Customer").
+
+1. SERVICES
+Provider will make available its hosted analytics platform (the "Service") on a non-exclusive, non-transferable basis. Customer acknowledges the Service is provided "AS IS" and Provider may modify, suspend, or discontinue any feature at any time without liability.
+
+2. FEES; NON-REFUNDABLE
+Customer shall prepay annual Fees listed in the Order Form. All Fees are non-refundable under any circumstances, including termination for Provider's material breach. Late amounts accrue interest at 2% per month. Provider may increase Fees by up to 40% upon thirty (30) days' notice.
+
+3. DATA; PERSONAL INFORMATION
+Customer will upload end-user personal information, including identifiers and usage data, into the Service. Provider may use, retain, analyze, and commercially exploit Customer Data (including personal information) for Provider's product improvement, benchmarking, and marketing without restriction. Provider may transfer Customer Data to subprocessors worldwide without Customer consent and without Standard Contractual Clauses or a Data Processing Addendum. Provider has no obligation to return or delete Customer Data upon termination.
+
+4. CONFIDENTIALITY
+Customer's confidentiality obligations survive for twenty (20) years. Provider's confidentiality obligations terminate ninety (90) days after disclosure.
+
+5. INTELLECTUAL PROPERTY
+All Customer Data, feedback, and any derivatives or models trained thereon are exclusively owned by Provider. Customer hereby irrevocably assigns all right, title, and interest in such materials to Provider.
+
+6. LIMITATION OF LIABILITY
+PROVIDER'S TOTAL AGGREGATE LIABILITY ARISING OUT OF OR RELATED TO THIS AGREEMENT SHALL NOT EXCEED ONE HUNDRED U.S. DOLLARS (US$100). THE FOREGOING CAP APPLIES EVEN IF PROVIDER HAS BEEN ADVISED OF THE POSSIBILITY OF DAMAGES AND EVEN FOR PROVIDER'S GROSS NEGLIGENCE OR WILLFUL MISCONDUCT. IN NO EVENT SHALL PROVIDER BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, PUNITIVE, OR LOST PROFITS DAMAGES. CUSTOMER'S LIABILITY IS UNLIMITED.
+
+7. INDEMNIFICATION
+Customer shall indemnify, defend, and hold harmless Provider and its affiliates from and against any and all claims, damages, losses, and expenses (including attorneys' fees) arising from Customer's use of the Service, any third-party claim relating to Customer Data, or any allegation that Customer breached this Agreement, without monetary cap and without regard to Provider fault.
+
+8. TERM; TERMINATION FOR CONVENIENCE
+The Initial Term is three (3) years and auto-renews for successive three-year periods unless Customer gives written notice of non-renewal at least one hundred eighty (180) days before the end of the then-current term. Provider may terminate this Agreement for convenience at any time upon five (5) days' written notice, with no refund and with immediate cessation of Customer's access. Customer has no termination-for-convenience right.
+
+9. WARRANTIES
+EXCEPT AS EXPRESSLY SET FORTH, PROVIDER DISCLAIMS ALL WARRANTIES, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND ANY WARRANTY THAT THE SERVICE WILL BE UNINTERRUPTED OR ERROR-FREE. THERE IS NO SERVICE LEVEL AGREEMENT, UPTIME COMMITMENT, OR CREDITS.
+
+10. ASSIGNMENT
+Customer may not assign this Agreement. Provider may assign freely, including to a competitor of Customer, without notice.
+
+11. GOVERNING LAW; DISPUTE RESOLUTION
+This Agreement shall be governed by the laws of the State of California, without regard to conflict-of-laws principles. Exclusive venue lies in the state and federal courts located in San Francisco County, California. Customer waives any right to a jury trial. The prevailing party is entitled to recover reasonable attorneys' fees; provided that if Provider prevails, Customer shall also pay Provider's expert fees and collection costs.
+
+12. ENTIRE AGREEMENT
+This Agreement constitutes the entire agreement between the parties. Oral modifications are binding if confirmed by email from either party. [Note for review testing: this draft intentionally omits Severability, Waiver, Force Majeure, and Notices clauses.]
+
+13. ACCEPTANCE
+By executing an Order Form, Customer agrees to these terms. Provider may amend this Agreement unilaterally by posting an updated version on its website; continued use constitutes acceptance.
+
+END OF AGREEMENT

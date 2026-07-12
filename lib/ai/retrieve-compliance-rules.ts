@@ -1,17 +1,14 @@
 /**
  * Compliance-rule retrieval for contract review (scenario knowledge RAG).
- * Scores knowledge snippets against contract text — no external vector DB required.
- * Swap the scorer for embeddings later without changing reviewContract callers.
+ * Keyword-ranked over jurisdiction-tagged chunks — no external vector DB required.
  */
 
 import type { ContractScenarioId } from "@/lib/contract-scenarios";
-import {
-  getScenarioKnowledge,
-  type ClauseTemplate,
-  type ScenarioKnowledgePack,
-  type StatuteSnippet,
-} from "@/lib/scenario-knowledge";
-import { formatScenarioKnowledgeForPrompt } from "@/lib/scenario-rag";
+import { buildKnowledgeChunksForScenario } from "@/lib/rag/knowledge-chunks";
+import { filterKnowledgeChunks } from "@/lib/rag/filter-chunks";
+import { formatKnowledgeChunksForPrompt } from "@/lib/rag/format-knowledge-prompt";
+import type { KnowledgeChunk, KnowledgeJurisdiction } from "@/lib/rag/knowledge-meta";
+import { toKnowledgeJurisdictionFilter } from "@/lib/rag/knowledge-meta";
 
 export type PromptLocale = "zh" | "en";
 
@@ -21,16 +18,24 @@ export interface RetrievedRule {
   title: string;
   body: string;
   score: number;
+  jurisdiction?: KnowledgeJurisdiction;
+  docType?: string;
 }
 
 export interface RetrieveComplianceRulesResult {
   scenarioId: ContractScenarioId;
   locale: PromptLocale;
   rules: RetrievedRule[];
-  /** Prompt-ready block (must-cite knowledge). */
   knowledgeBlock: string;
-  /** Always-on mandatory checks (even if score is low). */
   mandatoryChecks: string[];
+  jurisdictionFilter: KnowledgeJurisdiction | null;
+  degraded: boolean;
+  excludedCount: number;
+}
+
+export interface RetrieveComplianceRulesOptions {
+  topK?: number;
+  jurisdiction?: string | null;
 }
 
 const STOP_ZH = new Set(
@@ -54,86 +59,75 @@ function overlapScore(queryTokens: Set<string>, doc: string): number {
   return hits / Math.sqrt(docTokens.length);
 }
 
-function scoreStatute(
+function scoreChunk(
   query: Set<string>,
-  s: StatuteSnippet,
-  locale: PromptLocale,
-  index: number
+  chunk: KnowledgeChunk,
+  locale: PromptLocale
 ): RetrievedRule {
-  const body = locale === "zh" ? s.summaryZh : s.summaryEn;
-  const blob = `${s.title} ${body}`;
+  const body = locale === "zh" ? chunk.bodyZh : chunk.bodyEn;
+  const title =
+    locale === "zh"
+      ? chunk.title
+      : chunk.kind === "template"
+        ? chunk.bodyEn.split("\n")[0] || chunk.title
+        : chunk.title;
+  let boost = 0;
+  if (chunk.kind === "mandatory_check") boost = 0.5;
+  else if (chunk.kind === "statute") boost = 0.15;
   return {
-    kind: "statute",
-    id: `statute-${index}`,
-    title: s.title,
+    kind: chunk.kind,
+    id: chunk.id,
+    title,
     body,
-    score: overlapScore(query, blob) + 0.15, // slight boost: statutes are high value
+    score: overlapScore(query, chunk.searchText) + boost,
+    jurisdiction: chunk.meta.jurisdiction,
+    docType: chunk.meta.doc_type,
   };
 }
 
-function scoreTemplate(
-  query: Set<string>,
-  t: ClauseTemplate,
-  locale: PromptLocale,
-  index: number
-): RetrievedRule {
-  const name = locale === "zh" ? t.nameZh : t.nameEn;
-  const text = locale === "zh" ? t.textZh : t.textEn;
-  const blob = `${name} ${text}`;
-  return {
-    kind: "template",
-    id: `template-${index}`,
-    title: name,
-    body: text,
-    score: overlapScore(query, blob),
-  };
-}
-
-function scoreCheck(
-  query: Set<string>,
-  check: string,
-  index: number
-): RetrievedRule {
-  return {
-    kind: "mandatory_check",
-    id: `check-${index}`,
-    title: check,
-    body: check,
-    score: overlapScore(query, check) + 0.5, // mandatory checks always preferred
-  };
-}
-
-/**
- * Retrieve relevant compliance rules for a contract text + scenario.
- * Always includes the full scenario knowledge block for the LLM (formatScenarioKnowledgeForPrompt),
- * and returns a ranked `rules` list for debugging / tests / future UI.
- */
 export function retrieveComplianceRules(
   contractText: string,
   scenarioId: ContractScenarioId,
   locale: PromptLocale = "zh",
-  options: { topK?: number } = {}
+  options: RetrieveComplianceRulesOptions = {}
 ): RetrieveComplianceRulesResult {
   const topK = options.topK ?? 12;
-  const pack: ScenarioKnowledgePack = getScenarioKnowledge(scenarioId);
+  const filter = toKnowledgeJurisdictionFilter(options.jurisdiction);
+
+  if (!filter) {
+    console.warn(
+      "[rag] retrieveComplianceRules: no jurisdiction filter (auto/omitted) — CN and foreign statutes may mix. Pass jurisdiction for isolation."
+    );
+  }
+
+  const allChunks = buildKnowledgeChunksForScenario(scenarioId);
+  const { kept, excludedCount, degraded } = filterKnowledgeChunks(allChunks, filter);
+
+  if (degraded) {
+    console.warn(
+      `[rag] retrieveComplianceRules: no chunks for filter=${filter}; degraded to GENERAL only.`
+    );
+  }
+
   const query = new Set(tokenize(contractText.slice(0, 8000)));
-  const mandatoryChecks =
-    locale === "zh" ? pack.mandatoryChecksZh : pack.mandatoryChecksEn;
-
-  const scored: RetrievedRule[] = [
-    ...mandatoryChecks.map((c, i) => scoreCheck(query, c, i)),
-    ...pack.statutes.map((s, i) => scoreStatute(query, s, locale, i)),
-    ...pack.templates.map((t, i) => scoreTemplate(query, t, locale, i)),
-  ];
-
+  const scored = kept.map((c) => scoreChunk(query, c, locale));
   scored.sort((a, b) => b.score - a.score);
   const rules = scored.slice(0, topK);
+
+  const mandatoryChecks = kept
+    .filter((c) => c.kind === "mandatory_check")
+    .map((c) => (locale === "zh" ? c.bodyZh : c.bodyEn));
 
   return {
     scenarioId,
     locale,
     rules,
-    knowledgeBlock: formatScenarioKnowledgeForPrompt(scenarioId, locale),
+    knowledgeBlock: formatKnowledgeChunksForPrompt(kept, locale),
     mandatoryChecks,
+    jurisdictionFilter: filter,
+    degraded,
+    excludedCount,
   };
 }
+
+export { filterKnowledgeChunks };

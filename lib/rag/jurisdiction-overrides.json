@@ -1,0 +1,678 @@
+{
+  "version": 1,
+  "generatedAt": "2026-07-12T06:59:33.314Z",
+  "note": "Idempotent overrides from scripts/backfill-knowledge-jurisdiction.ts. Runtime merges these over heuristics.",
+  "overrides": {
+    "general:check:0:责任上限与间接损失排除": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "责任上限与间接损失排除"
+    },
+    "general:check:1:单方解约权与通知期": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "单方解约权与通知期"
+    },
+    "general:check:2:争议解决管辖与适用法律": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "争议解决管辖与适用法律"
+    },
+    "general:check:3:违约金是否过高-民法典-585-条-": {
+      "jurisdiction": "CN",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "违约金是否过高（民法典 585 条）"
+    },
+    "general:statute:0:民法典-合同编": {
+      "jurisdiction": "CN",
+      "doc_type": "statute",
+      "inferredFrom": "民法典 · 合同编"
+    },
+    "general:template:0:liability-cap": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "clause_template",
+      "inferredFrom": "责任上限"
+    },
+    "cross_border_ecommerce:check:0:关税-增值税承担与-incoterms": {
+      "jurisdiction": "INTL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "关税/增值税承担与 Incoterms"
+    },
+    "cross_border_ecommerce:check:1:退货退款与跨境运费": {
+      "jurisdiction": "INTL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "退货退款与跨境运费"
+    },
+    "cross_border_ecommerce:check:2:个人信息出境与平台规则变更": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "个人信息出境与平台规则变更"
+    },
+    "cross_border_ecommerce:check:3:支付拒付与汇率": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "支付拒付与汇率"
+    },
+    "cross_border_ecommerce:statute:0:个人信息保护法": {
+      "jurisdiction": "CN",
+      "doc_type": "statute",
+      "inferredFrom": "个人信息保护法"
+    },
+    "cross_border_ecommerce:template:0:returns-policy": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "clause_template",
+      "inferredFrom": "退货政策"
+    },
+    "multilingual:check:0:语言版本效力与冲突解释规则": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "语言版本效力与冲突解释规则"
+    },
+    "multilingual:check:1:关键术语跨语言是否不等价": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "关键术语跨语言是否不等价"
+    },
+    "multilingual:check:2:附件-签署页语言一致性": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "附件/签署页语言一致性"
+    },
+    "multilingual:check:3:通知与争议文件提交语言": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "通知与争议文件提交语言"
+    },
+    "multilingual:statute:0:国际商事合同-解释原则": {
+      "jurisdiction": "UNKNOWN",
+      "doc_type": "statute",
+      "inferredFrom": "国际商事合同 · 解释原则"
+    },
+    "multilingual:template:0:controlling-language": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "clause_template",
+      "inferredFrom": "语言优先"
+    },
+    "procurement_sales:check:0:标的物规格与验收标准": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "标的物规格与验收标准"
+    },
+    "procurement_sales:check:1:交付风险转移与检验期": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "交付风险转移与检验期"
+    },
+    "procurement_sales:check:2:付款账期与所有权保留": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "付款账期与所有权保留"
+    },
+    "procurement_sales:check:3:迟延违约金与替代采购赔偿": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "迟延违约金与替代采购赔偿"
+    },
+    "procurement_sales:check:4:定制产品知识产权归属": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "定制产品知识产权归属"
+    },
+    "procurement_sales:statute:0:民法典-买卖合同": {
+      "jurisdiction": "CN",
+      "doc_type": "statute",
+      "inferredFrom": "民法典 · 买卖合同"
+    },
+    "procurement_sales:template:0:inspection-period": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "clause_template",
+      "inferredFrom": "验收期限"
+    },
+    "rental:check:0:押金扣减与退还时限": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "押金扣减与退还时限"
+    },
+    "rental:check:1:维修义务划分": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "维修义务划分"
+    },
+    "rental:check:2:提前解约违约金": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "提前解约违约金"
+    },
+    "rental:check:3:转租限制": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "转租限制"
+    },
+    "rental:statute:0:民法典-租赁合同": {
+      "jurisdiction": "CN",
+      "doc_type": "statute",
+      "inferredFrom": "民法典 · 租赁合同"
+    },
+    "rental:template:0:deposit-return": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "clause_template",
+      "inferredFrom": "押金退还"
+    },
+    "creator_merchant:check:0:内容授权范围-平台-地域-期限-独家-": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "内容授权范围（平台/地域/期限/独家）"
+    },
+    "creator_merchant:check:1:广告标识与虚假宣传风险": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "广告标识与虚假宣传风险"
+    },
+    "creator_merchant:check:2:kpi-未达标违约金与补拍义务": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "KPI 未达标违约金与补拍义务"
+    },
+    "creator_merchant:check:3:品牌安全与删帖-下架权": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "品牌安全与删帖/下架权"
+    },
+    "creator_merchant:check:4:坑位费-佣金-cps-与税务发票": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "坑位费+佣金+CPS 与税务发票"
+    },
+    "creator_merchant:statute:0:广告法": {
+      "jurisdiction": "CN",
+      "doc_type": "statute",
+      "inferredFrom": "广告法"
+    },
+    "creator_merchant:template:0:license-scope": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "clause_template",
+      "inferredFrom": "授权范围"
+    },
+    "account_opening:check:0:账户操作权限与代操作边界": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "账户操作权限与代操作边界"
+    },
+    "account_opening:check:1:kyc-受益所有人披露与更新义务": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "KYC/受益所有人披露与更新义务"
+    },
+    "account_opening:check:2:冻结-扣划与异常交易限制条件": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "冻结/扣划与异常交易限制条件"
+    },
+    "account_opening:check:3:费率单方调价与隐性收费": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "费率单方调价与隐性收费"
+    },
+    "account_opening:check:4:销户与资料返还": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "销户与资料返还"
+    },
+    "account_opening:statute:0:反洗钱法": {
+      "jurisdiction": "UNKNOWN",
+      "doc_type": "statute",
+      "inferredFrom": "反洗钱法"
+    },
+    "account_opening:template:0:freeze-notice": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "clause_template",
+      "inferredFrom": "冻结通知"
+    },
+    "corporate_services:check:0:服务范围-年报-税务-秘书-变更登记-": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "服务范围（年报/税务/秘书/变更登记）"
+    },
+    "corporate_services:check:1:延误-错误导致罚款的责任归属": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "延误/错误导致罚款的责任归属"
+    },
+    "corporate_services:check:2:印章证照账册保管与交接": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "印章证照账册保管与交接"
+    },
+    "corporate_services:check:3:自动续约与隐性政府规费": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "自动续约与隐性政府规费"
+    },
+    "corporate_services:check:4:终止交接清单": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "终止交接清单"
+    },
+    "corporate_services:statute:0:代理记账管理办法": {
+      "jurisdiction": "CN",
+      "doc_type": "regulation",
+      "inferredFrom": "代理记账管理办法"
+    },
+    "corporate_services:template:0:handover-schedule": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "clause_template",
+      "inferredFrom": "交接清单"
+    },
+    "equity_nominee:check:0:代持合法性及无效风险-上市公司-金融-外资准入-": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "代持合法性及无效风险（上市公司、金融、外资准入）"
+    },
+    "equity_nominee:check:1:表决权-收益权-处分权的行使程序": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "表决权/收益权/处分权的行使程序"
+    },
+    "equity_nominee:check:2:擅自转让或侵占分红的违约救济": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "擅自转让或侵占分红的违约救济"
+    },
+    "equity_nominee:check:3:显名化-回购退出价格公式与触发条件": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "显名化/回购退出价格公式与触发条件"
+    },
+    "equity_nominee:check:4:税务与外汇登记义务": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "税务与外汇登记义务"
+    },
+    "equity_nominee:statute:0:公司法-股东名册": {
+      "jurisdiction": "CN",
+      "doc_type": "statute",
+      "inferredFrom": "公司法 · 股东名册"
+    },
+    "equity_nominee:template:0:share-reversion-timeline": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "clause_template",
+      "inferredFrom": "股权回转期限"
+    },
+    "equity_nominee:template:1:no-unauthorized-disposal": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "clause_template",
+      "inferredFrom": "禁止擅自处分"
+    },
+    "employment:check:0:劳动合同类型与试用期": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "劳动合同类型与试用期"
+    },
+    "employment:check:1:社保公积金缴纳义务": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "社保公积金缴纳义务"
+    },
+    "employment:check:2:解除条件与经济补偿-赔偿金": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "解除条件与经济补偿/赔偿金"
+    },
+    "employment:check:3:竞业限制期限-范围与补偿金标准": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "竞业限制期限、范围与补偿金标准"
+    },
+    "employment:check:4:加班与工时制度": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "加班与工时制度"
+    },
+    "employment:statute:0:劳动合同法": {
+      "jurisdiction": "CN",
+      "doc_type": "statute",
+      "inferredFrom": "劳动合同法"
+    },
+    "employment:template:0:non-compete-pay": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "clause_template",
+      "inferredFrom": "竞业补偿"
+    },
+    "investment:check:0:对赌-回购触发与可执行性": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "对赌/回购触发与可执行性"
+    },
+    "investment:check:1:清算优先与反稀释": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "清算优先与反稀释"
+    },
+    "investment:check:2:一票否决范围": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "一票否决范围"
+    },
+    "investment:check:3:陈述保证": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "陈述保证"
+    },
+    "investment:statute:0:九民纪要-对赌": {
+      "jurisdiction": "UNKNOWN",
+      "doc_type": "statute",
+      "inferredFrom": "九民纪要 · 对赌"
+    },
+    "investment:template:0:buyback-trigger": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "clause_template",
+      "inferredFrom": "回购触发"
+    },
+    "tech_saas:check:0:许可范围-用户数-部署-地域-再许可-": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "许可范围（用户数/部署/地域/再许可）"
+    },
+    "tech_saas:check:1:sla-可用性与赔偿上限": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "SLA 可用性与赔偿上限"
+    },
+    "tech_saas:check:2:数据归属-导出-删除与跨境传输": {
+      "jurisdiction": "INTL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "数据归属、导出/删除与跨境传输"
+    },
+    "tech_saas:check:3:定制开发-ip-与开源义务": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "定制开发 IP 与开源义务"
+    },
+    "tech_saas:check:4:终止后数据迁移与源码托管": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "终止后数据迁移与源码托管"
+    },
+    "tech_saas:statute:0:个人信息保护法": {
+      "jurisdiction": "CN",
+      "doc_type": "statute",
+      "inferredFrom": "个人信息保护法"
+    },
+    "tech_saas:template:0:sla-uptime": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "clause_template",
+      "inferredFrom": "SLA 可用性"
+    },
+    "nda:check:0:保密信息定义是否过宽": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "保密信息定义是否过宽"
+    },
+    "nda:check:1:保密期限与终止后存续期-是否明显过长-": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "保密期限与终止后存续期（是否明显过长）"
+    },
+    "nda:check:2:例外条款有效性-公开信息-独立开发-强制披露是否被掏空-": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "例外条款有效性（公开信息/独立开发/强制披露是否被掏空）"
+    },
+    "nda:check:3:返还-销毁义务与销毁证明": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "返还/销毁义务与销毁证明"
+    },
+    "nda:check:4:管辖法院-仲裁地是否对接收方不利-依民事诉讼法-勿归于民法典-": {
+      "jurisdiction": "CN",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "管辖法院 / 仲裁地是否对接收方不利（依民事诉讼法，勿归于民法典）"
+    },
+    "nda:check:5:违约金或无限责任是否显失公平": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "违约金或无限责任是否显失公平"
+    },
+    "nda:check:6:单方变更-通知权-未尽事宜是否可由对方单方书面通知补全-": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "单方变更/通知权（未尽事宜是否可由对方单方书面通知补全）"
+    },
+    "nda:check:7:原件持有与证据劣势-是否仅一方执有原件-": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "原件持有与证据劣势（是否仅一方执有原件）"
+    },
+    "nda:check:8:关联方-顾问-员工连带责任范围是否过宽": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "关联方/顾问/员工连带责任范围是否过宽"
+    },
+    "nda:statute:0:民法典-第501条-缔约过失与保密-": {
+      "jurisdiction": "CN",
+      "doc_type": "statute",
+      "inferredFrom": "民法典 · 第501条（缔约过失与保密）"
+    },
+    "nda:statute:1:民法典-第151条-显失公平-": {
+      "jurisdiction": "CN",
+      "doc_type": "statute",
+      "inferredFrom": "民法典 · 第151条（显失公平）"
+    },
+    "nda:statute:2:民法典-第496-498条-格式条款-": {
+      "jurisdiction": "CN",
+      "doc_type": "statute",
+      "inferredFrom": "民法典 · 第496–498条（格式条款）"
+    },
+    "nda:statute:3:民事诉讼法-协议管辖": {
+      "jurisdiction": "CN",
+      "doc_type": "statute",
+      "inferredFrom": "民事诉讼法 · 协议管辖"
+    },
+    "nda:template:0:confidentiality-carve-outs": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "clause_template",
+      "inferredFrom": "保密例外"
+    },
+    "nda:template:1:confidentiality-term": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "clause_template",
+      "inferredFrom": "保密期限"
+    },
+    "nda:template:2:dispute-resolution": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "clause_template",
+      "inferredFrom": "争议解决"
+    },
+    "nda:template:3:no-unilateral-amendment": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "clause_template",
+      "inferredFrom": "单方变更限制"
+    },
+    "ip_license:check:0:许可标的与独占-排他-普通许可": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "许可标的与独占/排他/普通许可"
+    },
+    "ip_license:check:1:地域-领域-期限与分许可": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "地域、领域、期限与分许可"
+    },
+    "ip_license:check:2:不侵权担保与第三方索赔辩护": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "不侵权担保与第三方索赔辩护"
+    },
+    "ip_license:check:3:开源传染性-gpl-agpl-": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "开源传染性（GPL/AGPL）"
+    },
+    "ip_license:check:4:改进成果与终止后停止使用": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "改进成果与终止后停止使用"
+    },
+    "ip_license:statute:0:著作权法-许可": {
+      "jurisdiction": "UNKNOWN",
+      "doc_type": "statute",
+      "inferredFrom": "著作权法 · 许可"
+    },
+    "ip_license:template:0:infringement-indemnity": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "clause_template",
+      "inferredFrom": "侵权赔偿"
+    },
+    "construction:check:0:工期顺延与逾期违约金上限": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "工期顺延与逾期违约金上限"
+    },
+    "construction:check:1:设计变更-现场签证程序": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "设计变更/现场签证程序"
+    },
+    "construction:check:2:进度款与质保金返还": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "进度款与质保金返还"
+    },
+    "construction:check:3:隐蔽工程与竣工验收": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "隐蔽工程与竣工验收"
+    },
+    "construction:check:4:施工安全与第三者责任保险": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "施工安全与第三者责任保险"
+    },
+    "construction:statute:0:民法典-建设工程合同": {
+      "jurisdiction": "CN",
+      "doc_type": "statute",
+      "inferredFrom": "民法典 · 建设工程合同"
+    },
+    "construction:template:0:variation-procedure": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "clause_template",
+      "inferredFrom": "签证程序"
+    },
+    "franchise:check:0:特许人备案与信息披露": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "特许人备案与信息披露"
+    },
+    "franchise:check:1:加盟费-保证金-管理费与单方调价": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "加盟费/保证金/管理费与单方调价"
+    },
+    "franchise:check:2:商圈-区域保护与同品牌竞业": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "商圈/区域保护与同品牌竞业"
+    },
+    "franchise:check:3:运营手册单方变更权": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "运营手册单方变更权"
+    },
+    "franchise:check:4:退出转让与剩余库存处理": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "退出转让与剩余库存处理"
+    },
+    "franchise:statute:0:商业特许经营管理条例": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "regulation",
+      "inferredFrom": "商业特许经营管理条例"
+    },
+    "franchise:template:0:territory-protection": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "clause_template",
+      "inferredFrom": "区域保护"
+    },
+    "medical_education:check:0:办学-执业许可与超范围经营": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "办学/执业许可与超范围经营"
+    },
+    "medical_education:check:1:效果承诺与虚假宣传": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "效果承诺与虚假宣传"
+    },
+    "medical_education:check:2:预付式消费退费规则": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "预付式消费退费规则"
+    },
+    "medical_education:check:3:格式条款提示说明义务": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "格式条款提示说明义务"
+    },
+    "medical_education:check:4:病历-学员信息与未成年人保护": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "病历/学员信息与未成年人保护"
+    },
+    "medical_education:statute:0:消费者权益保护法": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "statute",
+      "inferredFrom": "消费者权益保护法"
+    },
+    "medical_education:template:0:refund-policy": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "clause_template",
+      "inferredFrom": "退费规则"
+    },
+    "eor:check:0:客户-eor-雇员三角关系与指令权": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "客户/EOR/雇员三角关系与指令权"
+    },
+    "eor:check:1:常设机构-pe-与假外包真雇佣风险": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "常设机构（PE）与假外包真雇佣风险"
+    },
+    "eor:check:2:跨境个税社保与发薪合规": {
+      "jurisdiction": "INTL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "跨境个税社保与发薪合规"
+    },
+    "eor:check:3:工作签证-居留协助": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "工作签证/居留协助"
+    },
+    "eor:check:4:当地法定解除与经济补偿": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "mandatory_check",
+      "inferredFrom": "当地法定解除与经济补偿"
+    },
+    "eor:statute:0:国际税法-常设机构": {
+      "jurisdiction": "UNKNOWN",
+      "doc_type": "statute",
+      "inferredFrom": "国际税法 · 常设机构"
+    },
+    "eor:template:0:relationship-characterization": {
+      "jurisdiction": "GENERAL",
+      "doc_type": "clause_template",
+      "inferredFrom": "关系界定"
+    }
+  },
+  "stats": {
+    "chunkCount": 132,
+    "added": 79,
+    "unchanged": 53,
+    "byJurisdiction": {
+      "GENERAL": 107,
+      "CN": 16,
+      "INTL": 4,
+      "UNKNOWN": 5
+    }
+  }
+}

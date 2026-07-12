@@ -24,6 +24,14 @@ const nextConfig = {
     instrumentationHook: true,
   },
   poweredByHeader: false,
+  webpack(config) {
+    // Bundle fixture .txt as UTF-8 strings for client demo samples.
+    config.module.rules.push({
+      test: /\.txt$/i,
+      type: "asset/source",
+    });
+    return config;
+  },
 };
 
 export default withSentryConfig(withNextIntl(nextConfig), {

@@ -57,6 +57,7 @@ export async function POST(req: NextRequest) {
 
     const locale = fields.locale;
     const scenarioId = fields.scenario;
+    const jurisdiction = fields.jurisdiction;
 
     const session = await getSessionFromRequest(req);
     const useCredits = creditsSystemEnabled();
@@ -196,6 +197,7 @@ export async function POST(req: NextRequest) {
         maxChars,
         locale,
         scenarioId,
+        jurisdiction,
       });
     } catch (analysisErr) {
       if (creditConsumed && creditUserId) {
