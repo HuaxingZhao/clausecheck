@@ -9,7 +9,7 @@ import {
   toDetectedJurisdiction,
 } from "@/lib/jurisdiction";
 
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 const PRO_MAX_CHARS = 80000;
 const FREE_MAX_CHARS = 12000;

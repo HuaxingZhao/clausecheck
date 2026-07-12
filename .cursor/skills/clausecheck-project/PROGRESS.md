@@ -2,6 +2,13 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-13 — Scan 504 timeout hotfix
+
+- Prod symptom: phone user `Request failed (504)` on `股份代持协议.pdf` (quota left 1).
+- Cause: `/api/scan` AI first-pass + optional flag-retry exceeded Vercel 90s; debit-before-AI meant 504 could burn quota with no refund.
+- Fix: `maxDuration` 300; consume quota only after successful analysis; skip free-tier flag-retry second LLM call; clearer client 504 copy.
+- Ops: if this user’s remaining quota shows 0 after failed 504s under old code, refund +1 via `document_quota.used` or `refundUserCredit`.
+
 ## 2026-07-12 — Beta UX: subscribe success + no fake video
 
 - Email CTA already worked (green “already on list”); users mistook it for no reaction / clicked fake play button.

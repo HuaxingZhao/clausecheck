@@ -69,7 +69,7 @@ npm run db:verify-consume-credit
 
 ### 2a. 计划
 
-扫描 API 需要 **90s** 超时 → 必须 **Vercel Pro**（Hobby 上限 10s）。
+扫描 API 需要较长超时（配置 **300s**）→ 必须 **Vercel Pro**（Hobby 上限过短）。
 
 - [vercel.com/account/plans](https://vercel.com/account/plans) 升级 Pro，或
 - 团队已有 Pro 席位
@@ -187,9 +187,10 @@ BASE_URL=$BASE_URL npm run verify:p0
 
 ### 扫描超时 / 504
 
-- 确认 Vercel **Pro** 计划
-- 确认 `vercel.json` 中 `maxDuration: 90` 已提交
-
+- 确认 Vercel **Pro** 计划（Hobby 函数上限过短）
+- 确认 `vercel.json` / route `maxDuration` 为 **300**（scan）
+- 长合同或二次 LLM（flag retry / refine）更容易超时；免费首扫已取消 flag retry
+- 配额在分析**成功后**才扣除；若旧版本 504 已误扣，给用户退 +1
 ### `DATABASE_URL is required in production`
 
 - Vercel 未配置 `DATABASE_URL` 或未 Redeploy
