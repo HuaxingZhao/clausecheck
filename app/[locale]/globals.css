@@ -2221,3 +2221,370 @@ footer {
   @apply absolute inset-0 z-10 flex flex-col items-center justify-center gap-3
          rounded-2xl bg-white/85 backdrop-blur-[2px] border border-border/40;
 }
+
+/* —— Sample contract demo picker (secondary to main upload) —— */
+.sample-contract-picker {
+  @apply relative max-w-full;
+}
+.sample-contract-trigger {
+  @apply inline-flex items-center gap-1.5 max-w-full
+         text-sm font-sans text-ink-muted hover:text-legal-navy
+         underline-offset-4 hover:underline
+         disabled:opacity-50 disabled:pointer-events-none
+         bg-transparent border-0 p-0 cursor-pointer;
+}
+.sample-contract-trigger-label {
+  @apply truncate text-left;
+}
+.sample-contract-caret {
+  @apply shrink-0 text-xs opacity-70;
+}
+.sample-contract-hint {
+  @apply text-[11px] text-ink-muted/80 font-sans mt-1.5 leading-relaxed max-w-md;
+}
+.sample-contract-menu {
+  @apply absolute z-30 left-0 right-0 sm:right-auto sm:min-w-[22rem] mt-2
+         list-none m-0 p-1.5
+         rounded-xl border border-border/50 bg-white shadow-md
+         max-h-[min(70vh,22rem)] overflow-y-auto;
+}
+.sample-contract-option {
+  @apply w-full flex items-start gap-2.5 text-left rounded-lg px-3 py-2.5
+         font-sans hover:bg-paper-dark/40 transition-colors
+         border-0 bg-transparent cursor-pointer;
+}
+.sample-contract-option.is-selected {
+  @apply bg-accent/10;
+}
+.sample-contract-option-marker {
+  @apply text-base leading-6 shrink-0;
+}
+.sample-contract-option-text {
+  @apply flex flex-col gap-0.5 min-w-0;
+}
+.sample-contract-option-title {
+  @apply text-sm font-medium text-ink leading-snug;
+}
+.sample-contract-option-hint {
+  @apply text-xs text-ink-muted leading-snug;
+}
+.sample-contract-loaded {
+  @apply text-xs text-legal-navy font-sans mt-2;
+}
+
+/* —— Review feedback (Beta golden-set) —— */
+.review-feedback {
+  @apply mt-3 w-full min-w-0;
+}
+.review-feedback--compact {
+  @apply mt-2 flex flex-col items-stretch sm:items-end;
+}
+.review-feedback-btns {
+  @apply flex flex-wrap gap-1.5 justify-start sm:justify-end max-w-full;
+}
+.review-feedback-btn {
+  @apply inline-flex items-center gap-1 rounded-md border border-border/60
+         bg-white px-2 py-1 text-[11px] sm:text-xs font-sans text-ink-light
+         hover:border-ink/30 hover:text-ink transition-colors
+         whitespace-nowrap max-w-full;
+}
+.review-feedback-btn.is-selected {
+  @apply border-legal-navy/40 bg-legal-navy/5 text-legal-navy;
+}
+.review-feedback-btn--accurate.is-selected {
+  @apply border-emerald-600/40 bg-emerald-50 text-emerald-800;
+}
+.review-feedback-btn--missed_issue.is-selected,
+.review-feedback-btn--false_positive.is-selected {
+  @apply border-amber-600/40 bg-amber-50 text-amber-900;
+}
+.review-feedback-compose {
+  @apply mt-2 w-full max-w-md sm:ml-auto rounded-lg border border-border/50
+         bg-paper-dark/40 p-2.5 space-y-2;
+}
+.review-feedback-comment-label {
+  @apply block text-[11px] font-sans text-ink-muted;
+}
+.review-feedback-comment {
+  @apply w-full rounded-md border border-border/60 bg-white px-2 py-1.5
+         text-xs font-sans text-ink resize-y min-h-[2.5rem];
+}
+.review-feedback-compose-actions {
+  @apply flex flex-wrap gap-2 items-center;
+}
+.review-feedback-submit {
+  @apply rounded-md bg-legal-navy text-white text-xs font-sans px-3 py-1.5
+         hover:opacity-90 disabled:opacity-50;
+}
+.review-feedback-cancel {
+  @apply rounded-md border border-border/60 bg-transparent text-xs font-sans
+         px-2.5 py-1.5 text-ink-light hover:text-ink;
+}
+.review-feedback-received {
+  @apply inline-flex items-center text-xs font-sans text-emerald-700
+         bg-emerald-50 border border-emerald-200/80 rounded-md px-2.5 py-1;
+}
+.review-feedback-anon-hint {
+  @apply text-[10px] sm:text-[11px] text-ink-muted font-sans mt-1.5
+         leading-snug max-w-md sm:text-right;
+}
+.review-feedback--done {
+  @apply sm:items-end;
+}
+.flag-item--panel .review-feedback,
+.missing-clause-item .review-feedback {
+  @apply px-2 pb-2;
+}
+.report-hero .review-feedback {
+  @apply mt-4 pt-3 border-t border-border/40;
+}
+
+/* —— DPA generate CTA / modal —— */
+.dpa-generate-cta {
+  @apply inline-flex items-center justify-center rounded-md px-3 py-2
+         text-sm font-sans font-semibold
+         bg-legal-navy text-white hover:opacity-90
+         transition-opacity max-w-full whitespace-normal text-left;
+}
+.dpa-generate-cta--compact {
+  @apply text-xs px-2.5 py-1.5;
+}
+.dpa-inline-banner {
+  @apply flex flex-col sm:flex-row sm:items-center gap-2
+         rounded-lg border border-legal-navy/20 bg-legal-navy/5 p-3;
+}
+.dpa-inline-banner-text {
+  @apply flex-1 min-w-0;
+}
+.dpa-result-panel {
+  @apply rounded-lg border border-border/50 bg-paper-dark/50 p-3;
+}
+.dpa-watermark {
+  @apply text-xs font-sans font-semibold text-amber-800
+         bg-amber-50 border border-dashed border-amber-400
+         rounded-md px-2.5 py-2 mb-3;
+}
+.dpa-unlocked-badge {
+  @apply text-xs font-sans font-semibold text-emerald-800
+         bg-emerald-50 border border-emerald-200 rounded-md px-2.5 py-1.5 mb-3 inline-block;
+}
+.dpa-preview-body {
+  @apply text-xs sm:text-sm font-sans text-ink whitespace-pre-wrap
+         max-h-[40vh] overflow-y-auto leading-relaxed m-0;
+}
+.dpa-disclaimer-foot {
+  @apply text-[11px] text-ink-muted font-sans mt-3 italic;
+}
+
+/* —— Beta landing —— */
+.beta-hero {
+  @apply grid gap-10 lg:grid-cols-2 lg:gap-12 items-center
+         page-content-wide py-14 md:py-20;
+}
+.beta-brand {
+  @apply font-display text-4xl md:text-5xl font-bold text-legal-navy tracking-tight mb-3;
+}
+.beta-hero-title {
+  @apply font-display text-2xl md:text-3xl lg:text-[2.15rem] font-semibold
+         text-legal-navy tracking-tight leading-snug mb-4;
+}
+.beta-hero-sub {
+  @apply text-base md:text-lg text-ink-light font-sans leading-relaxed mb-6 max-w-xl;
+}
+.beta-hero-fine {
+  @apply text-xs text-ink-muted font-sans mt-3;
+}
+.beta-hero-media {
+  @apply w-full min-w-0;
+}
+.beta-demo-frame {
+  @apply rounded-2xl overflow-hidden border border-border/60 bg-legal-navy/5 shadow-sm;
+}
+.beta-demo-video {
+  @apply w-full aspect-video bg-legal-navy object-cover;
+}
+.beta-demo-caption {
+  @apply text-[11px] text-ink-muted font-sans px-3 py-2 bg-paper;
+}
+.beta-subscribe-row {
+  @apply flex flex-col sm:flex-row gap-2 w-full max-w-md;
+}
+.beta-subscribe-input {
+  @apply flex-1 min-w-0 rounded-xl border border-border bg-white px-3.5 py-3
+         text-sm font-sans text-ink placeholder:text-ink-muted;
+}
+.beta-subscribe-btn {
+  @apply sm:shrink-0 whitespace-nowrap;
+}
+.beta-subscribe-msg {
+  @apply text-xs font-sans mt-2;
+}
+.beta-subscribe-msg.is-ok {
+  @apply text-emerald-700;
+}
+.beta-subscribe-msg.is-error {
+  @apply text-red-700;
+}
+.beta-section {
+  @apply py-14 md:py-16;
+}
+.beta-section-title {
+  @apply font-display text-2xl md:text-3xl font-semibold text-legal-navy tracking-tight;
+}
+.beta-value-grid {
+  @apply grid gap-8 md:grid-cols-3;
+}
+.beta-value-item {
+  @apply min-w-0;
+}
+.beta-value-media {
+  @apply mb-4 rounded-xl overflow-hidden border border-border/50 bg-white;
+}
+.beta-value-img {
+  @apply w-full h-auto object-cover aspect-[5/3];
+}
+.beta-value-heading {
+  @apply font-sans text-base font-semibold text-ink mb-2;
+}
+.beta-value-body {
+  @apply text-sm text-ink-light font-sans leading-relaxed;
+}
+.beta-perks-list {
+  @apply text-left max-w-md mx-auto space-y-3 list-none p-0 m-0;
+}
+.beta-perks-list li {
+  @apply font-sans text-sm md:text-base text-ink pl-6 relative leading-relaxed;
+}
+.beta-perks-list li::before {
+  content: "✓";
+  @apply absolute left-0 text-legal-navy font-bold;
+}
+.beta-trust {
+  @apply py-8 border-y border-border/50 bg-white;
+}
+.beta-trust-line {
+  @apply text-center text-xs md:text-sm font-sans text-ink-muted tracking-wide px-4;
+}
+.beta-footer-cta {
+  @apply py-16 md:py-20 bg-paper;
+}
+.sr-only {
+  @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0;
+  clip: rect(0, 0, 0, 0);
+}
+
+/* —— Community Bounty —— */
+.bounty-hero {
+  @apply page-content-wide pt-14 pb-10 md:pt-16 md:pb-12 max-w-3xl;
+}
+.bounty-brand {
+  @apply font-display text-sm md:text-base tracking-wide text-legal-navy/70 mb-3;
+}
+.bounty-hero-title {
+  @apply font-display text-3xl md:text-4xl font-semibold text-legal-navy tracking-tight leading-tight mb-4;
+}
+.bounty-hero-sub {
+  @apply text-base md:text-lg text-ink-light font-sans leading-relaxed mb-6 max-w-2xl;
+}
+.bounty-hero-actions {
+  @apply flex flex-wrap gap-3 mb-4;
+}
+.bounty-disclaimer {
+  @apply text-xs font-sans text-ink-muted leading-relaxed max-w-xl;
+}
+.bounty-section {
+  @apply py-12 md:py-16;
+}
+.bounty-section-alt {
+  @apply bg-paper-dark/30;
+}
+.bounty-section-title {
+  @apply font-display text-2xl md:text-3xl font-semibold text-legal-navy tracking-tight mb-2;
+}
+.bounty-section-lead {
+  @apply text-sm text-ink-light font-sans mb-6 max-w-2xl;
+}
+.bounty-code {
+  @apply text-[12px] font-mono bg-white border border-border/60 px-1.5 py-0.5 rounded;
+}
+.bounty-table-wrap {
+  @apply overflow-x-auto rounded-xl border border-border/50 bg-white shadow-sm;
+}
+.bounty-table {
+  @apply w-full text-sm text-left font-sans border-collapse;
+}
+.bounty-table th {
+  @apply text-[11px] uppercase tracking-wide text-ink-muted font-semibold px-4 py-3 border-b border-border/50 bg-paper-dark/40 whitespace-nowrap;
+}
+.bounty-table td {
+  @apply px-4 py-3 border-b border-border/30 align-middle;
+}
+.bounty-table tr:last-child td {
+  @apply border-b-0;
+}
+.bounty-jurisdiction {
+  @apply font-medium text-ink whitespace-nowrap;
+}
+.bounty-reward {
+  @apply text-ink-light whitespace-nowrap;
+}
+.bounty-assignee {
+  @apply font-mono text-xs text-ink-muted;
+}
+.bounty-priority {
+  @apply inline-flex text-[11px] font-semibold px-2 py-0.5 rounded;
+}
+.bounty-priority-high {
+  @apply bg-amber-100 text-amber-950;
+}
+.bounty-priority-med {
+  @apply bg-sky-100 text-sky-950;
+}
+.bounty-priority-low {
+  @apply bg-slate-100 text-slate-700;
+}
+.bounty-status {
+  @apply inline-flex text-[11px] font-semibold px-2 py-0.5 rounded;
+}
+.bounty-status-open {
+  @apply bg-emerald-100 text-emerald-900;
+}
+.bounty-status-claimed {
+  @apply bg-orange-100 text-orange-950;
+}
+.bounty-status-done {
+  @apply bg-slate-200 text-slate-800;
+}
+.bounty-claim-link {
+  @apply text-xs font-semibold text-legal-navy underline underline-offset-2 hover:text-ink whitespace-nowrap;
+}
+.bounty-claim-link-muted {
+  @apply text-ink-muted font-normal no-underline hover:underline;
+}
+.bounty-steps {
+  @apply grid gap-4 md:grid-cols-4 list-none p-0 m-0;
+}
+.bounty-step {
+  @apply flex md:flex-col gap-3 p-4 rounded-xl border border-border/40 bg-white;
+}
+.bounty-step-n {
+  @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-legal-navy text-white text-sm font-display font-semibold;
+}
+.bounty-step-title {
+  @apply font-sans text-base font-semibold text-ink mb-1;
+}
+.bounty-step-body {
+  @apply text-sm text-ink-light font-sans leading-relaxed m-0;
+}
+.bounty-resources {
+  @apply space-y-3 list-none p-0 m-0 text-sm font-sans text-ink-light;
+}
+.bounty-resources a {
+  @apply text-legal-navy font-medium underline underline-offset-2;
+}
+.bounty-footer-cta {
+  @apply py-16 md:py-20 bg-paper;
+}
+.bounty-footer-lead {
+  @apply text-ink-light font-sans mb-6;
+}

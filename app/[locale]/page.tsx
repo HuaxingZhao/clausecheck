@@ -13,10 +13,19 @@ import PricingSection from "./components/pricing-section";
 import SiteNav from "./components/site-nav";
 import AuthPanel from "./components/auth-panel";
 import ScenarioPicker from "./components/scenario-picker";
+import JurisdictionPicker from "./components/jurisdiction-picker";
+import ReviewDisclaimer from "./components/review-disclaimer";
+import SampleContractPicker from "./components/sample-contract-picker";
 import WordLimitModal from "./components/word-limit-modal";
 import CreditsRemainingBadge from "./components/credits-remaining-badge";
 import { useCredits } from "@/hooks/use-credits";
 import { stashPendingInviteCode } from "@/lib/invite/client-fingerprint";
+import type { ClientJurisdiction } from "@/lib/jurisdiction";
+import {
+  demoSampleToFile,
+  type DemoSample,
+  type DemoSampleId,
+} from "@/lib/demo-samples";
 
 export default function Home() {
   const t = useTranslations();
@@ -40,9 +49,12 @@ export default function Home() {
   } | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [scenario, setScenario] = useState<ContractScenarioId>(DEFAULT_SCENARIO_ID);
+  const [jurisdiction, setJurisdiction] = useState<ClientJurisdiction>("auto");
+  const [activeSampleId, setActiveSampleId] = useState<DemoSampleId | null>(null);
   const [quotaHint, setQuotaHint] = useState<string | null>(null);
   const [wordLimitOpen, setWordLimitOpen] = useState(false);
   const resultsRef = useRef<HTMLElement>(null);
+  const submitAreaRef = useRef<HTMLDivElement>(null);
   const openAddOnRef = useRef<(() => void) | null>(null);
   const { invalidate: invalidateCredits } = useCredits();
 
@@ -261,6 +273,30 @@ export default function Home() {
     setResult(null);
     setContractText(null);
     setRefining(false);
+    setActiveSampleId(null);
+  }
+
+  function handleSampleSelect(sample: DemoSample) {
+    if (file || contractText) {
+      const ok = window.confirm(t("upload.sample.replaceConfirm"));
+      if (!ok) return;
+    }
+    const sampleFile = demoSampleToFile(sample);
+    setFile(sampleFile);
+    setJurisdiction(sample.jurisdiction);
+    setScenario(sample.scenarioId);
+    setActiveSampleId(sample.id);
+    setError(null);
+    setResult(null);
+    setContractText(null);
+    setRefining(false);
+    trackEvent("sample_contract_loaded", {
+      sampleId: sample.id,
+      jurisdiction: sample.jurisdiction,
+    });
+    window.setTimeout(() => {
+      submitAreaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 80);
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -286,6 +322,9 @@ export default function Home() {
       form.append("file", file);
       form.append("locale", locale);
       form.append("scenario", scenario);
+      if (jurisdiction && jurisdiction !== "auto") {
+        form.append("jurisdiction", jurisdiction);
+      }
 
       const res = await fetch("/api/scan", {
         method: "POST",
@@ -351,6 +390,7 @@ export default function Home() {
               contractText: extractedText,
               locale,
               scenarioId: scenario,
+              jurisdiction: jurisdiction !== "auto" ? jurisdiction : undefined,
             }),
           });
           const refined = (await refineRes.json()) as ScanResult & { error?: string };
@@ -528,7 +568,21 @@ export default function Home() {
             disabled={loading}
           />
 
-          <form onSubmit={handleSubmit} className="mt-8">
+          <JurisdictionPicker
+            value={jurisdiction}
+            onChange={setJurisdiction}
+            disabled={loading}
+          />
+
+          <SampleContractPicker
+            activeId={activeSampleId}
+            onSelect={handleSampleSelect}
+            disabled={loading}
+          />
+
+          <ReviewDisclaimer jurisdiction={jurisdiction} />
+
+          <form onSubmit={handleSubmit} className="mt-6">
             <label
               className={`upload-zone ${file ? "has-file" : ""} ${dragOver ? "border-accent" : ""}`}
               onDragOver={(e) => {
@@ -599,7 +653,10 @@ export default function Home() {
               )}
             </label>
 
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-6">
+            <div
+              ref={submitAreaRef}
+              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-6"
+            >
               <CreditsRemainingBadge />
               <button
                 type="submit"
@@ -611,6 +668,9 @@ export default function Home() {
                 {loading ? t("upload.scanning") : t("upload.scanButton")}
               </button>
             </div>
+            {activeSampleId && file && !loading && (
+              <p className="sample-contract-loaded">{t("upload.sample.loadedHint")}</p>
+            )}
 
             {error && (
               <p className="text-red-600 text-sm mt-4 text-center font-sans">{error}</p>
@@ -657,6 +717,7 @@ export default function Home() {
                   setError(null);
                   setRefining(false);
                   setScanStage(0);
+                  setActiveSampleId(null);
                 }}
               >
                 {t("upload.rescan")}
@@ -675,6 +736,8 @@ export default function Home() {
           isPro={isProUser}
           locale={locale}
           refining={refining}
+          isAuthenticated={Boolean(authUser)}
+          onToast={setToast}
           onDownload={handleDownloadPdf}
           scrollTo={scrollTo}
           onUpgradePro={() => scrollTo("pricing")}
