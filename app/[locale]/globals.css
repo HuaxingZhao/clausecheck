@@ -2400,8 +2400,16 @@ footer {
 .beta-demo-frame {
   @apply rounded-2xl overflow-hidden border border-border/60 bg-legal-navy/5 shadow-sm;
 }
+.beta-demo-link {
+  @apply block relative no-underline text-inherit transition-opacity hover:opacity-95;
+}
 .beta-demo-video {
-  @apply w-full aspect-video bg-legal-navy object-cover;
+  @apply w-full aspect-video bg-legal-navy object-cover object-top;
+}
+.beta-demo-cta {
+  @apply absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
+         rounded-xl bg-legal-navy/90 text-white px-4 py-2.5 text-sm font-sans font-medium
+         shadow-md pointer-events-none;
 }
 .beta-demo-caption {
   @apply text-[11px] text-ink-muted font-sans px-3 py-2 bg-paper;
@@ -2415,6 +2423,15 @@ footer {
 }
 .beta-subscribe-btn {
   @apply sm:shrink-0 whitespace-nowrap;
+}
+.beta-subscribe-done {
+  @apply flex flex-col gap-3 w-full max-w-md;
+}
+.beta-subscribe-banner {
+  @apply rounded-xl border px-3.5 py-3 text-sm font-sans font-medium;
+}
+.beta-subscribe-banner.is-ok {
+  @apply border-emerald-300 bg-emerald-50 text-emerald-800;
 }
 .beta-subscribe-msg {
   @apply text-sm font-sans mt-3 min-h-[1.25rem];

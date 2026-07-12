@@ -91,18 +91,23 @@ export default async function BetaPage({
           <p className="beta-hero-fine">{t("hero.finePrint")}</p>
         </div>
         <div className="beta-hero-media">
-          <div className="beta-demo-frame">
-            {/* Demo MP4 optional — poster always shows so the hero never looks broken */}
+          <Link
+            href={`/${locale}#upload`}
+            className="beta-demo-frame beta-demo-link"
+            aria-label={t("demo.cta")}
+          >
+            {/* No video file yet — real product screenshot + CTA, not a fake player */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/beta/demo-poster.svg"
+              src="/beta/dpa-preview.png"
               alt={t("demo.aria")}
               width={800}
               height={450}
               className="beta-demo-video"
             />
+            <span className="beta-demo-cta">{t("demo.cta")}</span>
             <p className="beta-demo-caption">{t("demo.caption")}</p>
-          </div>
+          </Link>
         </div>
       </section>
 

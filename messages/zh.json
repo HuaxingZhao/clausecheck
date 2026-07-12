@@ -913,12 +913,14 @@
       "submitting": "提交中…",
       "success": "已加入名单，邀请函将很快发送到邮箱。",
       "already": "你已在 Beta 名单中，请留意收件箱。",
+      "tryProduct": "立刻体验产品 →",
       "error": "订阅失败，请重试。",
       "invalidEmail": "请输入有效邮箱地址。"
     },
     "demo": {
-      "aria": "产品界面示意",
-      "caption": "产品演示预览 · 完整视频即将上线"
+      "aria": "ClauseCheck 产品预览 — 点击进入上传试用",
+      "caption": "这里不是视频 — 点击即可试用扫描合同",
+      "cta": "点击体验产品"
     },
     "values": {
       "label": "为什么是 ClauseCheck",

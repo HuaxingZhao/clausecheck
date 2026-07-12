@@ -913,12 +913,14 @@
       "submitting": "Sending…",
       "success": "You're on the list — we'll email your invite soon.",
       "already": "You're already on the beta list. Watch your inbox.",
+      "tryProduct": "Try the product now →",
       "error": "Could not subscribe. Please try again.",
       "invalidEmail": "Please enter a valid email address."
     },
     "demo": {
-      "aria": "Product UI preview",
-      "caption": "Product preview — full demo video coming soon"
+      "aria": "ClauseCheck product preview — open upload to try",
+      "caption": "Not a video — click to try scanning a contract",
+      "cta": "Click to try the product"
     },
     "values": {
       "label": "Why ClauseCheck",
