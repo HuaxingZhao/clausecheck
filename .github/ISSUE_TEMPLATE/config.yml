@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Contributing Jurisdiction Packs
+    url: https://github.com/HuaxingZhao/clausecheck/blob/main/docs/contributing-jurisdiction-packs.md
+    about: Read this before claiming a pack bounty.
+  - name: Bounty board
+    url: https://www.clausecheck.cc/en/community/bounty
+    about: See open jurisdictions, rewards, and claim links.
