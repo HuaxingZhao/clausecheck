@@ -899,7 +899,9 @@
     },
     "nav": {
       "tryProduct": "Try the product",
-      "tryProductHint": "Free registration required · Includes {count} free scans"
+      "tryProductHint": "Free registration required · Includes {count} free scans",
+      "switching": "Switching…",
+      "opening": "Opening…"
     },
     "hero": {
       "badge": "Beta · co-create with us",
@@ -912,6 +914,7 @@
       "placeholder": "you@company.com",
       "submit": "Request beta access",
       "submitting": "Sending…",
+      "submittingHint": "Submitting — this may take a few seconds on a slow network…",
       "success": "You're on the list — we'll email your invite soon.",
       "already": "You're already on the beta list. Watch your inbox.",
       "tryProduct": "Try the product now →",

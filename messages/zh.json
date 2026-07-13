@@ -899,7 +899,9 @@
     },
     "nav": {
       "tryProduct": "体验产品",
-      "tryProductHint": "需免费注册 · 含 {count} 次免费扫描额度"
+      "tryProductHint": "需免费注册 · 含 {count} 次免费扫描额度",
+      "switching": "切换中…",
+      "opening": "打开中…"
     },
     "hero": {
       "badge": "Beta · 与我们共创",
@@ -912,6 +914,7 @@
       "placeholder": "you@company.com",
       "submit": "申请 Beta 资格",
       "submitting": "提交中…",
+      "submittingHint": "正在提交，请稍候（网络较慢时可能要几秒）…",
       "success": "已加入名单，邀请函将很快发送到邮箱。",
       "already": "你已在 Beta 名单中，请留意收件箱。",
       "tryProduct": "立刻体验产品 →",

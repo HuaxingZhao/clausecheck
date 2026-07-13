@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { readJsonSafe } from "@/lib/upload-safe";
+import BetaPendingLink from "./beta-pending-link";
 
 interface BetaSubscribeFormProps {
   variant?: "hero" | "footer";
@@ -32,8 +32,9 @@ export default function BetaSubscribeForm({
       return;
     }
 
+    // Immediate feedback before network (covers Neon cold start)
     setStatus("loading");
-    setMessage(null);
+    setMessage(t("form.submittingHint"));
     setEmail(emailValue);
     try {
       const res = await fetch("/api/beta/subscribe", {
@@ -79,12 +80,13 @@ export default function BetaSubscribeForm({
         <p className="beta-subscribe-banner is-ok">{message}</p>
         <p className="beta-subscribe-note">{t("subscribe.success.note")}</p>
         <div className="beta-subscribe-actions">
-          <Link
-            href={`/${locale}/account`}
+          <BetaPendingLink
+            href="/account"
             className="btn btn-primary beta-subscribe-btn"
+            pendingLabel={t("nav.opening")}
           >
             {t("subscribe.success.ctaPrimary")}
-          </Link>
+          </BetaPendingLink>
           <button
             type="button"
             className="beta-subscribe-secondary"
@@ -104,8 +106,9 @@ export default function BetaSubscribeForm({
   return (
     <form
       onSubmit={(e) => void onSubmit(e)}
-      className={`beta-subscribe beta-subscribe--${variant}`}
+      className={`beta-subscribe beta-subscribe--${variant}${status === "loading" ? " is-loading" : ""}`}
       noValidate
+      aria-busy={status === "loading"}
     >
       <div className="beta-subscribe-row">
         <label className="sr-only" htmlFor={`beta-email-${variant}`}>
@@ -130,12 +133,19 @@ export default function BetaSubscribeForm({
           className="btn btn-primary beta-subscribe-btn"
           disabled={status === "loading"}
         >
-          {status === "loading" ? t("form.submitting") : t("form.submit")}
+          {status === "loading" ? (
+            <span className="beta-btn-busy">
+              <span className="beta-btn-spinner" aria-hidden />
+              {t("form.submitting")}
+            </span>
+          ) : (
+            t("form.submit")
+          )}
         </button>
       </div>
       {message ? (
         <p
-          className={`beta-subscribe-msg ${status === "error" ? "is-error" : "is-ok"}`}
+          className={`beta-subscribe-msg ${status === "error" ? "is-error" : status === "loading" ? "is-pending" : "is-ok"}`}
           role="status"
           aria-live="polite"
         >

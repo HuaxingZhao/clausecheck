@@ -3,9 +3,12 @@ import { getTranslations } from "next-intl/server";
 import { getQuotaForPlan } from "@/lib/pricing.config";
 import { Link } from "@/i18n/routing";
 import BetaSubscribeForm from "../components/beta-subscribe-form";
+import BetaNavActions from "../components/beta-nav-actions";
+import BetaPendingLink from "../components/beta-pending-link";
 import FAQItem from "../components/faq-item";
 
-export const dynamic = "force-dynamic";
+/** Public marketing page — cache at the edge; trial quota is build-time config. */
+export const revalidate = 3600;
 
 export async function generateMetadata({
   params,
@@ -65,23 +68,8 @@ export default async function BetaPage({
           >
             ClauseCheck
           </Link>
-          <div className="beta-nav-actions">
-            <div className="beta-nav-actions-row">
-              <Link
-                href="/beta"
-                locale={locale === "zh" ? "en" : "zh"}
-                className="beta-lang-switch text-xs font-sans text-ink-muted hover:text-ink"
-                prefetch={false}
-              >
-                {locale === "zh" ? "EN" : "中文"}
-              </Link>
-              <Link href="/#upload" className="btn btn-outline text-xs">
-                {t("nav.tryProduct")}
-              </Link>
-            </div>
-            <p className="beta-nav-try-hint">
-              {t("nav.tryProductHint", { count: freeScanCount })}
-            </p>
+          <div className="beta-nav-actions-slot">
+            <BetaNavActions locale={locale} freeScanCount={freeScanCount} />
           </div>
         </div>
       </nav>
@@ -100,10 +88,11 @@ export default async function BetaPage({
           <p className="beta-hero-fine">{t("hero.finePrint")}</p>
         </div>
         <div className="beta-hero-media">
-          <Link
+          <BetaPendingLink
             href="/#upload"
             className="beta-demo-frame beta-demo-link"
-            aria-label={t("demo.cta")}
+            pendingLabel={t("nav.opening")}
+            replaceLabel={false}
           >
             {/* No video file yet — real product screenshot + CTA, not a fake player */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -116,7 +105,7 @@ export default async function BetaPage({
             />
             <span className="beta-demo-cta">{t("demo.cta")}</span>
             <p className="beta-demo-caption">{t("demo.caption")}</p>
-          </Link>
+          </BetaPendingLink>
         </div>
       </section>
 

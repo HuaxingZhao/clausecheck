@@ -2455,6 +2455,9 @@ footer {
 .beta-nav-actions {
   @apply flex flex-col items-end gap-1;
 }
+.beta-nav-actions.is-pending {
+  @apply opacity-80;
+}
 .beta-nav-actions-row {
   @apply flex items-center gap-2;
 }
@@ -2463,6 +2466,30 @@ footer {
 }
 .beta-lang-switch {
   @apply px-1.5 py-1 rounded-md hover:bg-black/5 underline-offset-2 hover:underline shrink-0;
+}
+.beta-subscribe.is-loading .beta-subscribe-btn {
+  @apply opacity-90;
+}
+.beta-subscribe-msg.is-pending {
+  @apply text-ink-muted font-normal;
+}
+.beta-btn-busy {
+  @apply inline-flex items-center justify-center gap-2;
+}
+.beta-btn-spinner {
+  @apply inline-block h-3.5 w-3.5 rounded-full border-2 border-white/40 border-t-white animate-spin;
+}
+a.is-pending,
+.btn.is-pending {
+  @apply opacity-80 pointer-events-none;
+}
+.beta-demo-link {
+  @apply relative;
+}
+.beta-link-pending-chip {
+  @apply absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2
+         rounded-xl bg-legal-navy/90 text-white px-4 py-2.5 text-sm font-sans font-medium
+         shadow-md;
 }
 .beta-section {
   @apply py-14 md:py-16;
