@@ -2,6 +2,13 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-13 — Beta copy clarity (P0)
+
+- Perks disclaimer: benefits credited at official launch (`beta.benefits.disclaimer`).
+- Subscribe success: dual CTA register (`/account`) + dismiss wait; note signup ≠ account.
+- Nav「体验产品」hint with trial quota from `getQuotaForPlan("trial")` (currently 1).
+- Frontend/i18n only — waitlist API unchanged.
+
 ## 2026-07-13 — Phone user scan recovered after 504
 
 - User `+6584653074` confirmed scan results returned after PR #8 + quota refund (`used` 1→0, remaining 1).

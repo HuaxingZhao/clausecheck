@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { getQuotaForPlan } from "@/lib/pricing.config";
 import BetaSubscribeForm from "../components/beta-subscribe-form";
 import FAQItem from "../components/faq-item";
 
@@ -32,6 +33,7 @@ export default async function BetaPage({
   const t = await getTranslations({ locale, namespace: "beta" });
   const faqItems = t.raw("faq.items") as { q: string; a: string }[];
   const perks = t.raw("perks.items") as string[];
+  const freeScanCount = getQuotaForPlan("trial");
   const values = [
     {
       title: t("values.risk.title"),
@@ -70,9 +72,14 @@ export default async function BetaPage({
             >
               {locale === "zh" ? "EN" : "中文"}
             </Link>
-            <Link href={`/${locale}#upload`} className="btn btn-outline text-xs">
-              {t("nav.tryProduct")}
-            </Link>
+            <div className="beta-nav-try">
+              <Link href={`/${locale}#upload`} className="btn btn-outline text-xs">
+                {t("nav.tryProduct")}
+              </Link>
+              <p className="beta-nav-try-hint">
+                {t("nav.tryProductHint", { count: freeScanCount })}
+              </p>
+            </div>
           </div>
         </div>
       </nav>
@@ -149,6 +156,12 @@ export default async function BetaPage({
               <li key={item}>{item}</li>
             ))}
           </ul>
+          <p className="beta-perks-disclaimer" role="note">
+            <span className="beta-perks-disclaimer-icon" aria-hidden="true">
+              i
+            </span>
+            <span>{t("benefits.disclaimer")}</span>
+          </p>
         </div>
       </section>
 
