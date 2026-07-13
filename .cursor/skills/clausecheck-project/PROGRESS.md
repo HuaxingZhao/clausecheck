@@ -2,6 +2,11 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-13 — Phone user scan recovered after 504
+
+- User `+6584653074` confirmed scan results returned after PR #8 + quota refund (`used` 1→0, remaining 1).
+- Lesson: refund via Neon (`DATABASE_URL`), not Supabase SQL Editor (no `public.users` there).
+
 ## 2026-07-13 — Scan 504 timeout hotfix
 
 - Prod symptom: phone user `Request failed (504)` on `股份代持协议.pdf` (quota left 1).
