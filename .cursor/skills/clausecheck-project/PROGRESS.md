@@ -2,6 +2,28 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-14 — Beta soft launch 🟢
+
+```
+PR #9–#14  ：P0 体验修复（i18n / CTA / 响应式 / 免责 / 配额）
+PR #15     ：E2E 回归测试网（6 cases, ~4s）
+acf4fd2    ：生产发布 commit
+认知对齐 5/5 ✅
+E2E    6/6 ✅
+状态      ：Beta 软发布 🟢
+```
+
+- Links: `https://www.clausecheck.cc/zh/beta` · `https://www.clausecheck.cc/beta`
+- Soft launch = 熟人/社群内测 OK；PH 大宣发可选另排。
+- 对外文案须保留「决策支持，不构成法律意见」。
+
+## 2026-07-14 — Beta launch gate: #15 + cognitive alignment
+
+- PR #15 merged; prod health `acf4fd2`.
+- Prod E2E: `BASE_URL=https://www.clausecheck.cc npm run test:e2e:beta-p0` → **6 passed**.
+- Cognitive (prod `/zh/beta`): disclaimer 正式版发放 ✅; FAQ 报名≠开通+正式版发放 ✅; try-hint 需注册·1次 ✅; lang EN/切换到英文 ✅; dual CTA covered by E2E ✅.
+- **Verdict: soft Beta public OK** — share `/zh/beta` or `/beta`; keep「不构成法律意见」; PH big splash still optional later.
+
 ## 2026-07-14 — Beta P0 E2E green (local + prod)
 
 - `npm run test:e2e:beta-p0:local` → **6 passed** (~19s after warm compile).
