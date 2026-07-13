@@ -2,6 +2,12 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-13 — Beta PR #9 compliance leftovers
+
+- Lang switcher: hard-coded `EN`/`中文` → `langSwitch.label` (+ `aria-label` from `langSwitch.to`).
+- Responsive: `.beta-nav-try-hint` / `.beta-perks-disclaimer` / `.beta-subscribe-note` add `break-words` + full-width mobile caps.
+- Account CTA already `href="/account"` via i18n routing (no `/en/account` hop).
+
 ## 2026-07-13 — Quota badge stuck on「登录查看」
 
 - Root: `useCredits` cache-hit path set balance but not `authenticated`; homepage has two hook instances (page + badge).

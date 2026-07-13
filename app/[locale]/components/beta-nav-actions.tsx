@@ -14,6 +14,7 @@ export default function BetaNavActions({
   freeScanCount,
 }: BetaNavActionsProps) {
   const t = useTranslations("beta");
+  const tLang = useTranslations("langSwitch");
   const [pending, setPending] = useState<"lang" | "try" | null>(null);
   const nextLocale = locale === "zh" ? "en" : "zh";
 
@@ -29,9 +30,10 @@ export default function BetaNavActions({
           prefetch
           className="beta-lang-switch text-xs font-sans text-ink-muted hover:text-ink"
           onClick={() => setPending("lang")}
+          aria-label={tLang("to")}
           aria-disabled={pending != null}
         >
-          {pending === "lang" ? t("nav.switching") : locale === "zh" ? "EN" : "中文"}
+          {pending === "lang" ? t("nav.switching") : tLang("label")}
         </Link>
         <Link
           href="/#upload"
