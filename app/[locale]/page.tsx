@@ -19,7 +19,7 @@ import ReviewDisclaimer from "./components/review-disclaimer";
 import SampleContractPicker from "./components/sample-contract-picker";
 import WordLimitModal from "./components/word-limit-modal";
 import CreditsRemainingBadge from "./components/credits-remaining-badge";
-import { useCredits } from "@/hooks/use-credits";
+import { useCredits, clearCreditsCache } from "@/hooks/use-credits";
 import { stashPendingInviteCode } from "@/lib/invite/client-fingerprint";
 import type { ClientJurisdiction } from "@/lib/jurisdiction";
 import {
@@ -100,15 +100,18 @@ export default function Home() {
         if (data.email) saveProEmail(data.email);
         syncProFromServer(!!data.pro);
         setProState(!!data.pro);
+        // Badge uses a separate useCredits() — force refresh after session is confirmed
+        await invalidateCredits();
       } else {
         setAuthUser(null);
+        clearCreditsCache();
         // Pro badge from localStorage may still allow scans; user must sign in for history
         setProState(isPro());
       }
     } catch {
       setProState(isPro());
     }
-  }, []);
+  }, [invalidateCredits]);
 
   const saveReportToHistory = useCallback(
     async (scanResult: ScanResult, sourceFileName?: string | null) => {
@@ -482,7 +485,9 @@ export default function Home() {
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
+    clearCreditsCache();
     setAuthUser(null);
+    await invalidateCredits();
     setToast(t("auth.loggedOut"));
   }
 

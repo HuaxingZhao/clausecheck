@@ -2,6 +2,11 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-13 — Quota badge stuck on「登录查看」
+
+- Root: `useCredits` cache-hit path set balance but not `authenticated`; homepage has two hook instances (page + badge).
+- Fix: set `authenticated` on cache hit; re-fetch credits after `/api/auth/me` succeeds; clear cache on logout. PR #13.
+
 ## 2026-07-13 — Beta / scan click feedback + Beta ISR
 
 - Remove `force-dynamic` on `/beta`; use `revalidate = 3600` for edge cache.

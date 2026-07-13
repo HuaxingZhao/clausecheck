@@ -15,9 +15,11 @@ export interface UseCreditsResult {
 }
 
 export function useCredits(): UseCreditsResult {
-  const [balance, setBalance] = useState<number | null>(() => creditsCache?.balance ?? null);
-  const [loading, setLoading] = useState(true);
-  const [authenticated, setAuthenticated] = useState(false);
+  const [balance, setBalance] = useState<number | null>(
+    () => creditsCache?.balance ?? null
+  );
+  const [loading, setLoading] = useState(() => !creditsCache);
+  const [authenticated, setAuthenticated] = useState(() => !!creditsCache);
 
   const refresh = useCallback(async (force = false): Promise<number | null> => {
     if (
@@ -26,6 +28,9 @@ export function useCredits(): UseCreditsResult {
       Date.now() - creditsCache.fetchedAt < CACHE_MS
     ) {
       setBalance(creditsCache.balance);
+      // Cache implies a prior authenticated success — must set this or the
+      // badge stays on「登录查看审阅配额」when another useCredits() filled the cache.
+      setAuthenticated(true);
       setLoading(false);
       return creditsCache.balance;
     }
@@ -40,7 +45,12 @@ export function useCredits(): UseCreditsResult {
         return null;
       }
       if (!res.ok) {
-        setBalance(null);
+        // Transient failure (e.g. Neon cold start): keep prior cache if any
+        if (creditsCache) {
+          setBalance(creditsCache.balance);
+          setAuthenticated(true);
+          return creditsCache.balance;
+        }
         return null;
       }
       const data = (await res.json()) as { balance?: number };
@@ -50,9 +60,15 @@ export function useCredits(): UseCreditsResult {
         setAuthenticated(true);
         return data.balance;
       }
+      setAuthenticated(false);
+      setBalance(null);
       return null;
     } catch {
-      setBalance(null);
+      if (creditsCache) {
+        setBalance(creditsCache.balance);
+        setAuthenticated(true);
+        return creditsCache.balance;
+      }
       return null;
     } finally {
       setLoading(false);
