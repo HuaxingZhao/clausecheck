@@ -2,6 +2,12 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-13 — Beta EN switcher fix
+
+- English Beta exists at `/beta` (default locale); `/zh/beta` is Chinese; `/en/beta` 307→`/beta`.
+- Switcher used raw `/en/beta` + `next/link`, which can no-op under `localePrefix: as-needed`.
+- Fix: `Link` from `@/i18n/routing` with `locale="en"|"zh"` and `href="/beta"`.
+
 ## 2026-07-13 — Beta copy clarity (P0)
 
 - Perks disclaimer: benefits credited at official launch (`beta.benefits.disclaimer`).
