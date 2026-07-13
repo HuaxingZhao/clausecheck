@@ -304,17 +304,21 @@ export default function Home() {
     e.preventDefault();
     if (!file) return;
 
+    // Instant click feedback — do not wait for quota network round-trip first
+    setLoading(true);
+    setError(null);
+    setScanStage(1);
+
     const quota = await refreshServerQuota();
     if (!quota.allowed) {
+      setLoading(false);
+      setScanStage(0);
       setError(t("quota.limitReached"));
       trackEvent("scan_quota_blocked", { tier: quota.tier });
       return;
     }
 
     trackEvent("scan_started", { scenario, locale });
-    setLoading(true);
-    setError(null);
-    setScanStage(1);
 
     const stageTimer = setTimeout(() => setScanStage(2), 900);
 

@@ -2,6 +2,12 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-13 — Beta / scan click feedback + Beta ISR
+
+- Remove `force-dynamic` on `/beta`; use `revalidate = 3600` for edge cache.
+- Instant UI feedback: lang/try nav pending labels, subscribe spinner+hint, success CTA pending, demo card chip.
+- Home scan: set loading/stage **before** awaiting quota API (was waiting on cold Neon).
+
 ## 2026-07-13 — Beta nav EN / 体验产品间距
 
 - Hint text was wider than the CTA, and the button was `items-end`, so EN sat far left of「体验产品」.
