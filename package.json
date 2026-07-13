@@ -22,8 +22,10 @@
     "validate:pack": "tsx scripts/validate-pack.ts",
     "extract:fewshots": "tsx scripts/extract-fewshots-from-feedback.ts",
     "test:docx": "node --import tsx --test lib/generateRevisionDocx.test.ts",
-    "test:smoke": "playwright test e2e/smoke.spec.ts",
-    "test:e2e": "playwright test e2e/smoke.spec.ts"
+    "test:smoke": "playwright test e2e/smoke.spec.ts --project=smoke",
+    "test:e2e": "playwright test e2e/smoke.spec.ts --project=smoke",
+    "test:e2e:beta-p0": "playwright test e2e/beta-p0-regression.spec.ts --project=beta-p0",
+    "test:e2e:beta-p0:local": "BASE_URL=http://localhost:3000 playwright test e2e/beta-p0-regression.spec.ts --project=beta-p0"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "^1.1.1",

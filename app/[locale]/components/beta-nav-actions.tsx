@@ -27,7 +27,6 @@ export default function BetaNavActions({
         <Link
           href="/beta"
           locale={nextLocale}
-          prefetch
           className="beta-lang-switch text-xs font-sans text-ink-muted hover:text-ink"
           onClick={() => setPending("lang")}
           aria-label={tLang("to")}
