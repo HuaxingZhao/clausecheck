@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { getQuotaForPlan } from "@/lib/pricing.config";
+import { Link } from "@/i18n/routing";
 import BetaSubscribeForm from "../components/beta-subscribe-form";
 import FAQItem from "../components/faq-item";
 
@@ -60,20 +60,22 @@ export default async function BetaPage({
       <nav className="border-b border-border bg-paper/80 backdrop-blur sticky top-0 z-40">
         <div className="nav-inner">
           <Link
-            href={`/${locale}`}
+            href="/"
             className="font-sans font-semibold text-lg tracking-tight text-legal-navy"
           >
             ClauseCheck
           </Link>
           <div className="flex items-center gap-3">
             <Link
-              href={`/${locale === "zh" ? "en" : "zh"}/beta`}
-              className="text-xs font-sans text-ink-muted hover:text-ink"
+              href="/beta"
+              locale={locale === "zh" ? "en" : "zh"}
+              className="beta-lang-switch text-xs font-sans text-ink-muted hover:text-ink"
+              prefetch={false}
             >
               {locale === "zh" ? "EN" : "中文"}
             </Link>
             <div className="beta-nav-try">
-              <Link href={`/${locale}#upload`} className="btn btn-outline text-xs">
+              <Link href="/#upload" className="btn btn-outline text-xs">
                 {t("nav.tryProduct")}
               </Link>
               <p className="beta-nav-try-hint">
@@ -99,7 +101,7 @@ export default async function BetaPage({
         </div>
         <div className="beta-hero-media">
           <Link
-            href={`/${locale}#upload`}
+            href="/#upload"
             className="beta-demo-frame beta-demo-link"
             aria-label={t("demo.cta")}
           >
@@ -199,7 +201,7 @@ export default async function BetaPage({
             </a>
           </p>
           <Link
-            href={`/${locale}`}
+            href="/"
             className="inline-block mt-8 text-xs font-sans text-ink-muted hover:text-ink"
           >
             {t("footerCta.backHome")}

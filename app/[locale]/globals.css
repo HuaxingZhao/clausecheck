@@ -2458,6 +2458,9 @@ footer {
 .beta-nav-try-hint {
   @apply text-[10px] sm:text-[11px] font-sans text-ink-muted leading-snug text-right;
 }
+.beta-lang-switch {
+  @apply px-2 py-1 rounded-md hover:bg-black/5 underline-offset-2 hover:underline;
+}
 .beta-section {
   @apply py-14 md:py-16;
 }
