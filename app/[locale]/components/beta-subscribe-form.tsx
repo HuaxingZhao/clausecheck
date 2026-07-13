@@ -20,12 +20,8 @@ export default function BetaSubscribeForm({
   );
   const [message, setMessage] = useState<string | null>(null);
 
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    const emailValue = String(fd.get("email") || email || "")
-      .trim()
-      .toLowerCase();
+  async function submitEmail(raw: string) {
+    const emailValue = raw.trim().toLowerCase();
     if (!emailValue || !emailValue.includes("@")) {
       setStatus("error");
       setMessage(t("form.invalidEmail"));
@@ -70,6 +66,12 @@ export default function BetaSubscribeForm({
     }
   }
 
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    await submitEmail(String(fd.get("email") || email || ""));
+  }
+
   if (status === "ok") {
     return (
       <div
@@ -108,6 +110,8 @@ export default function BetaSubscribeForm({
       onSubmit={(e) => void onSubmit(e)}
       className={`beta-subscribe beta-subscribe--${variant}${status === "loading" ? " is-loading" : ""}`}
       noValidate
+      method="post"
+      action="#"
       aria-busy={status === "loading"}
     >
       <div className="beta-subscribe-row">
@@ -129,9 +133,16 @@ export default function BetaSubscribeForm({
           disabled={status === "loading"}
         />
         <button
-          type="submit"
+          type="button"
           className="btn btn-primary beta-subscribe-btn"
           disabled={status === "loading"}
+          onClick={(e) => {
+            const formEl = e.currentTarget.form;
+            const fromDom = formEl
+              ? String(new FormData(formEl).get("email") || "")
+              : "";
+            void submitEmail(fromDom || email);
+          }}
         >
           {status === "loading" ? (
             <span className="beta-btn-busy">

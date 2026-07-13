@@ -2,6 +2,25 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-14 — Beta P0 E2E green (local + prod)
+
+- `npm run test:e2e:beta-p0:local` → **6 passed** (~19s after warm compile).
+- Prod gate earlier: `BASE_URL=https://www.clausecheck.cc npm run test:e2e:beta-p0` → 6 passed.
+- Next: cognitive alignment smoke → Beta public launch.
+
+- Added `e2e/beta-p0-regression.spec.ts` (PR #9–#14): disclaimer, lang i18n, dual CTA + mock subscribe, trial quota vs `getQuotaForPlan`, iPhone SE overflow, `/account` 200.
+- Helpers: `e2e/helpers/beta.ts` (temp email + subscribe route mock).
+- Playwright: `beta-p0` project; `npm run test:e2e:beta-p0`. Path stays under `e2e/` (repo `testDir`).
+- Local subscribe flake: form was native-GET before hydration (`?email=`); submit btn is `type="button"` + e2e waits for React fiber + POST.
+
+## 2026-07-13 — PR #14 prod verification (gate before E2E)
+
+- Prod `api/health` version `761b582` (#14 merged + deployed).
+- Lang switch: `tLang("label")` + aria `langSwitch.to` (zh shows EN / 切换到英文).
+- Success CTA chunk: `href:"/account"` via i18n Link; `/en/account`→307 `/account`, `/account`→200.
+- iPhone SE 375: `.beta-nav-try-hint` scrollWidth≤clientWidth; computed `maxWidth:100%`, `overflowWrap:break-word`.
+- Gate: all three ✅ → ready for Playwright E2E stage-2 prompt.
+
 ## 2026-07-13 — Beta PR #9 compliance leftovers
 
 - Lang switcher: hard-coded `EN`/`中文` → `langSwitch.label` (+ `aria-label` from `langSwitch.to`).
