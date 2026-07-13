@@ -898,7 +898,8 @@
       "description": "AI contract review calibrated with lawyer feedback. Multi-jurisdiction safe. Privacy-first. Co-create the product with founding members."
     },
     "nav": {
-      "tryProduct": "Try the product"
+      "tryProduct": "Try the product",
+      "tryProductHint": "Free registration required · Includes {count} free scans"
     },
     "hero": {
       "badge": "Beta · co-create with us",
@@ -916,6 +917,16 @@
       "tryProduct": "Try the product now →",
       "error": "Could not subscribe. Please try again.",
       "invalidEmail": "Please enter a valid email address."
+    },
+    "benefits": {
+      "disclaimer": "🎁 These benefits will be credited to your account upon official launch. Sign up now to secure your spot."
+    },
+    "subscribe": {
+      "success": {
+        "note": "Signing up ≠ automatic access. Register now to start scanning for free.",
+        "ctaPrimary": "Sign Up to Try Now",
+        "ctaSecondary": "Got it, I'll wait"
+      }
     },
     "demo": {
       "aria": "ClauseCheck product preview — open upload to try",
@@ -975,7 +986,7 @@
         },
         {
           "q": "What happens after I subscribe?",
-          "a": "We email invite links in waves. Early members get founding perks and a direct channel to share product feedback."
+          "a": "Your email joins the beta list and locks founding-perk eligibility (credited at official launch). Signing up does not create an account — use “Sign Up to Try Now” or “Try the product” to register and scan with your free trial quota. We also email updates in waves."
         }
       ]
     },

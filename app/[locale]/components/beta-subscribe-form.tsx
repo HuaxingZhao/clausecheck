@@ -77,9 +77,26 @@ export default function BetaSubscribeForm({
         aria-live="polite"
       >
         <p className="beta-subscribe-banner is-ok">{message}</p>
-        <Link href={`/${locale}#upload`} className="btn btn-primary beta-subscribe-btn">
-          {t("form.tryProduct")}
-        </Link>
+        <p className="beta-subscribe-note">{t("subscribe.success.note")}</p>
+        <div className="beta-subscribe-actions">
+          <Link
+            href={`/${locale}/account`}
+            className="btn btn-primary beta-subscribe-btn"
+          >
+            {t("subscribe.success.ctaPrimary")}
+          </Link>
+          <button
+            type="button"
+            className="beta-subscribe-secondary"
+            onClick={() => {
+              setStatus("idle");
+              setMessage(null);
+              setEmail("");
+            }}
+          >
+            {t("subscribe.success.ctaSecondary")}
+          </button>
+        </div>
       </div>
     );
   }

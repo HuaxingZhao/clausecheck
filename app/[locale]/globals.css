@@ -2433,6 +2433,16 @@ footer {
 .beta-subscribe-banner.is-ok {
   @apply border-emerald-300 bg-emerald-50 text-emerald-800;
 }
+.beta-subscribe-note {
+  @apply text-xs font-sans text-ink-muted leading-relaxed;
+}
+.beta-subscribe-actions {
+  @apply flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3;
+}
+.beta-subscribe-secondary {
+  @apply text-xs sm:text-sm font-sans text-ink-muted underline underline-offset-2
+         hover:text-ink bg-transparent border-0 p-0 cursor-pointer text-left;
+}
 .beta-subscribe-msg {
   @apply text-sm font-sans mt-3 min-h-[1.25rem];
 }
@@ -2441,6 +2451,12 @@ footer {
 }
 .beta-subscribe-msg.is-error {
   @apply text-red-700 font-medium;
+}
+.beta-nav-try {
+  @apply flex flex-col items-end gap-1 max-w-[11rem] sm:max-w-none;
+}
+.beta-nav-try-hint {
+  @apply text-[10px] sm:text-[11px] font-sans text-ink-muted leading-snug text-right;
 }
 .beta-section {
   @apply py-14 md:py-16;
@@ -2475,6 +2491,15 @@ footer {
 .beta-perks-list li::before {
   content: "✓";
   @apply absolute left-0 text-legal-navy font-bold;
+}
+.beta-perks-disclaimer {
+  @apply mt-5 max-w-md mx-auto flex items-start gap-2 text-left
+         text-xs font-sans text-ink-muted leading-relaxed;
+}
+.beta-perks-disclaimer-icon {
+  @apply mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center
+         rounded-full border border-ink-muted/40 text-[10px] font-semibold
+         text-ink-muted leading-none;
 }
 .beta-trust {
   @apply py-8 border-y border-border/50 bg-white;
