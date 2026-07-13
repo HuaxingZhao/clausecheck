@@ -2,6 +2,11 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-13 — Beta nav EN / 体验产品间距
+
+- Hint text was wider than the CTA, and the button was `items-end`, so EN sat far left of「体验产品」.
+- Group EN + CTA on one tight row (`gap-2`); hint below the group.
+
 ## 2026-07-13 — Beta EN switcher fix
 
 - English Beta exists at `/beta` (default locale); `/zh/beta` is Chinese; `/en/beta` 307→`/beta`.

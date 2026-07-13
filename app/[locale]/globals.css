@@ -2452,14 +2452,17 @@ footer {
 .beta-subscribe-msg.is-error {
   @apply text-red-700 font-medium;
 }
-.beta-nav-try {
-  @apply flex flex-col items-end gap-1 max-w-[11rem] sm:max-w-none;
+.beta-nav-actions {
+  @apply flex flex-col items-end gap-1;
+}
+.beta-nav-actions-row {
+  @apply flex items-center gap-2;
 }
 .beta-nav-try-hint {
-  @apply text-[10px] sm:text-[11px] font-sans text-ink-muted leading-snug text-right;
+  @apply text-[10px] sm:text-[11px] font-sans text-ink-muted leading-snug text-right max-w-[14rem] sm:max-w-[18rem];
 }
 .beta-lang-switch {
-  @apply px-2 py-1 rounded-md hover:bg-black/5 underline-offset-2 hover:underline;
+  @apply px-1.5 py-1 rounded-md hover:bg-black/5 underline-offset-2 hover:underline shrink-0;
 }
 .beta-section {
   @apply py-14 md:py-16;

@@ -65,23 +65,23 @@ export default async function BetaPage({
           >
             ClauseCheck
           </Link>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/beta"
-              locale={locale === "zh" ? "en" : "zh"}
-              className="beta-lang-switch text-xs font-sans text-ink-muted hover:text-ink"
-              prefetch={false}
-            >
-              {locale === "zh" ? "EN" : "中文"}
-            </Link>
-            <div className="beta-nav-try">
+          <div className="beta-nav-actions">
+            <div className="beta-nav-actions-row">
+              <Link
+                href="/beta"
+                locale={locale === "zh" ? "en" : "zh"}
+                className="beta-lang-switch text-xs font-sans text-ink-muted hover:text-ink"
+                prefetch={false}
+              >
+                {locale === "zh" ? "EN" : "中文"}
+              </Link>
               <Link href="/#upload" className="btn btn-outline text-xs">
                 {t("nav.tryProduct")}
               </Link>
-              <p className="beta-nav-try-hint">
-                {t("nav.tryProductHint", { count: freeScanCount })}
-              </p>
             </div>
+            <p className="beta-nav-try-hint">
+              {t("nav.tryProductHint", { count: freeScanCount })}
+            </p>
           </div>
         </div>
       </nav>
