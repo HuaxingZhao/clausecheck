@@ -2,8 +2,8 @@
 name: clausecheck-project
 description: >-
   ClauseCheck project memory and living progress. Use for any ClauseCheck work,
-  new chats, phone auth, pricing, review UI, deploy, or when user says
-  @clausecheck-project / clausecheck project.
+  new chats, phone auth, pricing, review UI, deploy, beta launch, or when user
+  says @clausecheck-project / clausecheck project.
 ---
 
 # ClauseCheck Project
@@ -14,7 +14,23 @@ Use `@clausecheck-project` or say「按 clausecheck project」. This memory also
 
 ## Mandatory agent duty
 
-After any meaningful change—feature, fix, deploy, or operations discovery—update [PROGRESS.md](PROGRESS.md) in this folder with dated bullet(s). Do not wait for the user to ask.
+After any meaningful change—feature, fix, deploy, verification, or operations discovery—update [PROGRESS.md](PROGRESS.md) in this folder with dated bullet(s). Do not wait for the user to ask.
+
+## Current status (2026-07-14)
+
+```
+PR #9–#14  ：P0 体验修复（i18n / CTA / 响应式 / 免责 / 配额）
+PR #15     ：E2E 回归测试网（6 cases, ~4s）
+acf4fd2    ：生产发布 commit
+认知对齐 5/5 ✅
+E2E    6/6 ✅
+状态      ：Beta 软发布 🟢
+```
+
+- Prod: `https://www.clausecheck.cc` · Beta: `/zh/beta` · `/beta`
+- Soft launch = 熟人/社群内测 OK；Product Hunt 大宣发可选另排。
+- Always: decision support only — **not legal advice**.
+- Living detail: [PROGRESS.md](PROGRESS.md).
 
 ## Product memory
 
@@ -49,6 +65,14 @@ Results order: decision summary → quality banner → score/flags → collapsed
 
 Review is a read-only split view. `contract-review-shell` stays at **82vh**, with each pane scrolling internally. Missing clauses belong in the missing group; quote matching uses `lockAtSection` fallback. Level checkboxes accept/unaccept immediately; clear resets levels and accepted items; negotiation email is download-only.
 
+## Beta page constraints (P0)
+
+- Founding perks are marketing until official launch — keep `beta.benefits.disclaimer` (正式版统一发放).
+- Waitlist subscribe ≠ account; success UI must offer register (`/account` via i18n `Link`) + dismiss.
+- 「体验产品」hint uses `getQuotaForPlan("trial")` — never hardcode the count.
+- EN default routes omit `/en` prefix (`localePrefix: as-needed`); use `@/i18n/routing` `Link`.
+- Regression: `npm run test:e2e:beta-p0` (prod) · `npm run test:e2e:beta-p0:local` (auto `webServer`).
+
 ## Do not
 
 - Claim legal advice or a fixed accuracy percentage.
@@ -56,12 +80,14 @@ Review is a read-only split view. `contract-review-shell` stays at **82vh**, wit
 - Reintroduce silent DOCX patching or TipTap into the main flow.
 - Turn the 82vh split review into page-height scrolling.
 - Add SMS SDKs to the app: use Supabase Auth OTP and its hooks.
+- Imply founding perks or Pro discounts are already credited after waitlist signup.
 
 ## Short workflows
 
 - **Scenario**: update the scenario id, prompt overlay, RAG pack, and both locale messages; build afterward.
 - **Pipeline**: trace `analyze.ts` → `analysis-pipeline.ts` → `rewrite-suggestions.ts` → confidence/quote snapping; return the complete pipeline output.
 - **Review**: trace shell/view → `lock-suggestions.ts` → `review-to-changes.ts` → workbook export; always pass `review.source`.
+- **Beta P0 gate**: prod health SHA → `test:e2e:beta-p0` → cognitive checks (disclaimer / FAQ / try-hint / lang / dual CTA).
 
 ## Deep references
 
@@ -69,6 +95,7 @@ Review is a read-only split view. `contract-review-shell` stays at **82vh**, wit
 - [Aliyun SMS Hook](../../../docs/ALIYUN_SMS_HOOK.md)
 - [Project status](../../../docs/PROJECT-STATUS.md)
 - [Pricing Plan A](../../../docs/PRICING_PLAN_A.md)
+- [Beta launch smoke](../../../docs/deploy/smoke-test-beta-launch.md)
 - [Legacy deep workflow skill](../clausecheck/SKILL.md)
 
 See [PROGRESS.md](PROGRESS.md) for living status.
