@@ -2434,7 +2434,7 @@ footer {
   @apply border-emerald-300 bg-emerald-50 text-emerald-800;
 }
 .beta-subscribe-note {
-  @apply text-xs font-sans text-ink-muted leading-relaxed;
+  @apply text-xs font-sans text-ink-muted leading-relaxed break-words max-w-full;
 }
 .beta-subscribe-actions {
   @apply flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3;
@@ -2462,7 +2462,8 @@ footer {
   @apply flex items-center gap-2;
 }
 .beta-nav-try-hint {
-  @apply text-[10px] sm:text-[11px] font-sans text-ink-muted leading-snug text-right max-w-[14rem] sm:max-w-[18rem];
+  @apply text-[10px] sm:text-[11px] font-sans text-ink-muted leading-snug text-right
+         max-w-full sm:max-w-[18rem] break-words;
 }
 .beta-lang-switch {
   @apply px-1.5 py-1 rounded-md hover:bg-black/5 underline-offset-2 hover:underline shrink-0;
@@ -2523,8 +2524,8 @@ a.is-pending,
   @apply absolute left-0 text-legal-navy font-bold;
 }
 .beta-perks-disclaimer {
-  @apply mt-5 max-w-md mx-auto flex items-start gap-2 text-left
-         text-xs font-sans text-ink-muted leading-relaxed;
+  @apply mt-5 max-w-md w-full mx-auto flex items-start gap-2 text-left
+         text-xs font-sans text-ink-muted leading-relaxed break-words px-1;
 }
 .beta-perks-disclaimer-icon {
   @apply mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center
