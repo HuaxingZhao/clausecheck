@@ -2483,9 +2483,6 @@ a.is-pending,
 .btn.is-pending {
   @apply opacity-80 pointer-events-none;
 }
-.beta-demo-link {
-  @apply relative;
-}
 .beta-link-pending-chip {
   @apply absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2
          rounded-xl bg-legal-navy/90 text-white px-4 py-2.5 text-sm font-sans font-medium
