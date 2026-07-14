@@ -2,6 +2,13 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-14 — 重置邮件发不出（根因）
+
+- 症状：点「发送重置邮件」绿字成功，但收不到；接口约 14s。
+- 根因：(1) Vercel 只有错误变量名 `Email_From`，代码读 `EMAIL_FROM` → 落到 `onboarding@resend.dev`；(2) 无 `password_hash` 时假成功不发信。
+- 修复：`getEmailFrom()` 兼容两种 key；不可靠 From 直接 503；有用户即可发重置（含 Google 账号设密）；Vercel 已补 `EMAIL_FROM=ClauseCheck <noreply@clausecheck.cc>`（需 Resend 域名已验证 + 重新部署才生效）。
+- 慢：Neon 冷启动，非前端死循环。
+
 ## 2026-07-14 — 忘记密码入口更显眼
 
 - AuthPanel：邮箱「登录」时「忘记密码？」放在密码标签右侧（PR #21）；完整重置流已在 #20。

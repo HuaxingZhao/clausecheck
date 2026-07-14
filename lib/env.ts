@@ -38,3 +38,25 @@ export function getResendApiKey(): string {
   }
   return key || "";
 }
+
+/**
+ * Resend From header. Prefer EMAIL_FROM; also accept legacy Email_From
+ * (mistyped on some Vercel projects — Node env keys are case-sensitive).
+ */
+export function getEmailFrom(): string {
+  const raw =
+    process.env.EMAIL_FROM?.trim() ||
+    process.env.Email_From?.trim() ||
+    "";
+  return raw || "ClauseCheck <onboarding@resend.dev>";
+}
+
+/** True when From is sandbox/placeholder and will not deliver to arbitrary inboxes. */
+export function isEmailFromUnreliable(from: string = getEmailFrom()): boolean {
+  const lower = from.toLowerCase();
+  return (
+    lower.includes("onboarding@resend.dev") ||
+    lower.includes("yourdomain.com") ||
+    lower.includes("example.com")
+  );
+}
