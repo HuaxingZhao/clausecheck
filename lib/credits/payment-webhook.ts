@@ -32,5 +32,10 @@ export function verifyPaymentWebhookSignature(
 }
 
 export function getPaymentWebhookSecret(): string {
-  return process.env.PAYMENT_WEBHOOK_SECRET || "";
+  return process.env.PAYMENT_WEBHOOK_SECRET?.trim() || "";
+}
+
+/** True when production can accept signed payment webhooks. */
+export function isPaymentWebhookConfigured(): boolean {
+  return getPaymentWebhookSecret().length > 0;
 }

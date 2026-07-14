@@ -161,7 +161,8 @@ export default async function CommunityBountyPage({
           </Link>
           <div className="flex items-center gap-3">
             <Link
-              href={`/${locale === "zh" ? "en" : "zh"}/community/bounty`}
+              href="/community/bounty"
+              locale={locale === "zh" ? "en" : "zh"}
               className="text-xs font-sans text-ink-muted hover:text-ink"
             >
               {locale === "zh" ? "EN" : "中文"}

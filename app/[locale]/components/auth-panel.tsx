@@ -362,7 +362,14 @@ export default function AuthPanel({
                   className="auth-input"
                 />
                 {error && <p className="text-red-600 text-sm mt-3 font-sans">{error}</p>}
-                {info && <p className="text-green-700 text-sm mt-3 font-sans">{info}</p>}
+                {info && (
+                  <div className="mt-3 space-y-1">
+                    <p className="text-green-700 text-sm font-sans">{info}</p>
+                    <p className="text-ink-muted text-xs font-sans leading-relaxed">
+                      {t("forgotSentHint")}
+                    </p>
+                  </div>
+                )}
                 <button type="submit" disabled={loading} className="btn btn-primary w-full mt-6">
                   {loading ? t("submitting") : t("forgotButton")}
                 </button>

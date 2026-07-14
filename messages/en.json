@@ -341,6 +341,7 @@
     "forgotSubtitle": "Enter your registered email and we’ll send a reset link (valid 30 minutes).",
     "forgotButton": "Send reset email",
     "forgotSent": "If an account exists for this email, a reset link has been sent.",
+    "forgotSentHint": "If nothing arrives in a few minutes: check spam; confirm this email is registered; try Google sign-in; or email support@clausecheck.cc.",
     "forgotFailed": "Could not send email. Please try again.",
     "backToLogin": "Back to sign in",
     "resetTitle": "Reset password",
@@ -926,7 +927,7 @@
       "badge": "Beta · co-create with us",
       "title": "AI Contract Review, Calibrated by Real Lawyers",
       "subtitle": "Join the beta. Shape the product. Lock in lifetime Pro perks (credited at official launch).",
-      "finePrint": "Decision support only — not legal advice. Sign-up ≠ account access; founding perks credited at launch. No spam."
+      "finePrint": "Decision support only — not legal advice. Sign-up ≠ account access; founding perks are locked as eligibility and credited manually at official launch (not auto-granted on signup). No spam."
     },
     "form": {
       "emailLabel": "Email",
@@ -941,7 +942,7 @@
       "invalidEmail": "Please enter a valid email address."
     },
     "benefits": {
-      "disclaimer": "🎁 These benefits will be credited to your account upon official launch. Sign up now to secure your spot."
+      "disclaimer": "🎁 Eligibility only for now — perks are credited manually when the official product launches (not automatic on Beta signup). Join to lock your spot."
     },
     "subscribe": {
       "success": {
@@ -1020,38 +1021,6 @@
       "backHome": "← Back to home"
     }
   },
-  "pricingZh": {
-    "label": "定价",
-    "title": "简单透明",
-    "subtitle": "按需付费，中间不涨价",
-    "free": {
-      "name": "免费版",
-      "price": "¥0",
-      "period": "/月",
-      "features": [
-        "✅ 每月 5 次免费扫描",
-        "✅ 基础风险评估",
-        "✅ 标记高风险条款",
-        "⏤ 12,000 字文本限制",
-        "⏤ 不含 PDF 报告导出"
-      ],
-      "cta": "免费开始"
-    },
-    "pro": {
-      "name": "专业版",
-      "badge": "推荐",
-      "price": "¥49",
-      "period": "/月",
-      "features": [
-        "✅ 不限次数",
-        "✅ 深度 AI 分析（双模型交叉验证）",
-        "✅ 全文无长度限制",
-        "✅ PDF 报告导出",
-        "✅ 批量扫描"
-      ],
-      "cta": "立即升级"
-    }
-  },
   "faq": {
     "label": "FAQ",
     "title": "You Might Be Wondering",
@@ -1062,7 +1031,7 @@
       },
       {
         "q": "How accurate is the AI? Can it replace a lawyer?",
-        "a": "Our AI covers 10+ risk categories including indemnification, non-compete, auto-renewal, and IP ownership. Internal tests show over 90% detection of high-risk clauses. However, it is not a lawyer — for high-stakes contracts, always consult a licensed attorney."
+        "a": "Our AI covers common risk areas such as indemnification, non-compete, auto-renewal, and IP ownership. It provides decision support only — not legal advice — and cannot replace a licensed attorney on high-stakes contracts."
       },
       {
         "q": "What file formats are supported?",

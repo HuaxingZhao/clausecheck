@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { fulfillCreditOrder, getOrderById } from "@/lib/credits/orders";
 import {
   getPaymentWebhookSecret,
+  isPaymentWebhookConfigured,
   paymentWebhookPayloadSchema,
   verifyPaymentWebhookSignature,
 } from "@/lib/credits/payment-webhook";
@@ -13,13 +14,21 @@ export async function POST(req: NextRequest) {
   const signature = req.headers.get("x-payment-signature");
   const secret = getPaymentWebhookSecret();
 
-  if (secret) {
+  if (isPaymentWebhookConfigured()) {
     if (!verifyPaymentWebhookSignature(rawBody, signature, secret)) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
   } else if (process.env.NODE_ENV === "production") {
-    console.error("PAYMENT_WEBHOOK_SECRET missing in production");
-    return NextResponse.json({ error: "Webhook not configured" }, { status: 500 });
+    console.error(
+      "PAYMENT_WEBHOOK_SECRET missing in production — set on Vercel and redeploy; npm run verify:env"
+    );
+    return NextResponse.json(
+      {
+        error: "Webhook not configured",
+        message: "PAYMENT_WEBHOOK_SECRET is required in production",
+      },
+      { status: 500 }
+    );
   }
 
   let payload: unknown;
