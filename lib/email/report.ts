@@ -1,4 +1,5 @@
 import { sendMagicLinkEmail } from "@/lib/auth/email";
+import { getEmailFrom } from "@/lib/env";
 
 export async function sendReportEmail(input: {
   to: string;
@@ -8,7 +9,7 @@ export async function sendReportEmail(input: {
   scoreNum: number;
 }): Promise<{ delivered: boolean }> {
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM || "ClauseCheck <onboarding@resend.dev>";
+  const from = getEmailFrom();
   const { to, locale, pdfBytes, reportsLink, scoreNum } = input;
 
   const subject =

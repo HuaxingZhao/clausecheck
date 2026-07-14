@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { getEmailFrom, isEmailFromUnreliable } from "@/lib/env";
 
 const salesSchema = z.object({
   company: z.string().min(1).max(200),
@@ -21,10 +22,10 @@ export async function POST(req: NextRequest) {
     const { company, email, teamSize, message, name } = parsed.data;
     const contactName = name?.trim() || company;
     const apiKey = process.env.RESEND_API_KEY?.trim();
-    const from = process.env.EMAIL_FROM?.trim();
+    const from = getEmailFrom()?.trim();
     const to = process.env.ADMIN_EMAILS?.split(",")[0]?.trim();
 
-    if (apiKey && from && to) {
+    if (apiKey && from && !isEmailFromUnreliable(from) && to) {
       const res = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {

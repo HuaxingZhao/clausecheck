@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { subscribeBetaEmail } from "@/lib/db/beta-waitlist-store";
+import { getEmailFrom } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
@@ -32,9 +33,9 @@ export async function POST(req: NextRequest) {
     );
 
     const apiKey = process.env.RESEND_API_KEY?.trim();
-    const from = process.env.EMAIL_FROM?.trim();
+    const from = getEmailFrom()?.trim();
     const to = process.env.ADMIN_EMAILS?.split(",")[0]?.trim();
-    if (apiKey && from && to && result.created) {
+    if (apiKey && from && !from.includes("yourdomain") && to && result.created) {
       void fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {

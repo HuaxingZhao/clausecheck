@@ -1,5 +1,6 @@
 import type { ReportLocale } from "@/lib/pdf-export";
 import { suggestionsFilenames } from "@/lib/contract-export";
+import { getEmailFrom } from "@/lib/env";
 
 export async function sendSuggestionsEmail(input: {
   to: string;
@@ -8,7 +9,7 @@ export async function sendSuggestionsEmail(input: {
   docxBytes: Uint8Array;
 }): Promise<{ delivered: boolean }> {
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM || "ClauseCheck <onboarding@resend.dev>";
+  const from = getEmailFrom();
   const { to, locale, pdfBytes, docxBytes } = input;
   const names = suggestionsFilenames(locale);
 
