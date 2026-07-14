@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getEmailFrom, isEmailFromUnreliable } from "@/lib/env";
+import { sendResendEmail } from "@/lib/email/resend";
 
 const salesSchema = z.object({
   company: z.string().min(1).max(200),
@@ -21,27 +21,28 @@ export async function POST(req: NextRequest) {
 
     const { company, email, teamSize, message, name } = parsed.data;
     const contactName = name?.trim() || company;
-    const apiKey = process.env.RESEND_API_KEY?.trim();
-    const from = getEmailFrom()?.trim();
     const to = process.env.ADMIN_EMAILS?.split(",")[0]?.trim();
 
-    if (apiKey && from && !isEmailFromUnreliable(from) && to) {
-      const res = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from,
-          to: [to],
-          reply_to: email,
+    if (to) {
+      try {
+        const sent = await sendResendEmail({
+          to,
+          purpose: "enterprise-sales-lead",
+          replyTo: email,
           subject: `[ClauseCheck Enterprise] ${company} — ${contactName}`,
           text: `Company: ${company}\nEmail: ${email}\nTeam size: ${teamSize}\n\n${message}`,
-        }),
-      });
-      if (!res.ok) {
-        console.error("Resend sales lead error:", await res.text());
+          softFailUnreliableFrom: true,
+        });
+        if (!sent.delivered) {
+          console.info("Enterprise sales lead (email not configured):", {
+            company,
+            email,
+            teamSize,
+            message: message.slice(0, 200),
+          });
+        }
+      } catch (err) {
+        console.error("Resend sales lead error:", err);
         return NextResponse.json({ error: "Email delivery failed" }, { status: 502 });
       }
     } else {

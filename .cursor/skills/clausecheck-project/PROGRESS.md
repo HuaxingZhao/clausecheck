@@ -2,6 +2,12 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-14 — P1：邀请文案 / 发信统一 / 忘记密码入口
+
+- 邀请 zh/en：明确「试用 1 次」+「邀请奖励各 +3」（不再写「注册送 3 份」）。
+- 全部 Resend 走 `lib/email/resend.ts`（报告/修订/Beta 通知/销售线索），生产拦截不可靠 From。
+- `/forgot-password` 页默认打开邮箱重置；账户未登录区 + 手机 Tab 增加重置入口。
+
 ## 2026-07-14 — 重置邮件发不出（根因）
 
 - 症状：点「发送重置邮件」绿字成功，但收不到；接口约 14s。

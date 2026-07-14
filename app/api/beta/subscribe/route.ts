@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { subscribeBetaEmail } from "@/lib/db/beta-waitlist-store";
-import { getEmailFrom } from "@/lib/env";
+import { sendResendEmail } from "@/lib/email/resend";
 
 export const dynamic = "force-dynamic";
 
@@ -32,22 +32,14 @@ export async function POST(req: NextRequest) {
       parsed.data.source ?? "beta_page"
     );
 
-    const apiKey = process.env.RESEND_API_KEY?.trim();
-    const from = getEmailFrom()?.trim();
     const to = process.env.ADMIN_EMAILS?.split(",")[0]?.trim();
-    if (apiKey && from && !from.includes("yourdomain") && to && result.created) {
-      void fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from,
-          to: [to],
-          subject: `[ClauseCheck Beta] ${result.email}`,
-          text: `New beta signup: ${result.email}\nlocale=${parsed.data.locale ?? "en"}\nsource=${parsed.data.source ?? "beta_page"}`,
-        }),
+    if (to && result.created) {
+      void sendResendEmail({
+        to,
+        purpose: "beta-subscribe-notify",
+        subject: `[ClauseCheck Beta] ${result.email}`,
+        text: `New beta signup: ${result.email}\nlocale=${parsed.data.locale ?? "en"}\nsource=${parsed.data.source ?? "beta_page"}`,
+        softFailUnreliableFrom: true,
       }).catch((err) => console.error("beta notify email failed:", err));
     }
 

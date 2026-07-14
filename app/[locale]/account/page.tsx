@@ -181,7 +181,21 @@ export default function AccountPage() {
         {loading && <p className="text-sm text-ink-muted font-sans">{t("loading")}</p>}
 
         {!loading && !auth?.authenticated && (
-          <p className="text-sm text-ink-muted font-sans">{t("signInPrompt")}</p>
+          <div className="space-y-4">
+            <p className="text-sm text-ink-muted font-sans">{t("signInPrompt")}</p>
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                className="btn btn-primary text-sm"
+                onClick={() => setAuthOpen(true)}
+              >
+                {tAuth("signInRegister")}
+              </button>
+              <Link href="/forgot-password" className="btn btn-outline text-sm">
+                {t("forgotPasswordLink")}
+              </Link>
+            </div>
+          </div>
         )}
 
         {!loading && auth?.authenticated && (

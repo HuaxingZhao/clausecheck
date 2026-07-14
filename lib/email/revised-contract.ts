@@ -1,6 +1,6 @@
 import type { ReportLocale } from "@/lib/pdf-export";
 import { suggestionsFilenames } from "@/lib/contract-export";
-import { getEmailFrom } from "@/lib/env";
+import { sendResendEmail } from "@/lib/email/resend";
 
 export async function sendSuggestionsEmail(input: {
   to: string;
@@ -8,8 +8,6 @@ export async function sendSuggestionsEmail(input: {
   pdfBytes: Uint8Array;
   docxBytes: Uint8Array;
 }): Promise<{ delivered: boolean }> {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = getEmailFrom();
   const { to, locale, pdfBytes, docxBytes } = input;
   const names = suggestionsFilenames(locale);
 
@@ -37,36 +35,14 @@ export async function sendSuggestionsEmail(input: {
          </ul>
          <p>AI-generated for reference only — not legal advice.</p>`;
 
-  if (!apiKey) {
-    console.log("\n--- Suggestions email (dev — set RESEND_API_KEY) ---");
-    console.log(`To: ${to}`);
-    console.log(`Subject: ${subject}`);
-    console.log(`PDF: ${pdfBytes.length} bytes, DOCX: ${docxBytes.length} bytes\n`);
-    return { delivered: false };
-  }
-
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from,
-      to: [to],
-      subject,
-      html,
-      attachments: [
-        { filename: names.pdf, content: Buffer.from(pdfBytes).toString("base64") },
-        { filename: names.docx, content: Buffer.from(docxBytes).toString("base64") },
-      ],
-    }),
+  return sendResendEmail({
+    to,
+    purpose: "suggestions-email",
+    subject,
+    html,
+    attachments: [
+      { filename: names.pdf, content: Buffer.from(pdfBytes).toString("base64") },
+      { filename: names.docx, content: Buffer.from(docxBytes).toString("base64") },
+    ],
   });
-
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Email send failed: ${err}`);
-  }
-
-  return { delivered: true };
 }
