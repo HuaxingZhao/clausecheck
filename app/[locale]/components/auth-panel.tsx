@@ -368,9 +368,23 @@ export default function AuthPanel({
                   className="auth-input"
                 />
 
-                <label className="block text-sm font-sans font-medium mb-2 mt-4">
-                  {t("passwordLabel")}
-                </label>
+                <div className="flex items-center justify-between gap-3 mt-4 mb-2">
+                  <label className="block text-sm font-sans font-medium">{t("passwordLabel")}</label>
+                  {mode === "login" && (
+                    <button
+                      type="button"
+                      className="text-sm font-sans text-legal-navy hover:underline shrink-0"
+                      onClick={() => {
+                        setMode("forgot");
+                        setError(null);
+                        setInfo(null);
+                        setPassword("");
+                      }}
+                    >
+                      {t("forgotPassword")}
+                    </button>
+                  )}
+                </div>
                 <input
                   type="password"
                   required
@@ -381,21 +395,6 @@ export default function AuthPanel({
                   placeholder={t("passwordPlaceholder")}
                   className="auth-input"
                 />
-
-                {mode === "login" && (
-                  <button
-                    type="button"
-                    className="mt-2 text-xs font-sans text-legal-navy hover:underline"
-                    onClick={() => {
-                      setMode("forgot");
-                      setError(null);
-                      setInfo(null);
-                      setPassword("");
-                    }}
-                  >
-                    {t("forgotPassword")}
-                  </button>
-                )}
 
                 {mode === "register" && (
                   <>
