@@ -78,9 +78,8 @@ export default function Home() {
             ? t("quota.payPerUseRemaining", { count: quota.remaining })
             : t("quota.limitReached")
         );
-      } else if (status.inTrialPeriod) {
-        setQuotaHint(t("quota.trialActive"));
       } else if (quota.remaining > 0) {
+        // Plan A: show remaining count even during trial (never imply unlimited)
         setQuotaHint(t("quota.freeRemaining", { count: quota.remaining }));
       } else {
         setQuotaHint(t("quota.limitReached"));

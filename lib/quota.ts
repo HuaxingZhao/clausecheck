@@ -1,23 +1,22 @@
 /**
- * quota.ts — 用量控制（纯客户端方案，无数据库依赖）
+ * quota.ts — client UX helpers for document-review quota.
  *
- * 三层定价：
- *   free       — 3 天试用期内无限，之后 3 次/月
- *   pro        — 无限
- *   pay_per_use — 单次，不追踪限额
+ * Server (`document_quota` / Plan A) is authoritative when `/api/quota` works.
+ * Local fallback mirrors Plan A trial: getQuotaForPlan("trial") per calendar month
+ * as a coarse offline proxy (currently 1) — never “3-day unlimited”.
  */
 
-const TRIAL_DAYS = 3;
-const FREE_MONTHLY_LIMIT = 3;
+import { getQuotaForPlan } from "@/lib/pricing.config";
+
 const STORAGE_KEY = "clausecheck_quota";
 
 export type UserTier = "free" | "pro" | "pay_per_use";
 
 export interface QuotaState {
   tier: UserTier;
-  /** ISO 字符串 — 首次使用时间，用于计算 3 天试用期 */
+  /** ISO — first local scan timestamp (analytics / legacy only; not unlimited trial) */
   trialStart: string | null;
-  /** "YYYY-MM" → 已用次数 */
+  /** "YYYY-MM" → local used count for offline fallback */
   monthlyUsage: Record<string, number>;
   /** Stripe webhook 写入的验证 token */
   proToken: string | null;
@@ -32,19 +31,8 @@ function todayMonthKey(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
 
-function daysSince(date: string): number {
-  return (Date.now() - new Date(date).getTime()) / 86400000;
-}
-
-function inTrial(quota: QuotaState): boolean {
-  if (quota.tier !== "free") return false;
-  if (!quota.trialStart) {
-    // 首次使用 — 没有记录时自动开始试用
-    quota.trialStart = new Date().toISOString();
-    saveQuota(quota);
-    return true;
-  }
-  return daysSince(quota.trialStart) < TRIAL_DAYS;
+function trialLimit(): number {
+  return getQuotaForPlan("trial");
 }
 
 /* ------------------------------------------------------------------ */
@@ -77,58 +65,48 @@ export interface QuotaResult {
   allowed: boolean;
   reason?: string;
   tier: UserTier;
-  remaining: number; // -1 = 无限
+  remaining: number; // -1 = unlimited (Pro only)
 }
 
-export function checkQuota(resetTrial: boolean = false): QuotaResult {
+/** Offline / API-failure fallback — Plan A trial limit, not legacy 3-day unlimited. */
+export function checkQuota(_resetTrial: boolean = false): QuotaResult {
+  void _resetTrial;
   const q = getQuotaState();
 
-  // Pro — 无限
   if (q.tier === "pro") {
     return { allowed: true, tier: "pro", remaining: -1 };
   }
 
-  // Pay-per-use — 不限次（每次都有 Stripe checkout）
   if (q.tier === "pay_per_use") {
     return { allowed: true, tier: "pay_per_use", remaining: -1 };
   }
 
-  // Free — 试用期内无限
-  if (inTrial(q)) {
-    const remainingDays = Math.ceil(TRIAL_DAYS - daysSince(q.trialStart!));
-    return {
-      allowed: true,
-      tier: "free",
-      remaining: -1,
-      reason: `试用期还剩 ${remainingDays} 天`,
-    };
-  }
-
-  // Free — 试用期后 3 次/月
+  const limit = trialLimit();
   const key = todayMonthKey();
   const used = q.monthlyUsage[key] || 0;
-  const remaining = FREE_MONTHLY_LIMIT - used;
+  const remaining = Math.max(0, limit - used);
 
   if (remaining <= 0) {
     return {
       allowed: false,
       tier: "free",
       remaining: 0,
-      reason: "本月免费额度已用完，升级专业版或按次使用",
+      reason: "quota_exhausted",
     };
   }
 
   return { allowed: true, tier: "free", remaining };
 }
 
-/** 扫描成功后调用 — 增加计数 */
+/** 扫描成功后调用 — 增加本地计数（服务端另有权威扣减） */
 export function recordScan(): void {
   const q = getQuotaState();
-  if (q.tier === "pro") return; // Pro 不计数
-  if (q.tier === "pay_per_use") return; // 按次不追踪
+  if (q.tier === "pro") return;
+  if (q.tier === "pay_per_use") return;
 
-  // Free — 试用期内不计数
-  if (inTrial(q)) return;
+  if (!q.trialStart) {
+    q.trialStart = new Date().toISOString();
+  }
 
   const key = todayMonthKey();
   q.monthlyUsage[key] = (q.monthlyUsage[key] || 0) + 1;
@@ -217,25 +195,24 @@ export function applyServerQuota(status: ServerQuotaStatus): QuotaResult {
   q.tier = "free";
   saveQuota(q);
 
-  if (!status.allowed) {
+  const remaining =
+    typeof status.remaining === "number" && status.remaining >= 0
+      ? status.remaining
+      : 0;
+
+  if (!status.allowed || remaining <= 0) {
     return {
       allowed: false,
       tier: "free",
       remaining: 0,
-      reason:
-        status.inTrialPeriod === false && status.remaining <= 0
-          ? "本月免费额度已用完，升级专业版或按次使用"
-          : undefined,
+      reason: "quota_exhausted",
     };
   }
 
-  if (status.inTrialPeriod) {
-    return { allowed: true, tier: "free", remaining: -1, reason: "试用期内" };
-  }
-
+  // Do NOT treat inTrialPeriod as unlimited — Plan A trial still has a finite count.
   return {
     allowed: true,
     tier: "free",
-    remaining: status.remaining >= 0 ? status.remaining : 0,
+    remaining,
   };
 }
