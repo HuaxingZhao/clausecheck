@@ -77,8 +77,11 @@ export async function ensureSchema() {
         CREATE TABLE IF NOT EXISTS magic_tokens (
           token TEXT PRIMARY KEY,
           email TEXT NOT NULL,
+          purpose TEXT NOT NULL DEFAULT 'login',
           expires_at TIMESTAMPTZ NOT NULL
         )`;
+      await db`ALTER TABLE magic_tokens ADD COLUMN IF NOT EXISTS purpose TEXT NOT NULL DEFAULT 'login'`;
+      await db`ALTER TABLE users ADD COLUMN IF NOT EXISTS session_version INT NOT NULL DEFAULT 0`;
       await db`
         CREATE TABLE IF NOT EXISTS revisions (
           id TEXT PRIMARY KEY,

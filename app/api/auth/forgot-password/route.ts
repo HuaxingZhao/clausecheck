@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(okBody);
     }
 
-    const token = await createMagicToken(norm);
+    const token = await createMagicToken(norm, 30, "password_reset");
     const base = process.env.NEXT_PUBLIC_URL || req.nextUrl.origin;
     const path = localizedPath(`/reset-password?token=${token.token}`, loc);
     const link = `${base.replace(/\/$/, "")}${path}`;

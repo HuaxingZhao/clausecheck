@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSessionToken, sessionCookieOptions, SESSION_COOKIE } from "./session";
+import { findUserById } from "@/lib/db/store";
 
 export async function jsonWithSession(
   userId: string,
@@ -8,10 +9,12 @@ export async function jsonWithSession(
   phone?: string | null
 ): Promise<NextResponse> {
   const emailClaim = email?.trim() || "";
+  const user = await findUserById(userId);
   const token = await createSessionToken({
     sub: userId,
     email: emailClaim,
     phone: phone || undefined,
+    sessionVersion: user?.sessionVersion ?? 0,
   });
   const res = NextResponse.json({
     ok: true,

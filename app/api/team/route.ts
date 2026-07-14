@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
   const loc = locale === "en" ? "en" : "zh";
   const base = process.env.NEXT_PUBLIC_URL || req.nextUrl.origin;
   const { createMagicToken } = await import("@/lib/db/store");
-  const token = await createMagicToken(email);
+  const token = await createMagicToken(email, 30, "login");
   const link = `${base}/api/auth/verify?token=${token.token}&locale=${loc}`;
 
   await sendMagicLinkEmail(email, link, loc);

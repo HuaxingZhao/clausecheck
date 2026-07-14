@@ -60,7 +60,7 @@ npm run verify:staging     # 上线前 env 检查（BASE_URL=... 可测远端）
 
 - **服务端 tier / 配额**：`/api/scan` 不信任客户端 header；`GET /api/quota` 同步 UI
 - **按次付费**：Stripe checkout → `pay_per_use_credits` → 扫描消耗
-- **免费额度**：3 天试用 + 每月 3 次（`scan_quota` 表）
+- **免费额度（Plan A）**：试用每周期 **1 份**（`document_quota` / trial quota；见 `docs/PRICING_PLAN_A.md`）
 - **埋点**：`lib/analytics.ts` → `POST /api/events`（`analytics_events` 表）
 - **PDF**：行动摘要 → 时间条款 → flags → 补充详情（与网页报告一致）
 - **移动端审阅**：小屏原文/建议 Tab 切换，桌面保持左右分栏 82vh
@@ -71,7 +71,7 @@ npm run verify:staging     # 上线前 env 检查（BASE_URL=... 可测远端）
 Want to add a new governing-law Pack (e.g. Singapore, Texas, Dubai)?
 
 → **[Contributing Jurisdiction Packs](docs/contributing-jurisdiction-packs.md)**  
-→ **[Jurisdiction Pack Bounty](https://www.clausecheck.cc/en/community/bounty)** ([launch kit](docs/community/bounty-launch-kit.md))
+→ **[Jurisdiction Pack Bounty](https://www.clausecheck.cc/community/bounty)** ([launch kit](docs/community/bounty-launch-kit.md))
 
 ```bash
 npm run new-pack -- --id=sg --name="Singapore"
@@ -81,7 +81,7 @@ npm run validate:pack -- --id=sg
 ## Beta & launch
 
 - Beta landing: **[/beta](https://clausecheck.app/beta)** (local: `http://localhost:3000/beta`)
-- Community bounty: **[/community/bounty](https://www.clausecheck.cc/en/community/bounty)** (local: `http://localhost:3000/en/community/bounty`)
+- Community bounty: **[/community/bounty](https://www.clausecheck.cc/community/bounty)** (local: `http://localhost:3000/community/bounty`)
 - Product Hunt kit: [docs/launch/product-hunt-kit.md](docs/launch/product-hunt-kit.md)
 
 ## License

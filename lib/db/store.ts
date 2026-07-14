@@ -3,7 +3,16 @@
  */
 import { usePostgres } from "./pg";
 import * as pg from "./pg-store";
-import type { MagicToken, SavedReport, SavedRevision, Team, TeamInvite, TeamRole, User } from "./types";
+import type {
+  MagicToken,
+  MagicTokenPurpose,
+  SavedReport,
+  SavedRevision,
+  Team,
+  TeamInvite,
+  TeamRole,
+  User,
+} from "./types";
 import type { ContractChange } from "../types";
 import { readFile, writeFile, mkdir } from "fs/promises";
 import path from "path";
@@ -61,6 +70,7 @@ function normalizeJsonUser(u: User): User {
     supabaseUserId: u.supabaseUserId ?? null,
     teamId: u.teamId ?? null,
     teamRole: u.teamRole ?? null,
+    sessionVersion: typeof u.sessionVersion === "number" ? u.sessionVersion : 0,
   };
 }
 
@@ -115,6 +125,7 @@ export async function upsertPhoneUser(input: {
     proUntil: null,
     teamId: null,
     teamRole: null,
+    sessionVersion: 0,
     createdAt: now,
     updatedAt: now,
   });
@@ -134,6 +145,15 @@ export async function setPasswordHash(email: string, passwordHash: string): Prom
   const db = await readJson();
   const key = norm(email);
   db.passwordHashes = { ...(db.passwordHashes ?? {}), [key]: passwordHash };
+  db.users = db.users.map((u) =>
+    u.email === key
+      ? normalizeJsonUser({
+          ...u,
+          sessionVersion: (u.sessionVersion ?? 0) + 1,
+          updatedAt: new Date().toISOString(),
+        })
+      : u
+  );
   await writeJson(db);
 }
 
@@ -175,6 +195,7 @@ export async function upsertUser(
       proUntil: patch.proUntil ?? null,
       teamId: patch.teamId ?? null,
       teamRole: patch.teamRole ?? null,
+      sessionVersion: 0,
       createdAt: now,
       updatedAt: now,
     });
@@ -184,28 +205,39 @@ export async function upsertUser(
   return user;
 }
 
-export async function createMagicToken(email: string, ttlMinutes = 30) {
-  if (usePostgres()) return pg.createMagicToken(email, ttlMinutes);
+export async function createMagicToken(
+  email: string,
+  ttlMinutes = 30,
+  purpose: MagicTokenPurpose = "login"
+) {
+  if (usePostgres()) return pg.createMagicToken(email, ttlMinutes, purpose);
   const db = await readJson();
   const key = norm(email);
   const token: MagicToken = {
     token: crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, ""),
     email: key,
+    purpose,
     expiresAt: new Date(Date.now() + ttlMinutes * 60_000).toISOString(),
   };
   db.magicTokens = db.magicTokens.filter(
-    (t) => t.email !== key || new Date(t.expiresAt).getTime() > Date.now()
+    (t) => t.email !== key || t.purpose !== purpose || new Date(t.expiresAt).getTime() > Date.now()
   );
   db.magicTokens.push(token);
   await writeJson(db);
   return token;
 }
 
-export async function consumeMagicToken(token: string) {
-  if (usePostgres()) return pg.consumeMagicToken(token);
+export async function consumeMagicToken(
+  token: string,
+  expectedPurpose: MagicTokenPurpose = "login"
+) {
+  if (usePostgres()) return pg.consumeMagicToken(token, expectedPurpose);
   const db = await readJson();
   const match = db.magicTokens.find(
-    (t) => t.token === token && new Date(t.expiresAt).getTime() > Date.now()
+    (t) =>
+      t.token === token &&
+      (t.purpose ?? "login") === expectedPurpose &&
+      new Date(t.expiresAt).getTime() > Date.now()
   );
   if (!match) return null;
   db.magicTokens = db.magicTokens.filter((t) => t.token !== token);

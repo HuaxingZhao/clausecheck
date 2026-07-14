@@ -24,6 +24,7 @@ export async function loginUserRedirect(
   const sessionToken = await createSessionToken({
     sub: user.id,
     email: user.email ?? "",
+    sessionVersion: user.sessionVersion ?? 0,
   });
   const path = redirectPath || localizedPath("/account?auth=success", locale);
   const res = NextResponse.redirect(new URL(path, req.url));

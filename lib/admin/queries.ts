@@ -163,16 +163,16 @@ export async function fetchAdminUsers(): Promise<AdminUserRow[]> {
         COALESCE(r.last_report, u.updated_at)
       ) AS last_active_at
     FROM users u
-    LEFT JOIN public.user_credits uc ON uc.user_id = u.id::uuid
+    LEFT JOIN public.user_credits uc ON uc.user_id = u.id
     LEFT JOIN LATERAL (
       SELECT COALESCE(SUM(amount_cents), 0) AS total_cents
         FROM public.orders
-       WHERE user_id = u.id::uuid AND status = 'paid'
+       WHERE user_id = u.id AND status = 'paid'
     ) spent ON true
     LEFT JOIN LATERAL (
       SELECT MAX(created_at) AS last_tx
         FROM public.credit_transactions
-       WHERE user_id = u.id::uuid
+       WHERE user_id = u.id
     ) tx ON true
     LEFT JOIN LATERAL (
       SELECT MAX(created_at) AS last_report
@@ -200,7 +200,7 @@ export async function fetchUserTransactions(userId: string): Promise<AdminTransa
   const rows = await sql<Record<string, unknown>[]>`
     SELECT id, amount, type, reference_id, created_at
       FROM public.credit_transactions
-     WHERE user_id = ${userId}::uuid
+     WHERE user_id = ${userId}
      ORDER BY created_at DESC
      LIMIT 200
   `;
@@ -225,7 +225,7 @@ export async function adjustUserCredits(input: {
   return sql.begin(async (tx) => {
     const current = await tx<{ balance: number }[]>`
       SELECT balance FROM public.user_credits
-       WHERE user_id = ${input.userId}::uuid
+       WHERE user_id = ${input.userId}
        FOR UPDATE
     `;
 
@@ -238,19 +238,19 @@ export async function adjustUserCredits(input: {
     if (current.length === 0) {
       await tx`
         INSERT INTO public.user_credits (user_id, balance)
-        VALUES (${input.userId}::uuid, ${next})
+        VALUES (${input.userId}, ${next})
       `;
     } else {
       await tx`
         UPDATE public.user_credits SET balance = ${next}
-         WHERE user_id = ${input.userId}::uuid
+         WHERE user_id = ${input.userId}
       `;
     }
 
     await tx`
       INSERT INTO public.credit_transactions (user_id, amount, type, reference_id)
       VALUES (
-        ${input.userId}::uuid,
+        ${input.userId},
         ${input.delta},
         'admin_adjust',
         ${`${referenceId}|${input.reason.slice(0, 200)}`}
@@ -289,7 +289,7 @@ export async function fetchAdminOrders(filters: OrderFilters = {}): Promise<Admi
       o.created_at,
       o.paid_at
     FROM public.orders o
-    LEFT JOIN users u ON u.id::uuid = o.user_id
+    LEFT JOIN users u ON u.id = o.user_id
     WHERE (${status}::text IS NULL OR o.status = ${status})
       AND (${plan}::text IS NULL OR o.plan = ${plan})
       AND (${from}::timestamptz IS NULL OR o.created_at >= ${from})

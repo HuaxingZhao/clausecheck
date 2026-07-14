@@ -1,6 +1,7 @@
 import { getSql, usePostgres } from "@/lib/db/pg";
 import type { TopupPlan } from "./plans";
 import { getTopupPlan } from "./plans";
+import { isMockWechatPayAllowed } from "@/lib/credits/mock-pay";
 
 export type OrderStatus = "pending" | "paid" | "failed" | "cancelled";
 
@@ -43,9 +44,15 @@ export function buildWechatPaymentUrl(
     /\/$/,
     ""
   );
-  const mockBase = process.env.WECHAT_PAY_QR_BASE;
-  if (mockBase) {
-    return `${mockBase.replace(/\/$/, "")}?order_id=${orderId}&amount_cents=${amountCents}`;
+  const externalQr = process.env.WECHAT_PAY_QR_BASE?.trim();
+  if (externalQr) {
+    return `${externalQr.replace(/\/$/, "")}?order_id=${orderId}&amount_cents=${amountCents}`;
+  }
+
+  if (!isMockWechatPayAllowed()) {
+    throw new Error(
+      "WeChat pay is not configured in production. Set WECHAT_PAY_QR_BASE to a real cashier, or ALLOW_MOCK_WECHAT_PAY=1 only for controlled demos."
+    );
   }
   return `${base}/api/webhooks/payment/mock-qr?order_id=${orderId}&amount_cents=${amountCents}`;
 }

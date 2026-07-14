@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     // Ensure user row exists so verify can issue a session (Pro still from entitlements).
     await upsertUser(norm, {});
 
-    const token = await createMagicToken(norm);
+    const token = await createMagicToken(norm, 30, "login");
     const base = process.env.NEXT_PUBLIC_URL || req.nextUrl.origin;
     const link = `${base}/api/auth/verify?token=${token.token}&locale=${loc}`;
 

@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const email = await consumeMagicToken(token);
+    const email = await consumeMagicToken(token, "password_reset");
     if (!email) {
       return NextResponse.json(
         {

@@ -43,7 +43,7 @@ const content: Record<"en" | "zh", {
         body: [
           "ClauseCheck 提供基于 AI 的合同文本风险分析服务。用户上传合同文件后，AI 自动识别风险条款并生成分析报告。本服务提供以下层级：",
           "免费版：有限次数和字数的基本扫描",
-          "专业版：按月订阅，无限扫描 + 深度分析",
+          "专业版：按月订阅，每周期固定审阅额度 + 深度分析",
           "按次付费：单次购买，获得完整报告",
           "我们保留随时修改、暂停或终止服务的权利，但会提前通知付费用户。",
         ],
@@ -131,7 +131,7 @@ const content: Record<"en" | "zh", {
         body: [
           "ClauseCheck provides AI-powered contract risk analysis. After uploading a contract file, the AI automatically identifies risky clauses and generates an analysis report. The Service offers the following tiers:",
           "Free: limited scans per month with basic assessment",
-          "Pro: monthly subscription, unlimited scans + deep analysis",
+          "Pro: monthly subscription, fixed per-cycle review quota + deep analysis",
           "Pay-per-use: one-time purchase for a full report",
           "We reserve the right to modify, suspend, or terminate the Service at any time, but will notify paid users in advance.",
         ],
