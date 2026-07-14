@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import Link from "next/link";
+import { Link, localizedPath } from "@/i18n/routing";
 import AuthPanel from "../components/auth-panel";
 import SiteNav from "../components/site-nav";
 import type { ServerQuotaStatus } from "@/lib/quota";
@@ -59,7 +59,7 @@ export default function AccountPage() {
       const params = new URLSearchParams(window.location.search);
       if (params.get("auth") === "success") {
         setToast(tAuth("success"));
-        window.history.replaceState({}, "", `/${locale}/account`);
+        window.history.replaceState({}, "", localizedPath("/account", locale));
       }
     }
   }, [refresh, locale, tAuth]);
@@ -100,7 +100,7 @@ export default function AccountPage() {
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
-    window.location.href = `/${locale}`;
+    window.location.href = localizedPath("/", locale);
   }
 
   useEffect(() => {
@@ -122,7 +122,7 @@ export default function AccountPage() {
       } catch {
         /* ignore */
       } finally {
-        window.history.replaceState({}, "", `/${locale}/account`);
+        window.history.replaceState({}, "", localizedPath("/account", locale));
       }
     })();
   }, [locale, refresh, t]);
@@ -162,13 +162,13 @@ export default function AccountPage() {
       <main className="max-w-2xl mx-auto px-6 py-16">
         <div className="flex flex-wrap items-center gap-4 mb-6 font-sans text-sm">
           <Link
-            href={`/${locale}`}
+            href="/"
             className="text-ink-light hover:text-ink transition-colors"
           >
             ← {t("backHome")}
           </Link>
           <Link
-            href={`/${locale}#upload`}
+            href="/#upload"
             className="text-legal-navy font-medium hover:underline"
           >
             {t("backScan")} →
@@ -239,7 +239,7 @@ export default function AccountPage() {
 
             <div className="account-card">
               <h2 className="font-sans font-semibold text-lg mb-2">{t("inviteFriends")}</h2>
-              <Link href={`/${locale}/invite`} className="btn btn-outline text-sm">
+              <Link href="/invite" className="btn btn-outline text-sm">
                 {t("inviteFriends")} →
               </Link>
             </div>
@@ -250,14 +250,14 @@ export default function AccountPage() {
                 <p className="text-sm text-ink-light mb-6">{t("upgradeBody")}</p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Link
-                    href={`/${locale}/pricing?plan=pro`}
+                    href="/pricing?plan=pro"
                     className="btn btn-primary flex-1 text-center"
                   >
                     {t("upgradePro")}
                   </Link>
                   {showAddOnCta && (
                     <Link
-                      href={`/${locale}/pricing?plan=boost`}
+                      href="/pricing?plan=boost"
                       className="btn btn-outline flex-1 text-center"
                     >
                       {t("upgradeAddOn")}
@@ -265,7 +265,7 @@ export default function AccountPage() {
                   )}
                 </div>
                 <Link
-                  href={`/${locale}/pricing`}
+                  href="/pricing"
                   className="inline-block text-sm text-accent hover:text-accent-dark mt-4 font-sans"
                 >
                   {t("viewPricing")} →
@@ -278,10 +278,10 @@ export default function AccountPage() {
                 <h2 className="font-sans font-semibold text-lg mb-2">{t("proFeatures")}</h2>
                 <p className="text-sm text-ink-light mb-4">{t("proFeaturesBody")}</p>
                 <div className="flex flex-wrap gap-3">
-                  <Link href={`/${locale}/reports`} className="btn btn-primary text-sm">
+                  <Link href="/reports" className="btn btn-primary text-sm">
                     {t("viewReports")}
                   </Link>
-                  <Link href={`/${locale}/revisions`} className="btn btn-outline text-sm">
+                  <Link href="/revisions" className="btn btn-outline text-sm">
                     {t("viewRevisions")}
                   </Link>
                 </div>

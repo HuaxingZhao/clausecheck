@@ -21,7 +21,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Pro required" }, { status: 403 });
     }
 
-    if (!(file instanceof File) || !file.name.toLowerCase().endsWith(".pdf")) {
+    const originalName = String(form.get("originalFileName") || (file instanceof File ? file.name : ""));
+    const checkName = (originalName || (file instanceof File ? file.name : "")).toLowerCase();
+    if (!(file instanceof File) || !checkName.endsWith(".pdf")) {
       return NextResponse.json({ error: "PDF required for preview" }, { status: 400 });
     }
 

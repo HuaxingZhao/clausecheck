@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { exchangeGoogleCode, getOAuthBaseUrl, verifyOAuthState } from "@/lib/auth/oauth";
 import { loginUserRedirect } from "@/lib/auth/login-redirect";
+import { localizedPath } from "@/i18n/routing";
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");
@@ -10,13 +11,15 @@ export async function GET(req: NextRequest) {
 
   if (oauthError || !code || !state) {
     return NextResponse.redirect(
-      new URL(`/${localeFallback}?auth=oauth_failed`, req.url)
+      new URL(localizedPath("/?auth=oauth_failed", localeFallback), req.url)
     );
   }
 
   const parsed = await verifyOAuthState(state);
   if (!parsed || parsed.provider !== "google") {
-    return NextResponse.redirect(new URL(`/${localeFallback}?auth=expired`, req.url));
+    return NextResponse.redirect(
+      new URL(localizedPath("/?auth=expired", localeFallback), req.url)
+    );
   }
 
   try {
@@ -27,7 +30,7 @@ export async function GET(req: NextRequest) {
   } catch (err) {
     console.error("Google OAuth callback error:", err);
     return NextResponse.redirect(
-      new URL(`/${parsed.locale}?auth=oauth_failed`, req.url)
+      new URL(localizedPath("/?auth=oauth_failed", parsed.locale), req.url)
     );
   }
 }

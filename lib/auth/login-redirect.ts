@@ -4,6 +4,7 @@ import { upsertUser } from "../db/store";
 import { createSessionToken, sessionCookieOptions, SESSION_COOKIE } from "./session";
 import { creditsSystemEnabled } from "@/lib/credits/user-credits";
 import { bootstrapNewUserCredits } from "@/lib/invite/codes";
+import { localizedPath } from "@/i18n/routing";
 
 export async function loginUserRedirect(
   email: string,
@@ -24,10 +25,7 @@ export async function loginUserRedirect(
     sub: user.id,
     email: user.email ?? "",
   });
-  // localePrefix as-needed: default locale (en) omits the /en prefix
-  const path =
-    redirectPath ||
-    (locale === "en" ? "/account?auth=success" : `/${locale}/account?auth=success`);
+  const path = redirectPath || localizedPath("/account?auth=success", locale);
   const res = NextResponse.redirect(new URL(path, req.url));
   res.cookies.set(SESSION_COOKIE, sessionToken, sessionCookieOptions());
   return res;

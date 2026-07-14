@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import FAQItem from "../../components/faq-item";
+import { Link } from "@/i18n/routing";
 import {
   BOUNTY_LISTINGS,
   CONTRIBUTING_DOC_PATH,
@@ -154,7 +154,7 @@ export default async function CommunityBountyPage({
       <nav className="border-b border-border bg-paper/80 backdrop-blur sticky top-0 z-40">
         <div className="nav-inner">
           <Link
-            href={`/${locale}`}
+            href="/"
             className="font-sans font-semibold text-lg tracking-tight text-legal-navy"
           >
             ClauseCheck
@@ -321,7 +321,7 @@ export default async function CommunityBountyPage({
             Community packs are reviewed but not guaranteed. Always verify.
           </p>
           <Link
-            href={`/${locale}`}
+            href="/"
             className="inline-block mt-6 text-xs font-sans text-ink-muted hover:text-ink"
           >
             ← Back to ClauseCheck

@@ -6,6 +6,7 @@ import mammoth from "mammoth";
 import { applyDomHighlights, clearDomHighlights } from "@/lib/dom-highlight";
 import { locateAllChanges } from "@/lib/redline";
 import type { ContractChange } from "@/lib/types";
+import { fileForUpload } from "@/lib/upload-safe";
 import ContractHighlightTextPreview from "./contract-highlight-text-preview";
 
 /**
@@ -72,7 +73,9 @@ export default function ContractOriginalHighlightPreview({
         : changes;
 
     const fd = new FormData();
-    fd.append("file", file);
+    const { uploadFile, originalName } = fileForUpload(file);
+    fd.append("file", uploadFile);
+    fd.append("originalFileName", originalName);
     fd.append("changes", JSON.stringify(previewChanges));
     fd.append("locale", locale);
 

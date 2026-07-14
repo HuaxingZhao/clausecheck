@@ -334,6 +334,19 @@
     "submitting": "Please wait…",
     "loginHint": "Already have an account? Enter your email and password.",
     "registerHint": "By registering you agree to our Terms and Privacy Policy.",
+    "forgotPassword": "Forgot password?",
+    "forgotSubtitle": "Enter your registered email and we’ll send a reset link (valid 30 minutes).",
+    "forgotButton": "Send reset email",
+    "forgotSent": "If an account exists for this email, a reset link has been sent.",
+    "forgotFailed": "Could not send email. Please try again.",
+    "backToLogin": "Back to sign in",
+    "resetTitle": "Reset password",
+    "resetSubtitle": "Choose a new password (at least 8 characters).",
+    "resetButton": "Update password",
+    "resetFailed": "Reset failed — request a new link",
+    "resetMissingToken": "Missing reset token. Open the link from your email, or request a new one.",
+    "resetSuccessTitle": "Password updated",
+    "resetSuccessBody": "Please sign in with your new password.",
     "legalFooter": "By continuing you agree to our <terms>Terms</terms> and <privacy>Privacy Policy</privacy>. This is not legal advice.",
     "continueGoogle": "Continue with Google",
     "orDivider": "Or",
@@ -1070,28 +1083,6 @@
       {
         "q": "What types of contracts work best?",
         "a": "Employment agreements, lease contracts, service agreements, NDAs, freelance contracts, and partnership agreements all work great. The AI is trained on a wide range of commercial and consumer contract types."
-      }
-    ]
-  },
-  "faqZh": {
-    "label": "常见问题",
-    "title": "你可能想问",
-    "items": [
-      {
-        "q": "合同隐私安全吗？",
-        "a": "上传的文件仅用于本次扫描，扫描完成后立即从服务器删除。全程 HTTPS 加密传输，不存储任何合同内容。"
-      },
-      {
-        "q": "分析结果准确吗？",
-        "a": "AI 能覆盖赔偿条款、竞业限制、自动续约、知识产权归属等常见风险点。但它不是律师，仅供参考，涉及重大利益的合同仍建议咨询专业律师。"
-      },
-      {
-        "q": "支持什么格式？",
-        "a": "PDF（文字型，非扫描件图片）、DOCX（Word 文档）、TXT 纯文本。暂不支持图片 OCR。"
-      },
-      {
-        "q": "免费版有什么限制？",
-        "a": "每月 5 次免费扫描，每次最多 12,000 字，不含 PDF 报告导出。日常小合同完全够用。"
       }
     ]
   },

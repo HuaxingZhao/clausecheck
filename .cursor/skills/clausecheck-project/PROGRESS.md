@@ -2,6 +2,16 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-14 — P1/P2 批量：路径 / 忘记密码 / CJK / 清理
+
+- **#1 英文路径**：新增 `localizedPath()`；footer/account/pricing/PaymentGateway/auth/reports 等改 as-needed（EN 无 `/en`）。
+- **#4 ADMIN_EMAILS**：Vercel Preview+Production **已配置**（`vercel env ls` 确认）。
+- **#2 忘记密码**：`/api/auth/forgot-password` + `/api/auth/reset-password` + `/reset-password` 页；AuthPanel「忘记密码？」；Resend 邮件模板。
+- **#3 Safari CJK**：revise preview/final 上传走 `fileForUpload` + `originalFileName`。
+- **#5 首页瀑布**：`Promise.all(auth,quota)`；首页 `useCredits({ autoFetch:false })` 避免双请求。
+- **#6/#7**：删除死代码 `scanner-section.tsx` / `nav-bar.tsx`；移除 `en.json` 孤立 `faqZh`。
+- **#8 demo.mp4**：有意用截图；更新 `public/assets/README.md` 说明。
+
 ## 2026-07-14 — Client quota ↔ Plan A
 
 - `lib/quota.ts`: 去掉「3 天无限 + 每月 3 次」；离线 fallback = `getQuotaForPlan("trial")`（1）；`recordScan` 始终计入 free；`applyServerQuota` 用服务端 `remaining`，不再把 `inTrialPeriod` 当无限。

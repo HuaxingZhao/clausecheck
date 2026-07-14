@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback, type FormEvent, type ChangeEvent } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import Link from "next/link";
 import { checkQuota, recordScan, setPro, isPro, syncProFromServer, saveProEmail, getProEmail, applyServerQuota, type ServerQuotaStatus } from "@/lib/quota";
 import { trackEvent } from "@/lib/analytics";
 import { fileForUpload, readJsonSafe } from "@/lib/upload-safe";
@@ -22,6 +21,7 @@ import CreditsRemainingBadge from "./components/credits-remaining-badge";
 import { useCredits, clearCreditsCache } from "@/hooks/use-credits";
 import { stashPendingInviteCode } from "@/lib/invite/client-fingerprint";
 import type { ClientJurisdiction } from "@/lib/jurisdiction";
+import { Link } from "@/i18n/routing";
 import {
   demoSampleToFile,
   type DemoSample,
@@ -57,7 +57,8 @@ export default function Home() {
   const resultsRef = useRef<HTMLElement>(null);
   const submitAreaRef = useRef<HTMLDivElement>(null);
   const openAddOnRef = useRef<(() => void) | null>(null);
-  const { invalidate: invalidateCredits } = useCredits();
+  // Badge owns the mount-time credits fetch; page only invalidates after scans.
+  const { invalidate: invalidateCredits } = useCredits({ autoFetch: false });
 
   const handlePayPerUse = useCallback(() => {
     scrollTo("pricing");
@@ -99,8 +100,8 @@ export default function Home() {
         if (data.email) saveProEmail(data.email);
         syncProFromServer(!!data.pro);
         setProState(!!data.pro);
-        // Badge uses a separate useCredits() — force refresh after session is confirmed
-        await invalidateCredits();
+        // Don't await — run in parallel with quota; badge also auto-fetches credits
+        void invalidateCredits();
       } else {
         setAuthUser(null);
         clearCreditsCache();
@@ -141,8 +142,7 @@ export default function Home() {
 
   useEffect(() => {
     setProState(isPro());
-    refreshAuth();
-    refreshServerQuota();
+    void Promise.all([refreshAuth(), refreshServerQuota()]);
 
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
@@ -576,7 +576,7 @@ export default function Home() {
           </button>
           <p className="text-xs text-ink-muted mt-4 font-sans">{t("hero.trust")}</p>
           <Link
-            href={`/${locale}/sample-report`}
+            href="/sample-report"
             className="inline-block mt-3 text-sm text-accent hover:underline font-sans"
           >
             {t("hero.sampleReport")} →

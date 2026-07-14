@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import SiteNav from "../components/site-nav";
 import AuthPanel from "../components/auth-panel";
 import { INVITE_CODE_MAX_USES } from "@/lib/invite/constants";
+import { Link, localizedPath } from "@/i18n/routing";
 
 interface InviteStatsResponse {
   code: string;
@@ -70,7 +70,7 @@ export default function InvitePage() {
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
     setAuthUser(null);
-    window.location.href = `/${locale}/invite`;
+    window.location.href = localizedPath("/invite", locale);
   }
 
   async function copyInviteLink() {
@@ -115,7 +115,7 @@ export default function InvitePage() {
       <main className="page-content-wide mx-auto px-6 py-10 font-sans">
         <div className="max-w-2xl mx-auto">
           <Link
-            href={`/${locale}`}
+            href="/"
             className="text-sm text-ink-light hover:text-ink transition-colors"
           >
             ← {t("backHome")}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 import { useCredits } from "@/hooks/use-credits";
 
 export type TopupPlan = "pro" | "boost";
@@ -123,7 +123,7 @@ export function useTopupPayment({ locale, onRequireAuth }: UseTopupPaymentOption
       );
 
       redirectTimerRef.current = window.setTimeout(() => {
-        router.push(`/${locale}/dashboard`);
+        router.push("/dashboard");
       }, 3000);
     },
     [balance, invalidate, locale, router, stopPolling]

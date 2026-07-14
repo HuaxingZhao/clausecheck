@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { usePricingStore, canPurchaseAddOn } from "@/stores/usePricingStore";
 import { usePricingQuotaSync } from "@/hooks/use-pricing-quota-sync";
@@ -18,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useRouter } from "@/i18n/routing";
 import type { CheckoutPlanId } from "@/lib/pricing.config";
 
 type PlaceholderPlan = "enterprise";
@@ -82,7 +82,7 @@ export default function PricingSection({
   function handleTrial() {
     setSelectedPlan("trial");
     if (scrollTo) scrollTo("upload");
-    else router.push(`/${locale}#upload`);
+    else router.push("/#upload");
   }
 
   function handleSubscribe(plan: "pro" | "trial") {

@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import type { ScanResult } from "@/lib/types";
 import EmailReportForm from "./email-report-form";
+import { Link } from "@/i18n/routing";
 
 interface ReportDeliverySectionProps {
   result: ScanResult;
@@ -41,7 +41,7 @@ export default function ReportDeliverySection({
         </button>
         {isPro && (
           <Link
-            href={`/${locale}/reports`}
+            href="/reports"
             className="btn btn-outline btn-lg shrink-0 text-center text-ink"
           >
             {t("viewHistory")}
