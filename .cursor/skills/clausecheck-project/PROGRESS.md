@@ -2,6 +2,10 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-14 — 忘记密码入口更显眼
+
+- AuthPanel：邮箱「登录」时「忘记密码？」放在密码标签右侧（PR #21）；完整重置流已在 #20。
+
 ## 2026-07-14 — P1/P2 批量：路径 / 忘记密码 / CJK / 清理
 
 - **#1 英文路径**：新增 `localizedPath()`；footer/account/pricing/PaymentGateway/auth/reports 等改 as-needed（EN 无 `/en`）。
