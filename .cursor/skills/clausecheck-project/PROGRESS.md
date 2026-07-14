@@ -2,6 +2,13 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-14 — Client quota ↔ Plan A
+
+- `lib/quota.ts`: 去掉「3 天无限 + 每月 3 次」；离线 fallback = `getQuotaForPlan("trial")`（1）；`recordScan` 始终计入 free；`applyServerQuota` 用服务端 `remaining`，不再把 `inTrialPeriod` 当无限。
+- `scan-metrics` fallback：`FREE_MONTHLY_LIMIT` = trial（1）；`checkFreeQuota` / `recordFreeScan` 不再 3 天无限不扣次。
+- 首页配额提示：试用期也显示「本周期剩余 N 次」，不再只显示「试用配额生效中」。
+- `REGISTER_CREDIT_GRANT` → `getQuotaForPlan("trial")`；zh/en `quota.freeRemaining` / `limitReached` 改为「本周期」口径。
+
 ## 2026-07-14 — Trial copy + bootstrap=1
 
 - Homepage trust: 免费试用需登录 / Sign in to scan（去掉「无需注册」）.

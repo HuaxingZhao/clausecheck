@@ -290,9 +290,9 @@
     "notice_period": "通知期限"
   },
   "quota": {
-    "limitReached": "本月免费额度已用完，升级专业版或按次使用",
+    "limitReached": "本周期免费额度已用完，升级专业版或购买加油包",
     "trialActive": "试用配额生效中",
-    "freeRemaining": "本月免费剩余 {count} 次",
+    "freeRemaining": "本周期剩余 {count} 次免费审阅",
     "payPerUseRemaining": "按次额度剩余 {count} 次",
     "checkoutSuccess": "🎉 支付成功！已解锁专业版文档审阅配额与报告导出",
     "payPerUseSuccess": "🎉 支付成功！已解锁 1 次专业扫描，请立即上传合同",

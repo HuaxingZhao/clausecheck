@@ -6,8 +6,8 @@ import { ensureSchema, getSql, usePostgres } from "./pg";
 
 export const LEGACY_TRIAL_DAYS = 3;
 export const LEGACY_MONTHLY_LIMIT = 3;
-/** Register grant used for proportional credit → quota conversion. */
-export const REGISTER_CREDIT_GRANT = 3;
+/** Register grant used for proportional credit → quota conversion (Plan A trial). */
+export const REGISTER_CREDIT_GRANT = getQuotaForPlan("trial");
 
 export type QuotaPoolId = "main" | "legacy_ppu" | "addon";
 

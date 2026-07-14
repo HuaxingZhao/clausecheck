@@ -290,9 +290,9 @@
     "notice_period": "Notice period"
   },
   "quota": {
-    "limitReached": "Monthly free limit reached. Upgrade to Pro or pay per scan.",
+    "limitReached": "Free quota for this cycle is used up. Upgrade to Pro or buy an add-on pack.",
     "trialActive": "Trial quota active — document reviews available",
-    "freeRemaining": "{count} document review(s) left this cycle",
+    "freeRemaining": "{count} free review(s) left this cycle",
     "payPerUseRemaining": "{count} add-on document review(s) remaining",
     "checkoutSuccess": "🎉 Payment successful! Pro plan active — document review quota updated",
     "payPerUseSuccess": "🎉 Payment successful! 1 Pro scan unlocked — upload your contract now",
