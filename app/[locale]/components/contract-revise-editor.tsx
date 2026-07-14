@@ -314,16 +314,12 @@ export default function ContractReviseEditor({
         fd.append("locale", locale);
         res = await fetch("/api/revise/final", {
           method: "POST",
-          headers: { "x-user-tier": isPro ? "pro" : "free" },
           body: fd,
         });
       } else {
         res = await fetch("/api/revise/final", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-user-tier": isPro ? "pro" : "free",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             format,
             locale,

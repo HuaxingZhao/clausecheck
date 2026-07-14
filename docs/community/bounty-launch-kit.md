@@ -8,7 +8,7 @@ Tone: open, respectful of professional expertise, co-creation — **not** cheap 
 
 | Asset | Path / URL |
 |-------|------------|
-| Bounty page | `/en/community/bounty` (prod: `https://www.clausecheck.cc/en/community/bounty`) |
+| Bounty page | `/community/bounty` (prod: `https://www.clausecheck.cc/community/bounty`) |
 | Issue template | `.github/ISSUE_TEMPLATE/pack-bounty.md` |
 | PR template | `.github/pull_request_template.md` |
 | Contributing docs | `docs/contributing-jurisdiction-packs.md` |
@@ -31,7 +31,7 @@ If you practice (or deeply know) NY, England & Wales, Singapore, Germany, or NSW
 
 This is co-creation with practitioners — not gig legal work.
 
-Claim → https://www.clausecheck.cc/en/community/bounty
+Claim → https://www.clausecheck.cc/community/bounty
 
 Community packs are reviewed but not guaranteed. Always verify.
 ```
@@ -48,7 +48,7 @@ Why this matters:
 
 This is not outsourced memo writing. Packs are concise, testable, paste-ready guidance for negotiation — never a substitute for counsel.
 
-Open board + claim flow: https://www.clausecheck.cc/en/community/bounty
+Open board + claim flow: https://www.clausecheck.cc/community/bounty
 Guide: https://github.com/HuaxingZhao/clausecheck/blob/main/docs/contributing-jurisdiction-packs.md
 
 Community packs are reviewed but not guaranteed. Always verify.
@@ -61,7 +61,7 @@ Community packs are reviewed but not guaranteed. Always verify.
 
 We want people who know a legal system — not freelancers racing to fill a form.
 
-Board: https://www.clausecheck.cc/en/community/bounty
+Board: https://www.clausecheck.cc/community/bounty
 1. Claim via GitHub Issue (template auto-fills)
 2. `npm run new-pack` (or expand reserved packs like us-ny / uk)
 3. `npm run validate:pack`
@@ -97,7 +97,7 @@ What you get
 • Named credit on the pack
 • A clear review checklist — we respect your time
 
-Board: https://www.clausecheck.cc/en/community/bounty
+Board: https://www.clausecheck.cc/community/bounty
 Guide: https://github.com/HuaxingZhao/clausecheck/blob/main/docs/contributing-jurisdiction-packs.md
 
 No pressure if the timing is wrong — a forward to the right person is equally helpful.
@@ -157,7 +157,7 @@ Use on every Pack PR (bounty or organic).
 ```text
 Thank you @{{handle}} for the {{jurisdiction}} Jurisdiction Pack on ClauseCheck — practitioner-built, CI-checked, now helping reviewers stay in the right legal system.
 
-Board still open → https://www.clausecheck.cc/en/community/bounty
+Board still open → https://www.clausecheck.cc/community/bounty
 
 Community packs are reviewed but not guaranteed. Always verify.
 ```

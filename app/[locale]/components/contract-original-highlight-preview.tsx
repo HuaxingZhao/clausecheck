@@ -81,7 +81,6 @@ export default function ContractOriginalHighlightPreview({
 
     fetch("/api/revise/preview", {
       method: "POST",
-      headers: { "x-user-tier": "pro" },
       body: fd,
     })
       .then(async (res) => {

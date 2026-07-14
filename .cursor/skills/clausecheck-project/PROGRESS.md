@@ -2,6 +2,20 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-14 — Post-#25 遗留项收口
+
+- **DB**：`db:verify-consume-credit` + `db:check` 确认 `consume_credit(text)` 与 `document_quota` 已在库；`DEPLOY_OPEN_ITEMS` P0-DB 勾完。
+- **忘记密码 UX**：AuthPanel `mode=forgot` 用 `forgotPageTitle/Subtitle`；隐藏 Google；去掉页面重复 h1。
+- **字数旁路**：`analyze` / `review-contract` 默认 `EXPERIENCE_WORD_LIMIT`（20k）。
+- **微信 topup**：未配置 → **503** `WECHAT_PAY_NOT_CONFIGURED`（主结账仍 Stripe）。
+- **工具/清理**：`verify-p0.sh` 对齐 20k/401；`.env.example` + `env.example`；bounty 去 `/en`；删死 `x-user-tier`、scroll-chain、误复制 `lib/rag/* 2.*`。
+
+## 2026-07-14 — #25 已上生产 + 遗留审计
+
+- Prod `version=774dd1c`（#25）；`paymentWebhook: ok`；mock-qr GET → **404**（P0 生效）。
+- 首页/FAQ 可见：试用需登录、1 次/周期、FAQ 20,000 字；定价 Trial 1 份。
+- 遗留项已在上一节收口。
+
 ## 2026-07-14 — P0 mock-qr + 剩余安全/一致性
 
 - **P0**：生产默认关闭 `/api/webhooks/payment/mock-qr`（`isMockWechatPayAllowed`；仅 `ALLOW_MOCK_WECHAT_PAY=1` 可开）；无 `WECHAT_PAY_QR_BASE` 时生产不再 silently 回落 mock。

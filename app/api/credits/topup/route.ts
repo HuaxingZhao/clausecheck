@@ -4,6 +4,7 @@ import { getSessionFromRequest } from "@/lib/auth/session";
 import { sessionUserIdSchema } from "@/lib/credits/scan-form";
 import { createPendingOrder } from "@/lib/credits/orders";
 import { creditsSystemEnabled } from "@/lib/credits/user-credits";
+import { isWechatPayConfigured } from "@/lib/credits/wechat-pay-config";
 
 const topupRequestSchema = z.object({
   plan: z.enum(["pro", "boost"]),
@@ -14,6 +15,17 @@ export async function POST(req: NextRequest) {
   try {
     if (!creditsSystemEnabled()) {
       return NextResponse.json({ error: "Credits system unavailable" }, { status: 503 });
+    }
+
+    if (!isWechatPayConfigured()) {
+      return NextResponse.json(
+        {
+          error: "WECHAT_PAY_NOT_CONFIGURED",
+          message:
+            "WeChat top-up is not available yet. Use Stripe checkout on the pricing page, or set WECHAT_PAY_QR_BASE.",
+        },
+        { status: 503 }
+      );
     }
 
     const session = await getSessionFromRequest(req);
@@ -58,6 +70,16 @@ export async function POST(req: NextRequest) {
   } catch (err: unknown) {
     console.error("credits topup error:", err);
     const message = err instanceof Error ? err.message : "Top-up failed";
+    if (/WeChat pay is not configured/i.test(message)) {
+      return NextResponse.json(
+        {
+          error: "WECHAT_PAY_NOT_CONFIGURED",
+          message:
+            "WeChat top-up is not available yet. Use Stripe checkout on the pricing page.",
+        },
+        { status: 503 }
+      );
+    }
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

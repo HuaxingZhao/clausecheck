@@ -193,22 +193,28 @@ export default function AuthPanel({
         <button type="button" className="auth-close" onClick={onClose} aria-label={t("close")}>
           ×
         </button>
-        <h2 className="font-sans text-xl font-semibold mb-2">{t("title")}</h2>
-        <p className="text-sm text-ink-light mb-5">{t("subtitleShort")}</p>
+        <h2 className="font-sans text-xl font-semibold mb-2">
+          {mode === "forgot" ? t("forgotPageTitle") : t("title")}
+        </h2>
+        <p className="text-sm text-ink-light mb-5">
+          {mode === "forgot" ? t("forgotPageSubtitle") : t("subtitleShort")}
+        </p>
 
-        <div className="auth-social-stack">
-          <button
-            type="button"
-            className="auth-oauth-btn auth-oauth-google"
-            onClick={startGoogleOAuth}
-          >
-            <GoogleIcon />
-            {t("continueGoogle")}
-          </button>
-          <div className="auth-divider">
-            <span>{t("orDivider")}</span>
+        {mode !== "forgot" && (
+          <div className="auth-social-stack">
+            <button
+              type="button"
+              className="auth-oauth-btn auth-oauth-google"
+              onClick={startGoogleOAuth}
+            >
+              <GoogleIcon />
+              {t("continueGoogle")}
+            </button>
+            <div className="auth-divider">
+              <span>{t("orDivider")}</span>
+            </div>
           </div>
-        </div>
+        )}
 
         {mode !== "forgot" && (
           <div className="auth-mode-tabs mb-4">
