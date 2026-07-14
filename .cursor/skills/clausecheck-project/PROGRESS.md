@@ -2,6 +2,12 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-14 — Trial copy + bootstrap=1
+
+- Homepage trust: 免费试用需登录 / Sign in to scan（去掉「无需注册」）.
+- Beta hero: 锁定权益资格 + finePrint 报名≠开通 / credited at launch.
+- `bootstrapNewUserCredits` → `getQuotaForPlan("trial")`（当前 1），与 document_quota 对齐.
+
 ## 2026-07-14 — 内测三件套修复
 
 - FAQ 免费版限制对齐 Plan A：注册后每周期 **1 份**（去掉「3 天宽松 / 旧账户每月 3 份」）。

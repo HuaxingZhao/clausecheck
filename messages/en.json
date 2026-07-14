@@ -16,7 +16,7 @@
     "title2": "Let AI Review It",
     "subtitle": "Pick your contract scenario, upload, and get industry-specific AI review in 3 minutes.",
     "cta": "Scan Your Contract Free →",
-    "trust": "No signup · Encrypted · Auto-deleted after scan",
+    "trust": "Free trial · Sign in to scan · 1 review included · Encrypted",
     "sampleReport": "View sample report",
     "zhNote": ""
   },
@@ -908,8 +908,8 @@
     "hero": {
       "badge": "Beta · co-create with us",
       "title": "AI Contract Review, Calibrated by Real Lawyers",
-      "subtitle": "Join the beta. Shape the product. Get lifetime Pro perks.",
-      "finePrint": "Decision support only — not legal advice. No spam."
+      "subtitle": "Join the beta. Shape the product. Lock in lifetime Pro perks (credited at official launch).",
+      "finePrint": "Decision support only — not legal advice. Sign-up ≠ account access; founding perks credited at launch. No spam."
     },
     "form": {
       "emailLabel": "Email",
