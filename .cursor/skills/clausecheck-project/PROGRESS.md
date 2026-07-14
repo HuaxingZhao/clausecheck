@@ -2,6 +2,22 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-14 — P0 mock-qr + 剩余安全/一致性
+
+- **P0**：生产默认关闭 `/api/webhooks/payment/mock-qr`（`isMockWechatPayAllowed`；仅 `ALLOW_MOCK_WECHAT_PAY=1` 可开）；无 `WECHAT_PAY_QR_BASE` 时生产不再 silently 回落 mock。
+- 试用字数统一 `EXPERIENCE_WORD_LIMIT`（20k）：`scan` / `refine` / `review` + FAQ。
+- 去掉「无限扫描」类升级/条款文案；审阅区去掉 `attachScrollChainToPage`。
+- 重置密码：`users.session_version` + JWT `sv`；`getSessionFrom*` 校验不一致则失效。
+- Magic token：`purpose`（`login` | `password_reset`）；forgot/reset 与 magic-link/verify/team invite 分离。
+- Admin TD-001：`::uuid` 已去；README Plan A 配额 + bounty URL 去掉硬编码 `/en`。
+- 冒烟：`forgot-password` 可达；生产 mock-qr 期望 404。单测：`lib/credits/mock-pay.test.ts`。
+
+## 2026-07-14 — TD-001：去掉 TEXT user_id 上的错误 `::uuid`
+
+- `lib/admin/queries.ts`：移除 9 处 `u.id` / `userId` 对 `user_credits` / `orders` / `credit_transactions` 的 `::uuid` 强转（列均为 TEXT）。
+- `lib/invite/codes.ts`：核实已无 user 相关 `::uuid` 残留。
+- `TECH_DEBT.md` TD-001 checklist 已勾完（手测仍待）。
+
 ## 2026-07-14 — P2 批量清理
 
 - Bounty 语言切换：`Link locale=`（不再硬编码 `/en/...`）。

@@ -26,9 +26,13 @@ export interface User {
   proUntil: string | null;
   teamId: string | null;
   teamRole: TeamRole | null;
+  /** Bumped on password reset — JWT must carry matching sv. */
+  sessionVersion: number;
   createdAt: string;
   updatedAt: string;
 }
+
+export type MagicTokenPurpose = "login" | "password_reset";
 
 export interface SavedReport {
   id: string;
@@ -61,6 +65,7 @@ export interface SavedRevision {
 export interface MagicToken {
   token: string;
   email: string;
+  purpose: MagicTokenPurpose;
   expiresAt: string;
 }
 

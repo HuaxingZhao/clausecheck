@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL(localizedPath("/?auth=invalid", locale), req.url));
   }
 
-  const email = await consumeMagicToken(token);
+  const email = await consumeMagicToken(token, "login");
   if (!email) {
     return NextResponse.redirect(new URL(localizedPath("/?auth=expired", locale), req.url));
   }

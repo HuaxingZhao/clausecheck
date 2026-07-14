@@ -142,4 +142,39 @@ test.describe("生产环境冒烟测试", () => {
       ).toBe(true);
     });
   });
+
+  test.describe("Auth + mock pay gates", () => {
+    test("GET /zh/forgot-password 可达", async ({ request }) => {
+      const res = await request.get("/zh/forgot-password", {
+        headers: { Accept: "text/html" },
+      });
+      expect(res.status()).toBe(200);
+      const html = await res.text();
+      expect(html.length).toBeGreaterThan(100);
+    });
+
+    test("生产环境 mock-qr GET → 404（禁止无签名入账）", async ({
+      request,
+      baseURL,
+    }) => {
+      const host = (() => {
+        try {
+          return new URL(baseURL ?? "").hostname;
+        } catch {
+          return "";
+        }
+      })();
+      test.skip(
+        host !== "www.clausecheck.cc" && host !== "clausecheck.cc",
+        "仅对生产域名断言；本地/预览允许 mock 收银台"
+      );
+
+      const res = await request.get(
+        "/api/webhooks/payment/mock-qr?order_id=11111111-1111-4111-8111-111111111111&amount_cents=100"
+      );
+      expect(res.status()).toBe(404);
+      const body = await res.json();
+      expect(body.error).toMatch(/mock/i);
+    });
+  });
 });

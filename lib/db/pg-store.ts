@@ -1,7 +1,16 @@
 import postgres from "postgres";
 import type { ScanResult, ContractChange } from "../types";
 import { ensureSchema, getSql } from "./pg";
-import type { MagicToken, SavedReport, SavedRevision, Team, TeamInvite, TeamRole, User } from "./types";
+import type {
+  MagicToken,
+  MagicTokenPurpose,
+  SavedReport,
+  SavedRevision,
+  Team,
+  TeamInvite,
+  TeamRole,
+  User,
+} from "./types";
 
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
@@ -21,6 +30,7 @@ function rowToUser(r: Record<string, unknown>): User {
     proUntil: r.pro_until ? new Date(r.pro_until as string).toISOString() : null,
     teamId: (r.team_id as string) ?? null,
     teamRole: (r.team_role as TeamRole) ?? null,
+    sessionVersion: typeof r.session_version === "number" ? r.session_version : 0,
     createdAt: new Date(r.created_at as string).toISOString(),
     updatedAt: new Date(r.updated_at as string).toISOString(),
   };
@@ -135,7 +145,10 @@ export async function setPasswordHash(email: string, passwordHash: string): Prom
   await ensureSchema();
   const key = normalizeEmail(email);
   await getSql()`
-    UPDATE users SET password_hash = ${passwordHash}, updated_at = NOW()
+    UPDATE users SET
+      password_hash = ${passwordHash},
+      session_version = COALESCE(session_version, 0) + 1,
+      updated_at = NOW()
     WHERE email = ${key}`;
 }
 
@@ -177,25 +190,38 @@ export async function upsertUser(
   return (await findUserById(id))!;
 }
 
-export async function createMagicToken(email: string, ttlMinutes = 30): Promise<MagicToken> {
+export async function createMagicToken(
+  email: string,
+  ttlMinutes = 30,
+  purpose: MagicTokenPurpose = "login"
+): Promise<MagicToken> {
   await ensureSchema();
   const key = normalizeEmail(email);
   const token: MagicToken = {
     token: crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, ""),
     email: key,
+    purpose,
     expiresAt: new Date(Date.now() + ttlMinutes * 60_000).toISOString(),
   };
-  await getSql()`DELETE FROM magic_tokens WHERE email = ${key} OR expires_at < NOW()`;
   await getSql()`
-    INSERT INTO magic_tokens (token, email, expires_at)
-    VALUES (${token.token}, ${key}, ${new Date(token.expiresAt)})`;
+    DELETE FROM magic_tokens
+     WHERE (email = ${key} AND purpose = ${purpose}) OR expires_at < NOW()`;
+  await getSql()`
+    INSERT INTO magic_tokens (token, email, purpose, expires_at)
+    VALUES (${token.token}, ${key}, ${purpose}, ${new Date(token.expiresAt)})`;
   return token;
 }
 
-export async function consumeMagicToken(token: string): Promise<string | null> {
+export async function consumeMagicToken(
+  token: string,
+  expectedPurpose: MagicTokenPurpose = "login"
+): Promise<string | null> {
   await ensureSchema();
   const rows = await getSql()`
-    DELETE FROM magic_tokens WHERE token = ${token} AND expires_at > NOW()
+    DELETE FROM magic_tokens
+     WHERE token = ${token}
+       AND purpose = ${expectedPurpose}
+       AND expires_at > NOW()
     RETURNING email`;
   return rows[0]?.email ?? null;
 }

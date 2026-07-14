@@ -3,6 +3,18 @@ import { z } from "zod";
 import { fulfillCreditOrder, getOrderById } from "@/lib/credits/orders";
 import { creditsSystemEnabled } from "@/lib/credits/user-credits";
 import { getTopupPlan } from "@/lib/credits/plans";
+import { isMockWechatPayAllowed } from "@/lib/credits/mock-pay";
+
+function mockDisabledResponse() {
+  return NextResponse.json(
+    {
+      error: "Mock WeChat pay disabled",
+      message:
+        "Production mock cashier is off. Use a real WECHAT_PAY_QR_BASE or set ALLOW_MOCK_WECHAT_PAY=1 only for demos.",
+    },
+    { status: 404 }
+  );
+}
 
 const querySchema = z.object({
   order_id: z.string().uuid(),
@@ -76,6 +88,8 @@ async function loadOrderFromQuery(req: NextRequest) {
 
 /** 手机扫码打开的 mock 收银台（演示微信支付，非真实商户） */
 export async function GET(req: NextRequest) {
+  if (!isMockWechatPayAllowed()) return mockDisabledResponse();
+
   const loaded = await loadOrderFromQuery(req);
   if ("error" in loaded) {
     const status =
@@ -135,6 +149,8 @@ export async function GET(req: NextRequest) {
 
 /** 演示：用户点击确认后入账额度 */
 export async function POST(req: NextRequest) {
+  if (!isMockWechatPayAllowed()) return mockDisabledResponse();
+
   let orderId: string | null = null;
   let amountCents: number | null = null;
 

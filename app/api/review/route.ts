@@ -13,6 +13,7 @@ import {
   assertExperienceWordLimit,
   consumeUserCredit,
   creditsSystemEnabled,
+  EXPERIENCE_WORD_LIMIT,
   refundUserCredit,
 } from "@/lib/credits/user-credits";
 import { sessionUserIdSchema } from "@/lib/credits/scan-form";
@@ -26,7 +27,7 @@ import { parseJurisdictionParam } from "@/lib/jurisdiction";
 
 export const maxDuration = 90;
 
-const FREE_MAX_CHARS = 12_000;
+const FREE_MAX_CHARS = EXPERIENCE_WORD_LIMIT;
 const PRO_MAX_CHARS = 80_000;
 
 /**

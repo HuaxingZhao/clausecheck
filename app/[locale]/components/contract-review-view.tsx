@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { LockedReviewItem, ScanResult } from "@/lib/types";
 import { scrollChildIntoContainer } from "@/lib/scroll-container";
-import { attachScrollChainToPage } from "@/lib/scroll-chain-to-page";
 import { buildReviewMarkSegments } from "@/lib/review-mark-segments";
 import { lockedItemsToLocated, resolveContractReview } from "@/lib/lock-suggestions";
 import { acceptIdsForLevels } from "@/lib/review-to-changes";
@@ -186,14 +185,7 @@ export default function ContractReviewView({
     setSelectedLevels(new Set());
   }, []);
 
-  useEffect(() => {
-    const panes = [originalScrollRef.current, suggestionsScrollRef.current].filter(
-      (el): el is HTMLDivElement => el != null
-    );
-    if (!panes.length) return;
-    const cleanups = panes.map((el) => attachScrollChainToPage(el));
-    return () => cleanups.forEach((fn) => fn());
-  }, [source.length, items.length]);
+  // Panes scroll internally inside the fixed 82vh shell — do not chain to page scroll.
 
   return (
     <div className="space-y-4">

@@ -10,6 +10,7 @@ import {
   assertExperienceWordLimit,
   consumeUserCredit,
   creditsSystemEnabled,
+  EXPERIENCE_WORD_LIMIT,
   getUserCreditBalance,
 } from "@/lib/credits/user-credits";
 import {
@@ -27,7 +28,8 @@ import {
 /** Vercel Pro allows up to 300s — AI first-pass can exceed 90s on long CN PDFs. */
 export const maxDuration = 300;
 
-const FREE_MAX_CHARS = 12000;
+/** Align with EXPERIENCE_WORD_LIMIT (Plan A trial char cap). */
+const FREE_MAX_CHARS = EXPERIENCE_WORD_LIMIT;
 const PRO_MAX_CHARS = 80000;
 
 export async function POST(req: NextRequest) {
