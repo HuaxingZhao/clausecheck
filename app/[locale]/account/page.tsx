@@ -251,6 +251,15 @@ export default function AccountPage() {
               </dl>
             </div>
 
+            {auth.email && (
+              <div className="account-card">
+                <h2 className="font-sans font-semibold text-lg mb-2">{t("resetPasswordLink")}</h2>
+                <Link href="/forgot-password" className="btn btn-outline text-sm">
+                  {t("resetPasswordLink")} →
+                </Link>
+              </div>
+            )}
+
             <div className="account-card">
               <h2 className="font-sans font-semibold text-lg mb-2">{t("inviteFriends")}</h2>
               <Link href="/invite" className="btn btn-outline text-sm">

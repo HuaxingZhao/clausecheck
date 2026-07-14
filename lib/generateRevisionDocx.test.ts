@@ -10,7 +10,6 @@ import type { ContractChange } from "./types";
 
 function minimalChange(overrides: Partial<ContractChange> = {}): ContractChange {
   return {
-    id: "c1",
     original: "甲方应在 30 个自然日内付款。",
     revised: "甲方应在 60 个自然日内付款。",
     reason: "延长付款期限",
@@ -47,7 +46,6 @@ describe("generateRevisionDocx", () => {
 
     const changes: ContractChange[] = [
       minimalChange({
-        id: "large-1",
         original: contractText.slice(0, 40),
         revised: contractText.slice(0, 40).replace("30", "45"),
       }),

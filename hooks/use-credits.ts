@@ -6,10 +6,15 @@ const CACHE_MS = 30_000;
 
 let creditsCache: { balance: number; fetchedAt: number } | null = null;
 
+/** guest = 401; user = 200; unavailable = transient error without cache. */
+export type CreditsSession = "loading" | "guest" | "user" | "unavailable";
+
 export interface UseCreditsResult {
   balance: number | null;
   loading: boolean;
+  /** True only after a successful authenticated credits response. */
   authenticated: boolean;
+  session: CreditsSession;
   refresh: (force?: boolean) => Promise<number | null>;
   invalidate: () => Promise<number | null>;
 }
@@ -20,7 +25,9 @@ export function useCredits(opts?: { autoFetch?: boolean }): UseCreditsResult {
     () => creditsCache?.balance ?? null
   );
   const [loading, setLoading] = useState(() => !creditsCache);
-  const [authenticated, setAuthenticated] = useState(() => !!creditsCache);
+  const [session, setSession] = useState<CreditsSession>(() =>
+    creditsCache ? "user" : "loading"
+  );
 
   const refresh = useCallback(async (force = false): Promise<number | null> => {
     if (
@@ -29,9 +36,7 @@ export function useCredits(opts?: { autoFetch?: boolean }): UseCreditsResult {
       Date.now() - creditsCache.fetchedAt < CACHE_MS
     ) {
       setBalance(creditsCache.balance);
-      // Cache implies a prior authenticated success — must set this or the
-      // badge stays on「登录查看审阅配额」when another useCredits() filled the cache.
-      setAuthenticated(true);
+      setSession("user");
       setLoading(false);
       return creditsCache.balance;
     }
@@ -40,7 +45,7 @@ export function useCredits(opts?: { autoFetch?: boolean }): UseCreditsResult {
     try {
       const res = await fetch("/api/user/credits", { credentials: "include" });
       if (res.status === 401) {
-        setAuthenticated(false);
+        setSession("guest");
         setBalance(null);
         creditsCache = null;
         return null;
@@ -49,27 +54,31 @@ export function useCredits(opts?: { autoFetch?: boolean }): UseCreditsResult {
         // Transient failure (e.g. Neon cold start): keep prior cache if any
         if (creditsCache) {
           setBalance(creditsCache.balance);
-          setAuthenticated(true);
+          setSession("user");
           return creditsCache.balance;
         }
+        // Do NOT claim guest — badge would wrongly say「登录查看审阅配额」
+        setSession("unavailable");
+        setBalance(null);
         return null;
       }
       const data = (await res.json()) as { balance?: number };
       if (typeof data.balance === "number") {
         creditsCache = { balance: data.balance, fetchedAt: Date.now() };
         setBalance(data.balance);
-        setAuthenticated(true);
+        setSession("user");
         return data.balance;
       }
-      setAuthenticated(false);
+      setSession("unavailable");
       setBalance(null);
       return null;
     } catch {
       if (creditsCache) {
         setBalance(creditsCache.balance);
-        setAuthenticated(true);
+        setSession("user");
         return creditsCache.balance;
       }
+      setSession("unavailable");
       return null;
     } finally {
       setLoading(false);
@@ -86,7 +95,14 @@ export function useCredits(opts?: { autoFetch?: boolean }): UseCreditsResult {
     void refresh();
   }, [refresh, autoFetch]);
 
-  return { balance, loading, authenticated, refresh, invalidate };
+  return {
+    balance,
+    loading,
+    authenticated: session === "user",
+    session,
+    refresh,
+    invalidate,
+  };
 }
 
 /** Clear module cache (e.g. after logout). */

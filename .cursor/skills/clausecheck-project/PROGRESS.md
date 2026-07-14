@@ -2,6 +2,12 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-14 — Post-#26 生产巡检修复
+
+- Prod `version=0efd79f`（#26）健康：DB/OpenAI/paymentWebhook ok；mock-qr 404；微信 topup 503；bounty 无 `/en`。
+- **P1**：`useCredits` 增加 `session`（loading/guest/user/unavailable）；credits API 5xx 不再误报「登录查看配额」；定价 sync 不因冷启动清成 guest。
+- 忘记密码文案去掉 Google；账户页登录后可「重置邮箱密码」；hero 计数加载用 `—`；`generateRevisionDocx.test` 去掉非法 `id`。
+
 ## 2026-07-14 — Post-#25 遗留项收口
 
 - **DB**：`db:verify-consume-credit` + `db:check` 确认 `consume_credit(text)` 与 `document_quota` 已在库；`DEPLOY_OPEN_ITEMS` P0-DB 勾完。

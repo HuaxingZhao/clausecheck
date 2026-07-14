@@ -561,7 +561,7 @@ export default function Home() {
         <div className="max-w-3xl mx-auto">
           <div className="hero-badge mx-auto w-fit mb-6">
             <span className="dot-pulse" />
-            {t("hero.badge", { count: scanCount != null ? scanCount.toLocaleString() : "..." })}
+            {t("hero.badge", { count: scanCount != null ? scanCount.toLocaleString() : "—" })}
           </div>
           <h1 className="mb-6">
             {t("hero.title1")}
