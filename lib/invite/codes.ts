@@ -1,4 +1,5 @@
 import { ensureSchema, getSql, usePostgres } from "@/lib/db/pg";
+import { getQuotaForPlan } from "@/lib/pricing.config";
 import { grantAddonDocumentQuota } from "@/lib/db/document-quota";
 import {
   INVITE_CODE_CHARS,
@@ -66,6 +67,8 @@ function randomInviteCode(): string {
 /** Ensure new user has starter balance when auth trigger is absent. */
 export async function bootstrapNewUserCredits(userId: string): Promise<void> {
   if (!usePostgres()) return;
+  // Align with Plan A trial document quota (currently 1) — not the old “3 credits” era.
+  const starter = getQuotaForPlan("trial");
   const sql = getSql();
   await sql.begin(async (tx) => {
     const existing = await tx`
@@ -75,11 +78,11 @@ export async function bootstrapNewUserCredits(userId: string): Promise<void> {
 
     await tx`
       INSERT INTO public.user_credits (user_id, balance)
-      VALUES (${userId}, 3)
+      VALUES (${userId}, ${starter})
     `;
     await tx`
       INSERT INTO public.credit_transactions (user_id, amount, type)
-      VALUES (${userId}, 3, 'register')
+      VALUES (${userId}, ${starter}, 'register')
     `;
   });
 }
