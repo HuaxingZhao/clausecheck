@@ -87,8 +87,9 @@ http_body() {
 }
 
 ensure_overlong_fixture() {
-  if [[ ! -f "$OVERLONG" ]] || [[ $(wc -c < "$OVERLONG" | tr -d ' ') -lt 13000 ]]; then
-    node -e "require('fs').writeFileSync(process.argv[1], '合同条款双方权利义务。'.repeat(3500))" "$OVERLONG"
+  # Plan A free/trial cap is EXPERIENCE_WORD_LIMIT (20_000 chars).
+  if [[ ! -f "$OVERLONG" ]] || [[ $(wc -c < "$OVERLONG" | tr -d ' ') -lt 22000 ]]; then
+    node -e "require('fs').writeFileSync(process.argv[1], '合同条款双方权利义务。'.repeat(2500))" "$OVERLONG"
   fi
 }
 
@@ -177,7 +178,7 @@ test_quota_api_shape() {
 
 test_tier_spoof_long_text_rejected() {
   ensure_overlong_fixture
-  local body code err_code
+  local body code err_code err_field
   body=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/api/scan" \
     "${CURL_SCAN_HEADERS[@]}" \
     -H "x-user-tier: pro" \
@@ -187,11 +188,17 @@ test_tier_spoof_long_text_rejected() {
   code=$(echo "$body" | tail -n1)
   body=$(echo "$body" | sed '$d')
   err_code=$(json_field "$body" "code" || echo "")
+  err_field=$(json_field "$body" "error" || echo "")
 
-  if [[ "$code" == "413" && "$err_code" == "TEXT_TOO_LONG" ]]; then
-    pass "Spoofed pro tier cannot bypass 12000-char free limit (413 TEXT_TOO_LONG)"
+  # Credits on: unauthenticated → 401 (spoofed tier ignored).
+  # Credits off / legacy free path: 413 TEXT_TOO_LONG over EXPERIENCE_WORD_LIMIT (20k).
+  # Logged-in trial over cap: 413 WORD_LIMIT_EXCEEDED.
+  if [[ "$code" == "401" && "$err_field" == "UNAUTHORIZED" ]]; then
+    pass "Spoofed pro tier ignored — scan requires login (401 UNAUTHORIZED)"
+  elif [[ "$code" == "413" && ( "$err_code" == "TEXT_TOO_LONG" || "$err_field" == "WORD_LIMIT_EXCEEDED" ) ]]; then
+    pass "Spoofed pro tier cannot bypass 20k-char free/trial limit (413)"
   else
-    fail "Spoofed pro tier on long text" "HTTP $code, code=$err_code, body=${body:0:200}"
+    fail "Spoofed pro tier on long text" "HTTP $code, code=$err_code, error=$err_field, body=${body:0:200}"
   fi
 }
 

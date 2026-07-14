@@ -28,8 +28,7 @@ export default function ForgotPasswordPage() {
         >
           ← {t("signIn")}
         </Link>
-        <h1 className="mt-6 mb-2 text-2xl font-semibold">{t("forgotPageTitle")}</h1>
-        <p className="text-ink-light mb-8 font-sans text-sm">{t("forgotPageSubtitle")}</p>
+        {/* Title/subtitle live in AuthPanel (mode=forgot) — avoid duplicate page chrome. */}
       </main>
       <AuthPanel
         open

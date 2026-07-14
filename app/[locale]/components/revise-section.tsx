@@ -117,7 +117,6 @@ export default function ReviseSection({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-user-tier": isPro ? "pro" : "free",
         },
         body: JSON.stringify({
           contractText,

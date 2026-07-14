@@ -27,6 +27,7 @@ import {
 import { buildContractIndex, formatClauseIndexForPrompt } from "@/lib/contract-index";
 import type { ScanResult } from "@/lib/types";
 import type { JurisdictionOverride } from "@/lib/jurisdiction";
+import { EXPERIENCE_WORD_LIMIT } from "@/lib/credits/user-credits";
 
 export interface ReviewContractOptions {
   locale?: "zh" | "en";
@@ -124,7 +125,7 @@ export async function reviewContract(
     ? (options.scenarioId as ContractScenarioId)
     : DEFAULT_SCENARIO_ID;
   const deep = options.deep ?? false;
-  const maxChars = options.maxChars ?? (deep ? 80000 : 12000);
+  const maxChars = options.maxChars ?? (deep ? 80_000 : EXPERIENCE_WORD_LIMIT);
   const apiKey = requireApiKey(options.apiKey);
 
   const { systemPrompt, retrieval, pack, packSource } =
@@ -190,7 +191,7 @@ export function buildReviewMessagesPreview(
   clauseIndexPreview: string;
 } {
   const locale = options.locale ?? "zh";
-  const maxChars = options.maxChars ?? 12000;
+  const maxChars = options.maxChars ?? EXPERIENCE_WORD_LIMIT;
   const truncated = contractText.slice(0, maxChars);
   const { systemPrompt, retrieval } = assembleReviewSystemPrompt(truncated, options);
   const clauseIndex = buildContractIndex(truncated);

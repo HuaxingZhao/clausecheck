@@ -23,6 +23,7 @@ import {
 import { annotateScanConfidence, computeQualityStats } from "./confidence";
 import { snapScanResultToSource } from "./snap-scan-quotes";
 import { buildContractReview } from "./lock-suggestions";
+import { EXPERIENCE_WORD_LIMIT } from "@/lib/credits/user-credits";
 import type {
   ScanResult,
   RiskFlag,
@@ -57,7 +58,7 @@ export async function analyzeContract(
 ): Promise<ScanResult> {
   const {
     deep = false,
-    maxChars = 12000,
+    maxChars = EXPERIENCE_WORD_LIMIT,
     locale = "zh",
     scenarioId = DEFAULT_SCENARIO_ID,
     jurisdiction,
@@ -220,7 +221,7 @@ export async function refineScanResult(
 ): Promise<ScanResult> {
   const {
     deep = false,
-    maxChars = 12000,
+    maxChars = EXPERIENCE_WORD_LIMIT,
     locale = "zh",
     scenarioId = DEFAULT_SCENARIO_ID,
   } = options;

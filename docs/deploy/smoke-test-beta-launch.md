@@ -268,7 +268,7 @@ BASE_URL="$BASE_URL" npm run test:smoke
 - [ ] Preflight `/api/health` OK  
 - [ ] `/en/beta` HTTP 200 + Lighthouse a11y/BP/SEO ≥ 90  
 - [ ] `POST /api/beta/subscribe` writes `beta_waitlist`  
-- [ ] `/en/community/bounty` HTTP 200 + Claim → GitHub  
+- [ ] `/community/bounty` HTTP 200 + Claim → GitHub  
 - [ ] `/api/admin/feedback` 401/403 anonymous; 200 as admin  
 - [ ] `/admin/feedback-dashboard` loads for admin  
 - [ ] DPA generate returns preview/gate (no 500)  

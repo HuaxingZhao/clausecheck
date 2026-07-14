@@ -1,6 +1,6 @@
 # 上线部署 Open Items 清单
 
-> 最后更新：2026-07-09 · 部署前逐项勾选
+> 最后更新：2026-07-14 · 部署前逐项勾选
 
 ---
 
@@ -8,8 +8,8 @@
 
 | # | 项目 | 状态 | 说明 |
 |---|------|------|------|
-| **P0-DB-1** | **`consume_credit` TEXT 签名迁移** | ⬜ 待执行 | **必须先于代码部署** — 见下方 |
-| **P0-DB-2** | **统一 `document_quota` 表迁移** | ⬜ 待执行 | Plan A 订阅配额 — 见下方 |
+| **P0-DB-1** | **`consume_credit` TEXT 签名迁移** | ✅ 已验证 | `npm run db:verify-consume-credit` → `consume_credit(p_user_id text)` |
+| **P0-DB-2** | **统一 `document_quota` 表迁移** | ✅ 已验证 | `npm run db:check` 含 `document_quota` 表 |
 
 ### P0-DB-1：`consume_credit` 迁移（部署顺序锁定）
 
@@ -64,6 +64,8 @@
 | P0-3 | `/dashboard` → `/account` 重定向 | ✅ |
 | P0-6 | 环境变量校验 `npm run verify:env` | ✅ |
 | P0-7 | 生产冒烟 `npm run test:smoke` | ✅ |
+| P0-8 | 生产禁用 mock-qr（#25） | ✅ |
+| P0-9 | `PAYMENT_WEBHOOK_SECRET`（health `paymentWebhook: ok`） | ✅ |
 
 ---
 
@@ -71,15 +73,15 @@
 
 | # | 项目 | 跟踪 |
 |---|------|------|
-| P1-1 | `lib/invite/codes.ts` user_id `::uuid` 残留（16 处） | [TECH_DEBT.md](../TECH_DEBT.md) |
-| P1-2 | `lib/admin/queries.ts` user_id `::uuid` 残留（9 处） | [TECH_DEBT.md](../TECH_DEBT.md) |
-| P1-3 | 生产环境变量 `PAYMENT_WEBHOOK_SECRET` / `ADMIN_EMAILS` | Vercel Dashboard |
+| P1-1 | Admin / invite `::uuid` | ✅ 代码已修（TD-001）；手测可选 |
+| P1-2 | 微信加油包 `WECHAT_PAY_QR_BASE` | 未配时 API 返回 **503** `WECHAT_PAY_NOT_CONFIGURED`；主结账走 Stripe |
+| P1-3 | Redis（可选） | health `not_configured` 可接受 |
 
 ---
 
 ## 环境变量部署前检查
 
 ```bash
-npm run verify:env    # 本地 .env.local 或 CI secrets 须齐全
+npm run verify:env    # 本地 .env.local 或 CI secrets 须齐全（模板见 .env.example）
 npm run deploy:prep   # 同上
 ```
