@@ -7,7 +7,7 @@ import { detectCurrencyFromLocale } from "@/lib/pricing/currency";
 
 /** Sync Zustand usedQuota + default currency from entitlements API & locale */
 export function usePricingQuotaSync(locale: string) {
-  const { balance, authenticated, refresh } = useCredits();
+  const { balance, authenticated, session, refresh } = useCredits();
   const syncQuotaFromBalance = usePricingStore((s) => s.syncQuotaFromBalance);
   const setCurrency = usePricingStore((s) => s.setCurrency);
   const setResetDate = usePricingStore((s) => s.setResetDate);
@@ -17,7 +17,11 @@ export function usePricingQuotaSync(locale: string) {
   }, [locale, setCurrency]);
 
   useEffect(() => {
-    if (!authenticated) {
+    // Only clear to guest trial on explicit 401 — not on cold-start / 5xx.
+    if (session === "loading" || session === "unavailable") {
+      return;
+    }
+    if (session === "guest" || !authenticated) {
       syncQuotaFromBalance(null, "trial", false);
       return;
     }
@@ -60,7 +64,7 @@ export function usePricingQuotaSync(locale: string) {
     return () => {
       cancelled = true;
     };
-  }, [authenticated, balance, syncQuotaFromBalance, setResetDate]);
+  }, [authenticated, session, balance, syncQuotaFromBalance, setResetDate]);
 
   return { refreshQuota: refresh };
 }

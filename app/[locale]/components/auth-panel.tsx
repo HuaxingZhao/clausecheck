@@ -356,7 +356,6 @@ export default function AuthPanel({
 
             {mode === "forgot" ? (
               <form onSubmit={handleForgotSubmit}>
-                <p className="text-sm text-ink-light font-sans mb-4">{t("forgotSubtitle")}</p>
                 <label className="block text-sm font-sans font-medium mb-2">{t("emailLabel")}</label>
                 <input
                   type="email"

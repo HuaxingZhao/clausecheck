@@ -5,17 +5,17 @@ import { useCredits } from "@/hooks/use-credits";
 
 export default function CreditsRemainingBadge() {
   const t = useTranslations("upload");
-  const { balance, loading, authenticated } = useCredits();
+  const { balance, loading, session } = useCredits();
 
-  if (loading) {
+  if (loading || session === "unavailable") {
     return (
       <span className="credits-remaining-badge credits-remaining-loading">
-        {t("quotaLoading")}
+        {session === "unavailable" ? t("quotaUnavailable") : t("quotaLoading")}
       </span>
     );
   }
 
-  if (!authenticated || balance == null) {
+  if (session === "guest" || balance == null) {
     return (
       <span className="credits-remaining-badge credits-remaining-muted">
         {t("quotaLogin")}
