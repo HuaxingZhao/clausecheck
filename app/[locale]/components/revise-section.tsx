@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import type { ScanResult, ReviseResult, ContractChange, SkippedChangeSummary } from "@/lib/types";
 import ContractReviseEditor from "./contract-revise-editor";
+import { Link } from "@/i18n/routing";
 
 interface ReviseSectionProps {
   result: ScanResult;
@@ -162,7 +162,7 @@ export default function ReviseSection({
             {lastSavedAt ? t("editorReadySaved") : t("editorStepHint")}
           </p>
           {lastSavedAt && (
-            <Link href={`/${locale}/revisions`} className="link-accent text-sm mt-1 inline-block">
+            <Link href="/revisions" className="link-accent text-sm mt-1 inline-block">
               {t("historySuggestions")}
             </Link>
           )}

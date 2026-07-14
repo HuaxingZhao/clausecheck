@@ -57,3 +57,56 @@ export async function sendMagicLinkEmail(
     throw new Error(`Email send failed: ${err}`);
   }
 }
+
+export async function sendPasswordResetEmail(
+  email: string,
+  link: string,
+  locale: "zh" | "en" = "en"
+): Promise<void> {
+  const apiKey = getResendApiKey();
+  const from = process.env.EMAIL_FROM || "ClauseCheck <onboarding@resend.dev>";
+
+  if (!apiKey) {
+    if (isProduction()) {
+      throw new Error("RESEND_API_KEY is not configured");
+    }
+    console.log("\n--- Password reset (dev — set RESEND_API_KEY to send email) ---");
+    console.log(`To: ${email}`);
+    console.log(`Link: ${link}\n`);
+    return;
+  }
+
+  const isZh = locale === "zh";
+  const subject = isZh ? "重置 ClauseCheck 密码" : "Reset your ClauseCheck password";
+  const html = isZh
+    ? `
+        <p>请点击下方链接重置 ClauseCheck 密码：</p>
+        <p><a href="${link}">${link}</a></p>
+        <p>链接 30 分钟内有效。如非本人操作，请忽略此邮件。</p>
+      `
+    : `
+        <p>Click the link below to reset your ClauseCheck password:</p>
+        <p><a href="${link}">${link}</a></p>
+        <p>This link expires in 30 minutes. If you did not request this, you can ignore this email.</p>
+      `;
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from,
+      to: [email],
+      subject,
+      html,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    console.error("Resend password reset error:", err);
+    throw new Error(`Email send failed: ${err}`);
+  }
+}

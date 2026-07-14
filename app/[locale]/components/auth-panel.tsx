@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { Link, localizedPath } from "@/i18n/routing";
 import {
   getOrCreateDeviceFingerprint,
   readPendingInviteCode,
@@ -12,7 +12,7 @@ import { PHONE_COUNTRY_OPTIONS } from "@/lib/auth/phone";
 import type { CountryCode } from "libphonenumber-js";
 
 type AuthChannel = "phone" | "email";
-type AuthMode = "login" | "register";
+type AuthMode = "login" | "register" | "forgot";
 type PhoneStep = "enter" | "otp";
 
 interface AuthPanelProps {
@@ -67,6 +67,27 @@ export default function AuthPanel({
     window.location.href = `/api/auth/google?locale=${locale}`;
   }
 
+  async function handleForgotSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setInfo(null);
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, locale }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || t("forgotFailed"));
+      setInfo(typeof data.message === "string" ? data.message : t("forgotSent"));
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : t("forgotFailed"));
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function handleEmailSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -99,9 +120,7 @@ export default function AuthPanel({
       }
 
       onSuccess?.();
-      // localePrefix as-needed: EN has no /en prefix
-      window.location.href =
-        locale === "en" ? "/account?auth=success" : `/${locale}/account?auth=success`;
+      window.location.href = localizedPath("/account?auth=success", locale);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed");
     } finally {
@@ -152,8 +171,7 @@ export default function AuthPanel({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || t("phoneVerifyFailed"));
       onSuccess?.();
-      window.location.href =
-        locale === "en" ? "/account?auth=success" : `/${locale}/account?auth=success`;
+      window.location.href = localizedPath("/account?auth=success", locale);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t("phoneVerifyFailed"));
     } finally {
@@ -280,99 +298,150 @@ export default function AuthPanel({
           )
         ) : (
           <>
-            <div className="auth-mode-tabs mb-4">
-              <button
-                type="button"
-                className={`auth-mode-tab ${mode === "login" ? "active" : ""}`}
-                onClick={() => {
-                  setMode("login");
-                  setError(null);
-                }}
-              >
-                {t("tabLogin")}
-              </button>
-              <button
-                type="button"
-                className={`auth-mode-tab ${mode === "register" ? "active" : ""}`}
-                onClick={() => {
-                  setMode("register");
-                  setError(null);
-                }}
-              >
-                {t("tabRegister")}
-              </button>
-            </div>
+            {mode !== "forgot" && (
+              <div className="auth-mode-tabs mb-4">
+                <button
+                  type="button"
+                  className={`auth-mode-tab ${mode === "login" ? "active" : ""}`}
+                  onClick={() => {
+                    setMode("login");
+                    setError(null);
+                    setInfo(null);
+                  }}
+                >
+                  {t("tabLogin")}
+                </button>
+                <button
+                  type="button"
+                  className={`auth-mode-tab ${mode === "register" ? "active" : ""}`}
+                  onClick={() => {
+                    setMode("register");
+                    setError(null);
+                    setInfo(null);
+                  }}
+                >
+                  {t("tabRegister")}
+                </button>
+              </div>
+            )}
 
-            <form onSubmit={handleEmailSubmit}>
-              <label className="block text-sm font-sans font-medium mb-2">{t("emailLabel")}</label>
-              <input
-                type="email"
-                required
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t("emailPlaceholder")}
-                className="auth-input"
-              />
+            {mode === "forgot" ? (
+              <form onSubmit={handleForgotSubmit}>
+                <p className="text-sm text-ink-light font-sans mb-4">{t("forgotSubtitle")}</p>
+                <label className="block text-sm font-sans font-medium mb-2">{t("emailLabel")}</label>
+                <input
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={t("emailPlaceholder")}
+                  className="auth-input"
+                />
+                {error && <p className="text-red-600 text-sm mt-3 font-sans">{error}</p>}
+                {info && <p className="text-green-700 text-sm mt-3 font-sans">{info}</p>}
+                <button type="submit" disabled={loading} className="btn btn-primary w-full mt-6">
+                  {loading ? t("submitting") : t("forgotButton")}
+                </button>
+                <button
+                  type="button"
+                  className="w-full mt-3 text-sm font-sans text-ink-muted hover:text-ink"
+                  onClick={() => {
+                    setMode("login");
+                    setError(null);
+                    setInfo(null);
+                  }}
+                >
+                  {t("backToLogin")}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleEmailSubmit}>
+                <label className="block text-sm font-sans font-medium mb-2">{t("emailLabel")}</label>
+                <input
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={t("emailPlaceholder")}
+                  className="auth-input"
+                />
 
-              <label className="block text-sm font-sans font-medium mb-2 mt-4">
-                {t("passwordLabel")}
-              </label>
-              <input
-                type="password"
-                required
-                autoComplete={mode === "login" ? "current-password" : "new-password"}
-                minLength={8}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={t("passwordPlaceholder")}
-                className="auth-input"
-              />
+                <label className="block text-sm font-sans font-medium mb-2 mt-4">
+                  {t("passwordLabel")}
+                </label>
+                <input
+                  type="password"
+                  required
+                  autoComplete={mode === "login" ? "current-password" : "new-password"}
+                  minLength={8}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={t("passwordPlaceholder")}
+                  className="auth-input"
+                />
 
-              {mode === "register" && (
-                <>
-                  <label className="block text-sm font-sans font-medium mb-2 mt-4">
-                    {t("confirmPasswordLabel")}
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    autoComplete="new-password"
-                    minLength={8}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder={t("confirmPasswordPlaceholder")}
-                    className="auth-input"
-                  />
-                </>
-              )}
+                {mode === "login" && (
+                  <button
+                    type="button"
+                    className="mt-2 text-xs font-sans text-legal-navy hover:underline"
+                    onClick={() => {
+                      setMode("forgot");
+                      setError(null);
+                      setInfo(null);
+                      setPassword("");
+                    }}
+                  >
+                    {t("forgotPassword")}
+                  </button>
+                )}
 
-              {error && <p className="text-red-600 text-sm mt-3 font-sans">{error}</p>}
+                {mode === "register" && (
+                  <>
+                    <label className="block text-sm font-sans font-medium mb-2 mt-4">
+                      {t("confirmPasswordLabel")}
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      autoComplete="new-password"
+                      minLength={8}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder={t("confirmPasswordPlaceholder")}
+                      className="auth-input"
+                    />
+                  </>
+                )}
 
-              <button type="submit" disabled={loading} className="btn btn-primary w-full mt-6">
-                {loading
-                  ? t("submitting")
-                  : mode === "login"
-                    ? t("loginButton")
-                    : t("registerButton")}
-              </button>
+                {error && <p className="text-red-600 text-sm mt-3 font-sans">{error}</p>}
 
-              <p className="text-xs text-ink-muted mt-3 text-center font-sans">
-                {mode === "login" ? t("loginHint") : t("registerHint")}
-              </p>
-            </form>
+                <button type="submit" disabled={loading} className="btn btn-primary w-full mt-6">
+                  {loading
+                    ? t("submitting")
+                    : mode === "login"
+                      ? t("loginButton")
+                      : t("registerButton")}
+                </button>
+
+                <p className="text-xs text-ink-muted mt-3 text-center font-sans">
+                  {mode === "login" ? t("loginHint") : t("registerHint")}
+                </p>
+              </form>
+            )}
           </>
         )}
 
         <p className="text-xs text-ink-muted mt-6 text-center font-sans leading-relaxed">
           {t.rich("legalFooter", {
             terms: (chunks) => (
-              <Link href={`/${locale}/terms`} className="underline hover:text-ink">
+              <Link href="/terms" className="underline hover:text-ink">
                 {chunks}
               </Link>
             ),
             privacy: (chunks) => (
-              <Link href={`/${locale}/privacy`} className="underline hover:text-ink">
+              <Link href="/privacy" className="underline hover:text-ink">
                 {chunks}
               </Link>
             ),

@@ -1,9 +1,8 @@
-import { NextIntlClientProvider, useTranslations } from "next-intl";
+import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
-import { routing } from "@/i18n/routing";
+import { Link, routing } from "@/i18n/routing";
 import { Noto_Serif_SC } from "next/font/google";
-import Link from "next/link";
 import type { Metadata } from "next";
 import "./globals.css";
 
@@ -32,22 +31,22 @@ function Footer({ locale }: { locale: string }) {
   return (
     <footer className="border-t border-gray-200 mt-20 py-8 text-center text-sm text-gray-500">
       <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2 mb-4 px-4">
-        <Link href={`/${locale}#how`} className="hover:text-gray-700 transition-colors">
+        <Link href="/#how" className="hover:text-gray-700 transition-colors">
           {isZh ? "怎么用" : "How it works"}
         </Link>
-        <Link href={`/${locale}/pricing`} className="hover:text-gray-700 transition-colors">
+        <Link href="/pricing" className="hover:text-gray-700 transition-colors">
           {isZh ? "定价" : "Pricing"}
         </Link>
-        <Link href={`/${locale}#faq`} className="hover:text-gray-700 transition-colors">
+        <Link href="/#faq" className="hover:text-gray-700 transition-colors">
           FAQ
         </Link>
-        <Link href={`/${locale}/privacy`} className="hover:text-gray-700 transition-colors">
+        <Link href="/privacy" className="hover:text-gray-700 transition-colors">
           {isZh ? "隐私政策" : "Privacy"}
         </Link>
-        <Link href={`/${locale}/terms`} className="hover:text-gray-700 transition-colors">
+        <Link href="/terms" className="hover:text-gray-700 transition-colors">
           {isZh ? "用户协议" : "Terms"}
         </Link>
-        <Link href={`/${locale}/about`} className="hover:text-gray-700 transition-colors">
+        <Link href="/about" className="hover:text-gray-700 transition-colors">
           {isZh ? "关于" : "About"}
         </Link>
       </nav>

@@ -17,6 +17,7 @@ import ContractSavedPreview from "./contract-saved-preview";
 import OriginalContractPreview from "./original-contract-preview";
 import SuggestionDiffDisplay from "./suggestion-diff-display";
 import type { SkippedChangeSummary } from "@/lib/types";
+import { fileForUpload } from "@/lib/upload-safe";
 
 interface ContractReviseEditorProps {
   open: boolean;
@@ -305,7 +306,9 @@ export default function ContractReviseEditor({
 
       if (usesOriginalLayout && originalFile) {
         const fd = new FormData();
-        fd.append("file", originalFile);
+        const { uploadFile, originalName } = fileForUpload(originalFile);
+        fd.append("file", uploadFile);
+        fd.append("originalFileName", originalName);
         fd.append("changes", JSON.stringify(savedAcceptedChanges));
         fd.append("format", format);
         fd.append("locale", locale);

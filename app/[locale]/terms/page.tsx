@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { localizedPath } from "@/i18n/routing";
 
 export async function generateMetadata({
   params,
@@ -217,7 +218,7 @@ export default async function TermsPage({
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-3xl mx-auto px-6 py-20">
-        <a href={`/${locale}`} className="text-sm text-ink-muted hover:text-ink mb-8 inline-block font-sans">
+        <a href={localizedPath("/", locale)} className="text-sm text-ink-muted hover:text-ink mb-8 inline-block font-sans">
           {c.back}
         </a>
         <h1 className="text-3xl font-bold mb-2">{c.title}</h1>

@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import type { ScanResult } from "@/lib/types";
 import { extractDataCategoriesHint } from "@/lib/dpa/detect-dpa";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Link } from "@/i18n/routing";
 
 export interface GenerateDpaModalProps {
   open: boolean;
@@ -290,7 +290,7 @@ export default function GenerateDpaModal({
                     </button>
                   ) : (
                     <Link
-                      href={`/${locale}/#pricing`}
+                      href="/#pricing"
                       className="btn btn-primary"
                       onClick={() => onOpenChange(false)}
                     >

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import Link from "next/link";
 import AuthPanel from "../components/auth-panel";
+import { Link, localizedPath } from "@/i18n/routing";
 
 interface RevisionRow {
   id: string;
@@ -62,7 +62,7 @@ export default function RevisionsPage() {
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
-    window.location.href = `/${locale}`;
+    window.location.href = localizedPath("/", locale);
   }
 
   function formatDate(iso: string) {
@@ -79,14 +79,14 @@ export default function RevisionsPage() {
     <>
       <nav className="border-b border-border bg-paper/80 backdrop-blur sticky top-0 z-40">
         <div className="nav-inner">
-          <Link href={`/${locale}`} className="font-sans font-semibold text-lg tracking-tight">
+          <Link href="/" className="font-sans font-semibold text-lg tracking-tight">
             ClauseCheck
           </Link>
           <div className="flex items-center gap-4 text-sm font-sans text-ink-light">
             {auth?.email && (
               <span className="hidden sm:inline text-ink-muted">{auth.email}</span>
             )}
-            <Link href={`/${locale}`} className="hover:text-ink transition-colors">
+            <Link href="/" className="hover:text-ink transition-colors">
               {t("backScan")}
             </Link>
             {auth?.authenticated && (
@@ -114,7 +114,7 @@ export default function RevisionsPage() {
               </button>
             )}
             {auth?.authenticated && !auth.pro && (
-              <Link href={`/${locale}#pricing`} className="btn btn-primary mt-6 inline-block">
+              <Link href="/#pricing" className="btn btn-primary mt-6 inline-block">
                 {t("upgradePro")}
               </Link>
             )}
@@ -124,7 +124,7 @@ export default function RevisionsPage() {
         {!loading && !error && revisions.length === 0 && (
           <div className="report-empty">
             <p className="text-ink-light">{t("empty")}</p>
-            <Link href={`/${locale}#upload`} className="btn btn-primary mt-6 inline-block">
+            <Link href="/#upload" className="btn btn-primary mt-6 inline-block">
               {t("scanFirst")}
             </Link>
           </div>

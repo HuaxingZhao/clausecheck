@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 
 interface WordLimitModalProps {
@@ -9,7 +9,8 @@ interface WordLimitModalProps {
   onClose: () => void;
 }
 
-export default function WordLimitModal({ open, locale, onClose }: WordLimitModalProps) {
+export default function WordLimitModal({ open, locale: _locale, onClose }: WordLimitModalProps) {
+  void _locale;
   const t = useTranslations("upload");
 
   if (!open) return null;
@@ -34,7 +35,7 @@ export default function WordLimitModal({ open, locale, onClose }: WordLimitModal
             {t("wordLimitModalClose")}
           </button>
           <Link
-            href={`/${locale}/pricing`}
+            href="/pricing"
             className="btn btn-primary text-center"
             onClick={onClose}
           >

@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 
 export default async function SampleReportPage({
   params,
@@ -14,10 +14,10 @@ export default async function SampleReportPage({
     <>
       <nav className="border-b border-border bg-paper/80 backdrop-blur sticky top-0 z-40">
         <div className="nav-inner">
-          <Link href={`/${locale}`} className="font-sans font-semibold text-lg tracking-tight">
+          <Link href="/" className="font-sans font-semibold text-lg tracking-tight">
             ClauseCheck
           </Link>
-          <Link href={`/${locale}#upload`} className="btn btn-primary text-xs">
+          <Link href="/#upload" className="btn btn-primary text-xs">
             {t("scanCta")}
           </Link>
         </div>
@@ -35,7 +35,7 @@ export default async function SampleReportPage({
           <a href={pdfUrl} download className="btn btn-outline">
             {t("downloadPdf")}
           </a>
-          <Link href={`/${locale}#upload`} className="btn btn-outline">
+          <Link href="/#upload" className="btn btn-outline">
             {t("scanYours")}
           </Link>
         </div>

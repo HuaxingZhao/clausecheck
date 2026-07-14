@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { localizedPath } from "@/i18n/routing";
 
 export default async function DashboardPage({
   params,
@@ -6,6 +7,5 @@ export default async function DashboardPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  // localePrefix: "as-needed" — 默认 en 不带 /en 前缀
-  redirect(locale === "en" ? "/account" : `/${locale}/account`);
+  redirect(localizedPath("/account", locale));
 }

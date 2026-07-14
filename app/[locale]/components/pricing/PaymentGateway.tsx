@@ -12,6 +12,7 @@ import { getStripe } from "@/lib/stripe-client";
 import { canPurchaseAddOn, usePricingStore } from "@/stores/usePricingStore";
 import { Button } from "@/components/ui/button";
 import type { BillingCycle, Currency, CheckoutPlanId, PurchaseType } from "@/lib/pricing.config";
+import { localizedPath } from "@/i18n/routing";
 
 export interface PaymentGatewayProps {
   purchaseType: PurchaseType;
@@ -62,7 +63,7 @@ function PaymentForm({
     setSubmitting(true);
     setErrorKey(null);
 
-    const returnUrl = `${window.location.origin}/${locale}/account?checkout=success`;
+    const returnUrl = `${window.location.origin}${localizedPath("/account?checkout=success", locale)}`;
 
     const { error } = await stripe.confirmPayment({
       elements,

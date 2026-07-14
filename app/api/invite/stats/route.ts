@@ -4,6 +4,7 @@ import { sessionUserIdSchema } from "@/lib/credits/scan-form";
 import { creditsSystemEnabled } from "@/lib/credits/user-credits";
 import { getInviteStats, getOrCreateInviteCode } from "@/lib/invite/codes";
 import { INVITE_CODE_MAX_USES } from "@/lib/invite/constants";
+import { localizedPath } from "@/i18n/routing";
 
 export async function GET(req: NextRequest) {
   try {
@@ -39,7 +40,7 @@ export async function GET(req: NextRequest) {
     const localeParam = req.nextUrl.searchParams.get("locale");
     const locale = localeParam === "en" ? "en" : "zh";
     const base = process.env.NEXT_PUBLIC_URL || req.nextUrl.origin;
-    const inviteUrl = `${base.replace(/\/$/, "")}/${locale}?invite=${code}`;
+    const inviteUrl = `${base.replace(/\/$/, "")}${localizedPath(`/?invite=${code}`, locale)}`;
 
     return NextResponse.json({
       code,

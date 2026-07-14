@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import mammoth from "mammoth";
 import type { ContractChange } from "@/lib/types";
+import { fileForUpload } from "@/lib/upload-safe";
 
 function escapeRegExp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -88,7 +89,9 @@ export default function OriginalContractPreview({
     setLoading(true);
 
     const fd = new FormData();
-    fd.append("file", file);
+    const { uploadFile, originalName } = fileForUpload(file);
+    fd.append("file", uploadFile);
+    fd.append("originalFileName", originalName);
     fd.append("changes", JSON.stringify(changes));
     fd.append("locale", locale);
     fd.append("mode", previewMode);

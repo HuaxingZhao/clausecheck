@@ -19,8 +19,8 @@ function parseChanges(raw: FormDataEntryValue | null): ContractChange[] {
   }
 }
 
-function originalTypeFromFile(file: File): "pdf" | "docx" | null {
-  const name = file.name.toLowerCase();
+function originalTypeFromFile(file: File, originalFileName?: string | null): "pdf" | "docx" | null {
+  const name = (originalFileName || file.name).toLowerCase();
   if (name.endsWith(".pdf")) return "pdf";
   if (name.endsWith(".docx")) return "docx";
   return null;
@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
     let format: "pdf" | "docx" = "pdf";
     let changes: ContractChange[] = [];
     let originalFile: File | null = null;
+    let originalFileName: string | null = null;
 
     if (contentType.includes("multipart/form-data")) {
       const form = await req.formData();
@@ -47,6 +48,7 @@ export async function POST(req: NextRequest) {
       contractHtml = String(form.get("contractHtml") ?? "").trim();
       format = form.get("format") === "docx" ? "docx" : "pdf";
       changes = parseChanges(form.get("changes"));
+      originalFileName = String(form.get("originalFileName") ?? "").trim() || null;
       const file = form.get("file");
       if (file instanceof File && file.size > 0) originalFile = file;
     } else {
@@ -87,7 +89,7 @@ export async function POST(req: NextRequest) {
     const names = finalContractFilenames(locale);
 
     if (originalFile) {
-      const originalFileType = originalTypeFromFile(originalFile);
+      const originalFileType = originalTypeFromFile(originalFile, originalFileName);
       if (!originalFileType) {
         return NextResponse.json(
           {

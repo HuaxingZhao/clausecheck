@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { localizedPath } from "@/i18n/routing";
 
 /** Legacy URL — paid plans use WeChat on /pricing */
 export default async function WaitlistPage({
@@ -12,5 +13,5 @@ export default async function WaitlistPage({
   const { plan } = await searchParams;
   const q =
     plan === "boost" || plan === "pro" ? `?plan=${plan}` : "";
-  redirect(`/${locale}/pricing${q}`);
+  redirect(localizedPath(`/pricing${q}`, locale));
 }

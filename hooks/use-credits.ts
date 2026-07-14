@@ -14,7 +14,8 @@ export interface UseCreditsResult {
   invalidate: () => Promise<number | null>;
 }
 
-export function useCredits(): UseCreditsResult {
+export function useCredits(opts?: { autoFetch?: boolean }): UseCreditsResult {
+  const autoFetch = opts?.autoFetch !== false;
   const [balance, setBalance] = useState<number | null>(
     () => creditsCache?.balance ?? null
   );
@@ -81,8 +82,9 @@ export function useCredits(): UseCreditsResult {
   }, [refresh]);
 
   useEffect(() => {
+    if (!autoFetch) return;
     void refresh();
-  }, [refresh]);
+  }, [refresh, autoFetch]);
 
   return { balance, loading, authenticated, refresh, invalidate };
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { Link, localizedPath } from "@/i18n/routing";
 import { useTranslations, useLocale } from "next-intl";
 import PricingSection from "../components/pricing-section";
 import SiteNav from "../components/site-nav";
@@ -40,7 +40,7 @@ export default function PricingPage() {
     if (plan === "pro" && !openCheckoutRef.current) return;
     if (plan === "boost" && !openAddOnRef.current) return;
     deepLinkHandled.current = true;
-    window.history.replaceState({}, "", `/${locale}/pricing`);
+    window.history.replaceState({}, "", localizedPath("/pricing", locale));
     if (plan === "pro") openCheckoutRef.current?.("pro");
     if (plan === "boost") openAddOnRef.current?.();
   }, [locale]);
@@ -52,7 +52,7 @@ export default function PricingPage() {
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
     setAuthUser(null);
-    window.location.href = `/${locale}/pricing`;
+    window.location.href = localizedPath("/pricing", locale);
   }
 
   return (
@@ -67,7 +67,7 @@ export default function PricingPage() {
 
       <div className="max-w-6xl mx-auto px-6 pt-8 pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <Link
-          href={`/${locale}`}
+          href="/"
           className="text-sm font-sans text-ink-light hover:text-ink transition-colors"
         >
           ← {t("startScan")}
