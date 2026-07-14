@@ -64,7 +64,13 @@ export async function POST(req: NextRequest) {
 
     if (useCredits && !session?.sub) {
       return NextResponse.json(
-        { error: "UNAUTHORIZED", message: "请先登录后再扫描" },
+        {
+          error: "UNAUTHORIZED",
+          message:
+            locale === "zh"
+              ? "请先登录后再扫描"
+              : "Please sign in before scanning",
+        },
         { status: 401 }
       );
     }

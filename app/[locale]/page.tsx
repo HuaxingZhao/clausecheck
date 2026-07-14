@@ -312,6 +312,14 @@ export default function Home() {
     setError(null);
     setScanStage(1);
 
+    if (!authUser) {
+      setLoading(false);
+      setScanStage(0);
+      setError(t("upload.loginRequired"));
+      setAuthOpen(true);
+      return;
+    }
+
     const quota = await refreshServerQuota();
     if (!quota.allowed) {
       setLoading(false);
@@ -369,11 +377,19 @@ export default function Home() {
         if (res.status === 402 && errData.error === "INSUFFICIENT_CREDITS") {
           await invalidateCredits();
         }
-        throw new Error(
-          (errData as { error?: string; message?: string }).error ||
-            (errData as { message?: string }).message ||
-            (locale === "zh" ? "扫描失败，请重试" : "Scan failed, please retry")
-        );
+        if (res.status === 401) {
+          setAuthOpen(true);
+        }
+        // Prefer human-readable message over machine codes like UNAUTHORIZED
+        const fallback =
+          locale === "zh" ? "扫描失败，请重试" : "Scan failed, please retry";
+        const userMessage =
+          errData.message?.trim() ||
+          (errData.error === "UNAUTHORIZED"
+            ? t("upload.loginRequired")
+            : errData.error) ||
+          fallback;
+        throw new Error(userMessage);
       }
 
       const {

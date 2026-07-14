@@ -99,7 +99,9 @@ export default function AuthPanel({
       }
 
       onSuccess?.();
-      window.location.href = `/${locale}/account?auth=success`;
+      // localePrefix as-needed: EN has no /en prefix
+      window.location.href =
+        locale === "en" ? "/account?auth=success" : `/${locale}/account?auth=success`;
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed");
     } finally {
@@ -150,7 +152,8 @@ export default function AuthPanel({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || t("phoneVerifyFailed"));
       onSuccess?.();
-      window.location.href = `/${locale}/account?auth=success`;
+      window.location.href =
+        locale === "en" ? "/account?auth=success" : `/${locale}/account?auth=success`;
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t("phoneVerifyFailed"));
     } finally {
