@@ -24,7 +24,10 @@ export async function loginUserRedirect(
     sub: user.id,
     email: user.email ?? "",
   });
-  const path = redirectPath || `/${locale}/account?auth=success`;
+  // localePrefix as-needed: default locale (en) omits the /en prefix
+  const path =
+    redirectPath ||
+    (locale === "en" ? "/account?auth=success" : `/${locale}/account?auth=success`);
   const res = NextResponse.redirect(new URL(path, req.url));
   res.cookies.set(SESSION_COOKIE, sessionToken, sessionCookieOptions());
   return res;

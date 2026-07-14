@@ -2,7 +2,18 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
-## 2026-07-14 — Beta soft launch 🟢
+## 2026-07-14 — 内测三件套修复
+
+- FAQ 免费版限制对齐 Plan A：注册后每周期 **1 份**（去掉「3 天宽松 / 旧账户每月 3 份」）。
+- 未登录扫描：前端先弹登录 + `upload.loginRequired`；API 401 优先 `message`（中英）；不再露出 `UNAUTHORIZED`。
+- `site-nav` / 登录成功跳转改 as-needed 路径（EN → `/account`，无 `/en` 前缀）。
+
+## 2026-07-14 — 内测前风险审计
+
+- Prod `6413026` health ok；Beta/首页/bounty/providers 200；demo.mp4 404（有意用截图）。
+- **无硬阻断**；最大风险：trial 仅 1 次 vs FAQ/client「3天宽松」叙事不一致；创始权益无自动兑现（文案已 disclaimer）。
+- P1：未登录扫见 UNAUTHORIZED；无忘记密码；site-nav EN `/en/account` 多跳；Safari CJK 仅主扫描路径 wrapped；确认 `ADMIN_EMAILS`。
+- 建议：邀请文案写清「1 次试用」或 Neon 给内测加配额；统一 FAQ；优先 Google 登录。
 
 ```
 PR #9–#14  ：P0 体验修复（i18n / CTA / 响应式 / 免责 / 配额）

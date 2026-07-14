@@ -51,6 +51,8 @@
     "rescan": "🔄 Rescan",
     "errorFormat": "Only PDF / DOCX / TXT files supported",
     "errorSize": "File must be under 10MB",
+    "loginRequired": "Please sign in before scanning",
+
     "quotaRemaining": "{count} document reviews left",
     "quotaLogin": "Sign in to see document review quota",
     "quotaLoading": "Loading quota…",
@@ -1051,7 +1053,7 @@
       },
       {
         "q": "What are the Free tier limits?",
-        "a": "After sign-up you get a 3-day trial with generous document review access. After that, Trial includes 1 document review per billing cycle (legacy accounts may retain 3 per month during transition), up to 12,000 characters each, with standard AI analysis. Full online reports and PDF download are included; cloud history and Word revision workbook export require Pro or an add-on pack."
+        "a": "After sign-up, Trial includes 1 document review per billing cycle, up to 12,000 characters each, with standard AI analysis. Full online reports and PDF download are included; cloud history and Word revision workbook export require Pro or an add-on pack."
       },
       {
         "q": "How long does a scan take?",
