@@ -341,6 +341,7 @@
     "forgotSubtitle": "输入注册邮箱，我们将发送重置链接（30 分钟内有效）。",
     "forgotButton": "发送重置邮件",
     "forgotSent": "若该邮箱已注册，重置链接已发送，请查收邮件。",
+    "forgotSentHint": "几分钟内未收到：请检查垃圾箱；确认该邮箱已注册；或改用 Google 登录；仍不行请联系 support@clausecheck.cc。",
     "forgotFailed": "发送失败，请稍后再试",
     "backToLogin": "返回登录",
     "resetTitle": "重置密码",
@@ -926,7 +927,7 @@
       "badge": "Beta · 与我们共创",
       "title": "AI 合同审查，由真实律师反馈校准",
       "subtitle": "加入 Beta。塑造产品。锁定终身 Pro 权益资格（正式版统一发放）。",
-      "finePrint": "仅为决策支持，不构成法律意见。报名≠开通账号；创始权益在正式版发放。不会滥发邮件。"
+      "finePrint": "仅为决策支持，不构成法律意见。报名≠开通账号；创始权益仅锁定资格，正式版时人工统一发放（报名时不会自动到账）。不会滥发邮件。"
     },
     "form": {
       "emailLabel": "邮箱",
@@ -941,7 +942,7 @@
       "invalidEmail": "请输入有效邮箱地址。"
     },
     "benefits": {
-      "disclaimer": "🎁 以上权益将在正式版发布时统一发放至您的账户，报名即锁定资格。"
+      "disclaimer": "🎁 以上为资格锁定：正式版发布时由运营统一人工发放至账户，Beta 报名时不会自动到账。"
     },
     "subscribe": {
       "success": {

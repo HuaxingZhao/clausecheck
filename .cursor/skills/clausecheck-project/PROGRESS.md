@@ -2,6 +2,15 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-14 — P2 批量清理
+
+- Bounty 语言切换：`Link locale=`（不再硬编码 `/en/...`）。
+- 忘记密码：成功后常驻 `forgotSentHint`（垃圾箱 / Google / support）。
+- Beta 创始权益：zh/en 明示「资格锁定、正式版人工发放、报名不自动到账」。
+- 删除 `en.json` 孤立 `pricingZh`；英文 FAQ 去掉「over 90%」准确率表述。
+- `invite/constants` 注释标明 +3 为邀请加油包 ≠ trial 1。
+- Health 增加 `paymentWebhook` 检查；webhook 500 文案提示补 `PAYMENT_WEBHOOK_SECRET`。
+
 ## 2026-07-14 — P1：邀请文案 / 发信统一 / 忘记密码入口
 
 - 邀请 zh/en：明确「试用 1 次」+「邀请奖励各 +3」（不再写「注册送 3 份」）。

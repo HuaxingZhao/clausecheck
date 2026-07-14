@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { ensureSchema, getSql, usePostgres } from "@/lib/db/pg";
+import { isPaymentWebhookConfigured } from "@/lib/credits/payment-webhook";
+import { isProduction } from "@/lib/env";
 
 type CheckStatus = "ok" | "error" | "skipped" | "not_configured";
 
@@ -17,6 +19,8 @@ interface HealthResponse {
     database: HealthCheck;
     openai: HealthCheck;
     redis: HealthCheck;
+    /** Signed credit/top-up webhooks — missing secret breaks paid fulfillment in prod. */
+    paymentWebhook: HealthCheck;
   };
 }
 
@@ -121,11 +125,35 @@ async function checkRedis(): Promise<HealthCheck> {
   }
 }
 
+function checkPaymentWebhook(): HealthCheck {
+  if (isPaymentWebhookConfigured()) {
+    return { status: "ok", latency_ms: 0 };
+  }
+  if (isProduction()) {
+    return {
+      status: "error",
+      latency_ms: 0,
+      message: "PAYMENT_WEBHOOK_SECRET missing — paid order webhooks will 500",
+    };
+  }
+  return {
+    status: "not_configured",
+    latency_ms: 0,
+    message: "PAYMENT_WEBHOOK_SECRET not set",
+  };
+}
+
 function aggregateStatus(checks: HealthResponse["checks"]): HealthResponse["status"] {
   const db = checks.database.status;
   const ai = checks.openai.status;
   if (db === "error") return "down";
-  if (ai === "error" || checks.redis.status === "error") return "degraded";
+  if (
+    ai === "error" ||
+    checks.redis.status === "error" ||
+    checks.paymentWebhook.status === "error"
+  ) {
+    return "degraded";
+  }
   return "ok";
 }
 
@@ -135,8 +163,9 @@ export async function GET() {
     checkOpenAi(),
     checkRedis(),
   ]);
+  const paymentWebhook = checkPaymentWebhook();
 
-  const checks = { database, openai, redis };
+  const checks = { database, openai, redis, paymentWebhook };
   const status = aggregateStatus(checks);
   const body: HealthResponse = {
     status,
