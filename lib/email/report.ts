@@ -1,5 +1,5 @@
 import { sendMagicLinkEmail } from "@/lib/auth/email";
-import { getEmailFrom } from "@/lib/env";
+import { sendResendEmail } from "@/lib/email/resend";
 
 export async function sendReportEmail(input: {
   to: string;
@@ -8,8 +8,6 @@ export async function sendReportEmail(input: {
   reportsLink: string;
   scoreNum: number;
 }): Promise<{ delivered: boolean }> {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = getEmailFrom();
   const { to, locale, pdfBytes, reportsLink, scoreNum } = input;
 
   const subject =
@@ -30,36 +28,13 @@ export async function sendReportEmail(input: {
   const filename =
     locale === "zh" ? "ClauseCheck-合同风险报告.pdf" : "ClauseCheck-Risk-Report.pdf";
 
-  if (!apiKey) {
-    console.log("\n--- Report email (dev — set RESEND_API_KEY) ---");
-    console.log(`To: ${to}`);
-    console.log(`Subject: ${subject}`);
-    console.log(`Reports: ${reportsLink}`);
-    console.log(`PDF size: ${pdfBytes.length} bytes\n`);
-    return { delivered: false };
-  }
-
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from,
-      to: [to],
-      subject,
-      html,
-      attachments: [{ filename, content: pdfBase64 }],
-    }),
+  return sendResendEmail({
+    to,
+    purpose: "report-email",
+    subject,
+    html,
+    attachments: [{ filename, content: pdfBase64 }],
   });
-
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Email send failed: ${err}`);
-  }
-
-  return { delivered: true };
 }
 
 /** Re-export for magic link — keeps email module cohesive */

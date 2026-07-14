@@ -1,55 +1,4 @@
-import { getEmailFrom, getResendApiKey, isEmailFromUnreliable, isProduction } from "../env";
-
-async function sendViaResend(opts: {
-  email: string;
-  subject: string;
-  html: string;
-  purpose: "magic-link" | "password-reset";
-}): Promise<void> {
-  const apiKey = getResendApiKey();
-  const from = getEmailFrom();
-
-  if (!apiKey) {
-    if (isProduction()) {
-      throw new Error("RESEND_API_KEY is not configured");
-    }
-    console.log(`\n--- ${opts.purpose} (dev — set RESEND_API_KEY to send email) ---`);
-    console.log(`To: ${opts.email}`);
-    console.log(`Subject: ${opts.subject}\n`);
-    return;
-  }
-
-  if (isProduction() && isEmailFromUnreliable(from)) {
-    throw new Error(
-      "EMAIL_FROM is missing or still a placeholder. Set EMAIL_FROM to a Resend-verified domain sender (e.g. ClauseCheck <noreply@clausecheck.cc>). Note: Vercel key must be EMAIL_FROM, not Email_From."
-    );
-  }
-
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from,
-      to: [opts.email],
-      subject: opts.subject,
-      html: opts.html,
-    }),
-  });
-
-  if (!res.ok) {
-    const err = await res.text();
-    console.error(`Resend ${opts.purpose} error:`, err, { from });
-    if (from.includes("resend.dev")) {
-      console.error(
-        "Resend sandbox: onboarding@resend.dev only delivers to your Resend account email. Use a verified custom domain in EMAIL_FROM for production."
-      );
-    }
-    throw new Error(`Email send failed: ${err}`);
-  }
-}
+import { sendResendEmail } from "@/lib/email/resend";
 
 export async function sendMagicLinkEmail(
   email: string,
@@ -57,8 +6,8 @@ export async function sendMagicLinkEmail(
   locale: "zh" | "en" = "en"
 ): Promise<void> {
   const isZh = locale === "zh";
-  await sendViaResend({
-    email,
+  await sendResendEmail({
+    to: email,
     purpose: "magic-link",
     subject: isZh ? "登录 ClauseCheck" : "Sign in to ClauseCheck",
     html: isZh
@@ -81,8 +30,8 @@ export async function sendPasswordResetEmail(
   locale: "zh" | "en" = "en"
 ): Promise<void> {
   const isZh = locale === "zh";
-  await sendViaResend({
-    email,
+  await sendResendEmail({
+    to: email,
     purpose: "password-reset",
     subject: isZh ? "重置 ClauseCheck 密码" : "Reset your ClauseCheck password",
     html: isZh

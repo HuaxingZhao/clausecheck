@@ -20,6 +20,10 @@ interface AuthPanelProps {
   onClose: () => void;
   locale: string;
   initialEmail?: string;
+  /** Default channel when the panel opens. */
+  initialChannel?: AuthChannel;
+  /** Default mode when the panel opens (e.g. forgot from /forgot-password). */
+  initialMode?: AuthMode;
   onSuccess?: () => void;
 }
 
@@ -28,11 +32,13 @@ export default function AuthPanel({
   onClose,
   locale,
   initialEmail = "",
+  initialChannel = "phone",
+  initialMode = "login",
   onSuccess,
 }: AuthPanelProps) {
   const t = useTranslations("auth");
-  const [channel, setChannel] = useState<AuthChannel>("phone");
-  const [mode, setMode] = useState<AuthMode>("login");
+  const [channel, setChannel] = useState<AuthChannel>(initialChannel);
+  const [mode, setMode] = useState<AuthMode>(initialMode);
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -56,10 +62,12 @@ export default function AuthPanel({
       setSentPhone(null);
       setError(null);
       setInfo(null);
-      setMode("login");
-      setChannel("phone");
+      const nextMode = initialMode;
+      setMode(nextMode);
+      // Forgot password is email-only — force email channel
+      setChannel(nextMode === "forgot" ? "email" : initialChannel);
     }
-  }, [open, initialEmail]);
+  }, [open, initialEmail, initialChannel, initialMode]);
 
   if (!open) return null;
 
@@ -202,32 +210,35 @@ export default function AuthPanel({
           </div>
         </div>
 
-        <div className="auth-mode-tabs mb-4">
-          <button
-            type="button"
-            className={`auth-mode-tab ${channel === "phone" ? "active" : ""}`}
-            onClick={() => {
-              setChannel("phone");
-              setError(null);
-              setInfo(null);
-            }}
-          >
-            {t("tabPhone")}
-          </button>
-          <button
-            type="button"
-            className={`auth-mode-tab ${channel === "email" ? "active" : ""}`}
-            onClick={() => {
-              setChannel("email");
-              setError(null);
-              setInfo(null);
-            }}
-          >
-            {t("tabEmail")}
-          </button>
-        </div>
+        {mode !== "forgot" && (
+          <div className="auth-mode-tabs mb-4">
+            <button
+              type="button"
+              className={`auth-mode-tab ${channel === "phone" ? "active" : ""}`}
+              onClick={() => {
+                setChannel("phone");
+                setMode("login");
+                setError(null);
+                setInfo(null);
+              }}
+            >
+              {t("tabPhone")}
+            </button>
+            <button
+              type="button"
+              className={`auth-mode-tab ${channel === "email" ? "active" : ""}`}
+              onClick={() => {
+                setChannel("email");
+                setError(null);
+                setInfo(null);
+              }}
+            >
+              {t("tabEmail")}
+            </button>
+          </div>
+        )}
 
-        {channel === "phone" ? (
+        {channel === "phone" && mode !== "forgot" ? (
           phoneStep === "enter" ? (
             <form onSubmit={handleSendCode}>
               <label className="block text-sm font-sans font-medium mb-2">{t("phoneLabel")}</label>
@@ -259,6 +270,18 @@ export default function AuthPanel({
               {info && <p className="text-legal-navy text-sm mt-3 font-sans">{info}</p>}
               <button type="submit" disabled={loading} className="btn btn-primary w-full mt-6">
                 {loading ? t("submitting") : t("sendCode")}
+              </button>
+              <button
+                type="button"
+                className="w-full mt-3 text-sm font-sans text-legal-navy hover:underline"
+                onClick={() => {
+                  setChannel("email");
+                  setMode("forgot");
+                  setError(null);
+                  setInfo(null);
+                }}
+              >
+                {t("forgotPasswordEmailLink")}
               </button>
             </form>
           ) : (
