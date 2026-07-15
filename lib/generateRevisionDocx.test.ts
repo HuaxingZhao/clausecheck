@@ -1,12 +1,25 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import JSZip from "jszip";
 import {
   generateRevisionDocx,
   estimateRevisionDocxBytes,
   RevisionDocxExportError,
   REVISION_DOCX_MAX_BYTES,
 } from "./generateRevisionDocx";
+import { getAiDisclaimerExport } from "./ai-disclaimer";
 import type { ContractChange } from "./types";
+
+async function docxXmlText(bytes: Uint8Array): Promise<string> {
+  const zip = await JSZip.loadAsync(bytes);
+  const parts = ["word/document.xml", "word/header1.xml", "word/header2.xml"];
+  const chunks: string[] = [];
+  for (const name of parts) {
+    const file = zip.file(name);
+    if (file) chunks.push(await file.async("string"));
+  }
+  return chunks.join("\n");
+}
 
 function minimalChange(overrides: Partial<ContractChange> = {}): ContractChange {
   return {
@@ -112,4 +125,40 @@ describe("generateRevisionDocx", () => {
       }
     );
   });
+
+  it("injects zh AI disclaimer on first page and header", async () => {
+    const result = await generateRevisionDocx({
+      contractText: "本合同由甲乙双方签署。",
+      changes: [minimalChange()],
+      locale: "zh",
+    });
+    const xml = await docxXmlText(result.bytes);
+    const disclaimer = getAiDisclaimerExport("zh");
+    // Word XML may split runs; assert distinctive substrings.
+    assert.ok(xml.includes("不构成法律意见") || xml.includes(disclaimer));
+    assert.ok(xml.includes("AI") || xml.includes("生成"));
+    assert.ok(zipHasHeader(await JSZip.loadAsync(result.bytes)));
+  });
+
+  it("injects en AI disclaimer matching locale", async () => {
+    const result = await generateRevisionDocx({
+      contractText: "This Agreement is entered into by the parties.",
+      changes: [
+        minimalChange({
+          original: "30 calendar days",
+          revised: "60 calendar days",
+          reason: "Extend payment",
+          section: "Payment",
+        }),
+      ],
+      locale: "en",
+    });
+    const xml = await docxXmlText(result.bytes);
+    assert.match(xml, /does not constitute legal advice/i);
+    assert.ok(zipHasHeader(await JSZip.loadAsync(result.bytes)));
+  });
 });
+
+function zipHasHeader(zip: JSZip): boolean {
+  return Object.keys(zip.files).some((n) => /word\/header\d*\.xml$/i.test(n));
+}

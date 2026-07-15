@@ -2,6 +2,7 @@ import { Readable } from "node:stream";
 import {
   AlignmentType,
   Document,
+  Header,
   Packer,
   Paragraph,
   PageBreak,
@@ -16,6 +17,7 @@ import {
   type PreparedExportChange,
 } from "@/lib/revision-export";
 import { refundUserCredit } from "@/lib/credits/user-credits";
+import { getAiDisclaimerExport } from "@/lib/ai-disclaimer";
 import type { ContractChange } from "@/lib/types";
 
 /** Hard limits for export safety under concurrent load. */
@@ -85,8 +87,7 @@ const L = {
     reason: "理由：",
     missing: "建议新增条款：",
     empty: "暂无采纳的建议。",
-    disclaimer:
-      "本对照稿由 AI 辅助生成。签署前请由法务或律师审阅，并与对方确认每一条修订。",
+    footerNote: "签署前请由法务或律师审阅，并与对方确认每一条修订。",
   },
   en: {
     title: "Contract Revision Workbook",
@@ -107,8 +108,8 @@ const L = {
     reason: "Rationale: ",
     missing: "Proposed new clause: ",
     empty: "No accepted suggestions.",
-    disclaimer:
-      "AI-assisted draft only. Have counsel review and confirm each revision before signing.",
+    footerNote:
+      "Have counsel review and confirm each revision before signing.",
   },
 };
 
@@ -383,7 +384,29 @@ async function buildAndPackDocx(opts: {
     });
   }
 
+  const aiDisclaimer = getAiDisclaimerExport(opts.locale);
+
   const children: Paragraph[] = [
+    // First-screen hard banner (also mirrored in page header below).
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 200 },
+      border: {
+        top: { style: "single", size: 12, color: AMBER, space: 8 },
+        bottom: { style: "single", size: 12, color: AMBER, space: 8 },
+        left: { style: "single", size: 12, color: AMBER, space: 8 },
+        right: { style: "single", size: 12, color: AMBER, space: 8 },
+      },
+      children: [
+        new TextRun({
+          text: aiDisclaimer,
+          font,
+          bold: true,
+          size: 22,
+          color: AMBER,
+        }),
+      ],
+    }),
     new Paragraph({
       alignment: AlignmentType.CENTER,
       spacing: { after: 120 },
@@ -465,14 +488,45 @@ async function buildAndPackDocx(opts: {
     new Paragraph({
       spacing: { before: 320 },
       children: [
-        new TextRun({ text: labels.disclaimer, font, italics: true, size: 16, color: MUTED }),
+        new TextRun({
+          text: `${aiDisclaimer} ${labels.footerNote}`,
+          font,
+          italics: true,
+          size: 16,
+          color: MUTED,
+        }),
       ],
     })
   );
 
   let bytes: Uint8Array;
   try {
-    const doc = new Document({ sections: [{ properties: {}, children }] });
+    const doc = new Document({
+      sections: [
+        {
+          properties: {},
+          headers: {
+            default: new Header({
+              children: [
+                new Paragraph({
+                  alignment: AlignmentType.CENTER,
+                  children: [
+                    new TextRun({
+                      text: aiDisclaimer,
+                      font,
+                      bold: true,
+                      size: 16,
+                      color: AMBER,
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          },
+          children,
+        },
+      ],
+    });
     bytes = await packDocumentStreamToBytes(doc, opts.maxBytes);
   } catch (err) {
     if (err instanceof RevisionDocxExportError) throw err;

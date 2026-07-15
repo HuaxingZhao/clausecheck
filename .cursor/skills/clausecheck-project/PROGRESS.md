@@ -2,6 +2,12 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-15 — 导出物强制 AI 免责声明
+
+- `messages` 新增顶层 `ai_disclaimer_export`（zh/en）；`getAiDisclaimerExport` 供服务端/客户端共用。
+- Word 修订对照稿（`generateRevisionDocx`）：首页醒目横幅 + 页眉注入；谈判邮件（`buildNegotiationEmail`）文末追加；审阅操作栏同步展示。
+- 验收：导出语言随界面 locale；对接商户前不改微信 API。
+
 ## 2026-07-15 — 隐藏微信入口 · 人民币咨询 CTA
 
 - 前端门控：`WECHAT_PAY_ENABLED` / `NEXT_PUBLIC_WECHAT_PAY_ENABLED !== 'true'` 时不展示微信/钱包说明（`isWechatPayUiEnabled`）。

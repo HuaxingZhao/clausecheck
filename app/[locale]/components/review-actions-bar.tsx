@@ -42,8 +42,10 @@ export default function ReviewActionsBar({
 }: ReviewActionsBarProps) {
   const t = useTranslations("reviewActions");
   const tReview = useTranslations("review");
+  const tRoot = useTranslations();
   const [exporting, setExporting] = useState(false);
   const [exportNotice, setExportNotice] = useState<string | null>(null);
+  const aiDisclaimer = tRoot("ai_disclaimer_export");
 
   const levelCounts = useMemo(() => {
     const counts: Record<RiskLevel, number> = { high: 0, medium: 0, low: 0 };
@@ -190,6 +192,9 @@ export default function ReviewActionsBar({
         </div>
       </div>
       <div className="review-export-notes">
+        <p className="review-export-note review-export-note--warn" role="note">
+          {aiDisclaimer}
+        </p>
         <p className="review-export-note">{t("exportWordOnly")}</p>
         <p className="review-export-note review-export-note--muted">{t("exportWhyNotAuto")}</p>
         <p className="review-export-note review-export-note--muted">{t("exportFormatHint")}</p>
