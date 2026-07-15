@@ -26,10 +26,12 @@ export const CONTRIBUTING_DOC_PATH = "docs/contributing-jurisdiction-packs.md";
 export const EXAMPLE_PACK_PATH =
   "lib/prompts/jurisdiction-packs/packs/us-ca.ts";
 
-/** Replace with real invite when Discord is live. */
+/**
+ * Real Discord invite only — set NEXT_PUBLIC_DISCORD_INVITE.
+ * Empty when unset so the bounty page can hide a dead placeholder link.
+ */
 export const DISCORD_INVITE_URL =
-  process.env.NEXT_PUBLIC_DISCORD_INVITE ||
-  "https://discord.gg/clausecheck";
+  process.env.NEXT_PUBLIC_DISCORD_INVITE?.trim() || "";
 
 export const BOUNTY_LISTINGS: BountyListing[] = [
   {

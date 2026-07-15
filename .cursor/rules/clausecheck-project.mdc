@@ -42,11 +42,12 @@ ClauseCheck is a bilingual EN/ZH contract-risk scanner for decision support and 
 - China `+86` uses the Supabase Send SMS Hook and Aliyun Edge Function route; other countries use Twilio through Edge Function secrets.
 - Do not add SMS SDKs to the app. Use Supabase Auth OTP and its hooks.
 
-## Beta (soft launch 🟢 as of 2026-07-14 / `acf4fd2`)
+## Beta (soft launch 🟢 — SHA via prod `/api/health` → `version`)
 
 - Founding perks credited at official launch only — keep disclaimer + FAQ parity.
 - Waitlist ≠ account; dual CTA register (`/account` via i18n Link) + dismiss.
 - Try-product hint from `getQuotaForPlan("trial")`; EN routes use `as-needed` (no `/en` prefix).
+- Support email: `support@clausecheck.cc` (not `clausecheck.app`).
 - Gate: `npm run test:e2e:beta-p0` · details in skill `PROGRESS.md` status board.
 
 ## Key pointers

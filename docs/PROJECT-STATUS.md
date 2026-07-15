@@ -11,12 +11,12 @@
 | **主域名** | https://www.clausecheck.cc |
 | **别名** | https://clausecheck.cc · Vercel preview `huaxingzhao-clausecheck.vercel.app` |
 | **Support** | support@clausecheck.cc |
-| **最近已知 prod tip** | `12111a0` — #28 bounty i18n / copy drift（以 health `version` 复核） |
+| **最近已知 prod tip** | `89f02f5` — #29 domain/support + 删微信死 UI（以 health `version` 复核） |
 | **状态** | Soft Beta 🟢 |
 
-### 近期已合并（#19–#28）
+### 近期已合并（#19–#29）
 
-Plan A 客户端配额 · forgot-password · mock-qr 生产关闭 · `session_version` / magic `purpose` · 20k 字数 · credits session 四态 · bounty zh/en · 文案去 Google / credits 用词。
+Plan A 客户端配额 · forgot-password · mock-qr 生产关闭 · `session_version` / magic `purpose` · 20k 字数 · credits session 四态 · bounty zh/en · 文案去 Google / credits 用词 · 域名/`support@` 对齐 · 微信 topup UI 移除。
 
 ---
 
