@@ -342,7 +342,7 @@
     "forgotSubtitle": "Enter your registered email and we’ll send a reset link (valid 30 minutes).",
     "forgotButton": "Send reset email",
     "forgotSent": "If an account exists for this email, a reset link has been sent.",
-    "forgotSentHint": "If nothing arrives in a few minutes: check spam; confirm this email is registered; try Google sign-in; or email support@clausecheck.cc.",
+    "forgotSentHint": "If nothing arrives in a few minutes: check spam; confirm this email is registered; or email support@clausecheck.cc.",
     "forgotFailed": "Could not send email. Please try again.",
     "backToLogin": "Back to sign in",
     "resetTitle": "Reset password",
@@ -404,7 +404,7 @@
   "invite": {
     "label": "Invite friends",
     "title": "Invite friends — 3 extra reviews each",
-    "subtitle": "Sign-up includes 1 trial review. Share your link: when a friend registers, you both get 3 extra review credits (invite bonus, separate from the trial).",
+    "subtitle": "Sign-up includes 1 trial review. Share your link: when a friend registers, you both get 3 extra document reviews (invite bonus, separate from the trial).",
     "backHome": "Back to home",
     "loading": "Loading invite details…",
     "linkTitle": "Your invite link",
@@ -415,9 +415,9 @@
     "usesRemaining": "{count} of {max} redemptions left",
     "progressTitle": "Your progress",
     "progressSummary": "Invited {invites} · earned {quota} document reviews",
-    "progressHint": "Earn 3 extra review credits for each successful referral (separate from the 1 trial scan).",
+    "progressHint": "Earn 3 extra document reviews for each successful referral (separate from the 1 trial scan).",
     "shareTitle": "Share message",
-    "shareTemplate": "I use ClauseCheck for contract review. Sign-up includes 1 trial scan; with my invite link we each get 3 more review credits: {url}",
+    "shareTemplate": "I use ClauseCheck for contract review. Sign-up includes 1 trial scan; with my invite link we each get 3 more document reviews: {url}",
     "copyShare": "Copy message",
     "shareCopied": "Message copied"
   },
@@ -1060,6 +1060,84 @@
         "a": "Employment agreements, lease contracts, service agreements, NDAs, freelance contracts, and partnership agreements all work great. The AI is trained on a wide range of commercial and consumer contract types."
       }
     ]
+  },
+  "communityBounty": {
+    "meta": {
+      "title": "Jurisdiction Pack Bounty | ClauseCheck Community",
+      "description": "Help ClauseCheck cover your legal system. Claim a bounty, scaffold a Jurisdiction Pack, and earn Lifetime Pro (and cash for High priority)."
+    },
+    "navClaim": "Claim a Bounty",
+    "brand": "ClauseCheck Community",
+    "heroTitle": "Jurisdiction Pack Bounty: Help Us Cover Your Legal System",
+    "heroSub": "Co-create decision-support Packs with practitioners who know the law on the ground. {openCount} open slots — High priority includes Lifetime Pro and a cash thank-you.",
+    "readGuide": "Read contributing guide",
+    "disclaimer": "Community packs are reviewed but not guaranteed. Always verify. Not legal advice.",
+    "boardLabel": "Open bounties",
+    "boardTitle": "Bounty board",
+    "boardLead": "Status refreshes from GitHub Issues labeled ",
+    "boardLeadCode": "bounty",
+    "boardLeadAfter": " (hourly). Claim via Issue before starting work.",
+    "colJurisdiction": "Jurisdiction",
+    "colPriority": "Priority",
+    "colReward": "Reward",
+    "colStatus": "Status",
+    "colAssignee": "Assignee",
+    "claim": "Claim",
+    "issue": "Issue #{number}",
+    "priority": {
+      "High": "High",
+      "Medium": "Medium",
+      "Low": "Low"
+    },
+    "status": {
+      "Open": "Open",
+      "Claimed": "Claimed",
+      "In Review": "In Review",
+      "Completed": "Completed"
+    },
+    "stepsLabel": "How to participate",
+    "stepsTitle": "Four steps",
+    "steps": [
+      { "n": "1", "title": "Read Docs", "body": "Learn the Pack interface, naming, and review constraints." },
+      { "n": "2", "title": "Scaffold", "body": "Generate pack + tests + registry wiring with one command." },
+      { "n": "3", "title": "Test", "body": "Add ± pattern tests and pass AI / local pre-check." },
+      { "n": "4", "title": "PR", "body": "Open a pull request; CI validates packs/ changes." }
+    ],
+    "resourcesLabel": "Resources",
+    "resourcesTitle": "Start with these",
+    "resContributing": "Contributing Jurisdiction Packs",
+    "resContributingHint": " — interface, naming, PR flow",
+    "resScaffoldHint": " — scaffold pack + tests + registry",
+    "resExample": "Example Pack (us-ca)",
+    "resExampleHint": " — reference implementation",
+    "resDiscord": "Discord — #jurisdiction-packs",
+    "resDiscordHint": " — ask questions, find collaborators",
+    "faqLabel": "FAQ",
+    "faqTitle": "Before you claim",
+    "faq": {
+      "items": [
+        {
+          "q": "What are the review standards?",
+          "a": "We check (1) jurisdiction-specific guidance without restating Base, (2) distinctive governing-law patterns with ± tests, (3) token budget and validate:pack, (4) paste-ready suggestion norms. Legal accuracy is reviewed in good faith by maintainers and community peers — not a bar certification."
+        },
+        {
+          "q": "When are rewards paid?",
+          "a": "After your PR merges and the pack ships to production (or is marked Completed on the bounty issue). Lifetime / 1-year Pro is provisioned within 7 business days; cash rewards for High priority are paid after a short verification email."
+        },
+        {
+          "q": "Can multiple people collaborate?",
+          "a": "Yes — claim the bounty issue first (assign yourself), then collaborate on one PR. Split credit in the PR description; we list all named contributors on the pack credits page. First clear claim on an Open bounty is respected unless abandoned (>14 days with no PR)."
+        },
+        {
+          "q": "Who owns the intellectual property?",
+          "a": "By opening a PR you license your contribution under the same terms as the repository (see LICENSE). You retain credit as author. Do not paste confidential client work or copyrighted statute text verbatim beyond short fair-use citations."
+        }
+      ]
+    },
+    "footerTitle": "Ready to claim?",
+    "footerLead": "Open a GitHub Issue with the bounty template — we will coordinate review and reward fulfillment from there.",
+    "footerDisclaimer": "Community packs are reviewed but not guaranteed. Always verify.",
+    "backHome": "← Back to ClauseCheck"
   },
   "footer": {
     "text": "© {year} ClauseCheck · AI Contract Assistant · For reference only, not legal advice"

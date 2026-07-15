@@ -26,8 +26,8 @@ export async function POST(req: NextRequest) {
         {
           error: msg(
             loc,
-            "邮件服务未正确配置（EMAIL_FROM）。请改用 Google 登录，或联系管理员。",
-            "Email delivery is not configured (EMAIL_FROM). Please use Google sign-in or contact support."
+            "邮件服务未正确配置（EMAIL_FROM）。请稍后重试，或联系 support@clausecheck.cc。",
+            "Email delivery is not configured (EMAIL_FROM). Please try again later or contact support@clausecheck.cc."
           ),
         },
         { status: 503 }
@@ -64,8 +64,8 @@ export async function POST(req: NextRequest) {
       {
         error: msg(
           loc,
-          "重置邮件发送失败。可改用 Google 登录，或联系 support@clausecheck.cc",
-          "Could not send reset email. Try Google sign-in, or contact support@clausecheck.cc"
+          "重置邮件发送失败。请稍后重试，或联系 support@clausecheck.cc。",
+          "Could not send reset email. Please try again later, or contact support@clausecheck.cc."
         ),
       },
       { status: 500 }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import FAQItem from "../../components/faq-item";
 import { Link } from "@/i18n/routing";
 import {
@@ -17,58 +18,22 @@ import { resolveBountyListings } from "@/lib/community/fetch-bounty-issues";
 /** ISR: refresh GitHub assignee/status hourly; catalog itself is static. */
 export const revalidate = 3600;
 
-export const metadata: Metadata = {
-  title: "Jurisdiction Pack Bounty | ClauseCheck Community",
-  description:
-    "Help ClauseCheck cover your legal system. Claim a bounty, scaffold a Jurisdiction Pack, and earn Lifetime Pro (and cash for High priority).",
-  openGraph: {
-    title: "Jurisdiction Pack Bounty | ClauseCheck",
-    description:
-      "Community packs for New York, England & Wales, Singapore, Germany, Australia (NSW). Co-create — not cheap outsourcing.",
-  },
-};
-
-const STEPS = [
-  {
-    n: "1",
-    title: "Read Docs",
-    body: "Learn the Pack interface, naming, and review constraints.",
-  },
-  {
-    n: "2",
-    title: "Scaffold",
-    body: "Generate pack + tests + registry wiring with one command.",
-  },
-  {
-    n: "3",
-    title: "Test",
-    body: "Add ± pattern tests and pass AI / local pre-check.",
-  },
-  {
-    n: "4",
-    title: "PR",
-    body: "Open a pull request; CI validates packs/ changes.",
-  },
-];
-
-const FAQ = [
-  {
-    q: "What are the review standards?",
-    a: "We check (1) jurisdiction-specific guidance without restating Base, (2) distinctive governing-law patterns with ± tests, (3) token budget and validate:pack, (4) paste-ready suggestion norms. Legal accuracy is reviewed in good faith by maintainers and community peers — not a bar certification.",
-  },
-  {
-    q: "When are rewards paid?",
-    a: "After your PR merges and the pack ships to production (or is marked Completed on the bounty issue). Lifetime / 1-year Pro is provisioned within 7 business days; cash rewards for High priority are paid after a short verification email.",
-  },
-  {
-    q: "Can multiple people collaborate?",
-    a: "Yes — claim the bounty issue first (assign yourself), then collaborate on one PR. Split credit in the PR description; we list all named contributors on the pack credits page. First clear claim on an Open bounty is respected unless abandoned (>14 days with no PR).",
-  },
-  {
-    q: "Who owns the intellectual property?",
-    a: "By opening a PR you license your contribution under the same terms as the repository (see LICENSE). You retain credit as author. Do not paste confidential client work or copyrighted statute text verbatim beyond short fair-use citations.",
-  },
-];
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "communityBounty" });
+  return {
+    title: t("meta.title"),
+    description: t("meta.description"),
+    openGraph: {
+      title: t("meta.title"),
+      description: t("meta.description"),
+    },
+  };
+}
 
 function priorityClass(p: BountyPriority) {
   if (p === "High") return "bounty-priority bounty-priority-high";
@@ -82,17 +47,23 @@ function statusClass(s: BountyStatus) {
   return "bounty-status bounty-status-claimed";
 }
 
-function BountyTable({ rows }: { rows: BountyListing[] }) {
+function BountyTable({
+  rows,
+  t,
+}: {
+  rows: BountyListing[];
+  t: Awaited<ReturnType<typeof getTranslations>>;
+}) {
   return (
     <div className="bounty-table-wrap">
       <table className="bounty-table">
         <thead>
           <tr>
-            <th>Jurisdiction</th>
-            <th>Priority</th>
-            <th>Reward</th>
-            <th>Status</th>
-            <th>Assignee</th>
+            <th>{t("colJurisdiction")}</th>
+            <th>{t("colPriority")}</th>
+            <th>{t("colReward")}</th>
+            <th>{t("colStatus")}</th>
+            <th>{t("colAssignee")}</th>
             <th />
           </tr>
         </thead>
@@ -101,11 +72,15 @@ function BountyTable({ rows }: { rows: BountyListing[] }) {
             <tr key={b.id}>
               <td className="bounty-jurisdiction">{b.jurisdiction}</td>
               <td>
-                <span className={priorityClass(b.priority)}>{b.priority}</span>
+                <span className={priorityClass(b.priority)}>
+                  {t(`priority.${b.priority}`)}
+                </span>
               </td>
               <td className="bounty-reward">{b.reward}</td>
               <td>
-                <span className={statusClass(b.status)}>{b.status}</span>
+                <span className={statusClass(b.status)}>
+                  {t(`status.${b.status}`)}
+                </span>
               </td>
               <td className="bounty-assignee">{b.assignee || "—"}</td>
               <td className="bounty-row-cta">
@@ -116,7 +91,7 @@ function BountyTable({ rows }: { rows: BountyListing[] }) {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Claim
+                    {t("claim")}
                   </a>
                 ) : b.issueNumber ? (
                   <a
@@ -125,7 +100,7 @@ function BountyTable({ rows }: { rows: BountyListing[] }) {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Issue #{b.issueNumber}
+                    {t("issue", { number: b.issueNumber })}
                   </a>
                 ) : (
                   <span className="text-ink-muted text-xs">—</span>
@@ -145,9 +120,12 @@ export default async function CommunityBountyPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "communityBounty" });
   const rows = await resolveBountyListings();
   const openCount = rows.filter((r) => r.status === "Open").length;
   const primaryClaim = claimIssueUrl(BOUNTY_LISTINGS[0]);
+  const steps = t.raw("steps") as { n: string; title: string; body: string }[];
+  const faqItems = t.raw("faq.items") as { q: string; a: string }[];
 
   return (
     <div className="bounty-page min-h-screen bg-paper">
@@ -173,22 +151,16 @@ export default async function CommunityBountyPage({
               target="_blank"
               rel="noopener noreferrer"
             >
-              Claim a Bounty
+              {t("navClaim")}
             </a>
           </div>
         </div>
       </nav>
 
       <header className="bounty-hero">
-        <p className="bounty-brand">ClauseCheck Community</p>
-        <h1 className="bounty-hero-title">
-          Jurisdiction Pack Bounty: Help Us Cover Your Legal System
-        </h1>
-        <p className="bounty-hero-sub">
-          Co-create decision-support Packs with practitioners who know the law
-          on the ground. {openCount} open {openCount === 1 ? "slot" : "slots"} —
-          High priority includes Lifetime Pro and a cash thank-you.
-        </p>
+        <p className="bounty-brand">{t("brand")}</p>
+        <h1 className="bounty-hero-title">{t("heroTitle")}</h1>
+        <p className="bounty-hero-sub">{t("heroSub", { openCount })}</p>
         <div className="bounty-hero-actions">
           <a
             href={primaryClaim}
@@ -196,7 +168,7 @@ export default async function CommunityBountyPage({
             target="_blank"
             rel="noopener noreferrer"
           >
-            Claim a Bounty
+            {t("navClaim")}
           </a>
           <a
             href={`${GITHUB_REPO_URL}/blob/main/${CONTRIBUTING_DOC_PATH}`}
@@ -204,34 +176,31 @@ export default async function CommunityBountyPage({
             target="_blank"
             rel="noopener noreferrer"
           >
-            Read contributing guide
+            {t("readGuide")}
           </a>
         </div>
-        <p className="bounty-disclaimer">
-          Community packs are reviewed but not guaranteed. Always verify. Not
-          legal advice.
-        </p>
+        <p className="bounty-disclaimer">{t("disclaimer")}</p>
       </header>
 
       <section className="bounty-section">
         <div className="page-content-wide">
-          <p className="section-label">Open bounties</p>
-          <h2 className="bounty-section-title">Bounty board</h2>
+          <p className="section-label">{t("boardLabel")}</p>
+          <h2 className="bounty-section-title">{t("boardTitle")}</h2>
           <p className="bounty-section-lead">
-            Status refreshes from GitHub Issues labeled{" "}
-            <code className="bounty-code">bounty</code> (hourly). Claim via
-            Issue before starting work.
+            {t("boardLead")}
+            <code className="bounty-code">{t("boardLeadCode")}</code>
+            {t("boardLeadAfter")}
           </p>
-          <BountyTable rows={rows} />
+          <BountyTable rows={rows} t={t} />
         </div>
       </section>
 
       <section className="bounty-section bounty-section-alt">
         <div className="page-content-wide">
-          <p className="section-label">How to participate</p>
-          <h2 className="bounty-section-title">Four steps</h2>
+          <p className="section-label">{t("stepsLabel")}</p>
+          <h2 className="bounty-section-title">{t("stepsTitle")}</h2>
           <ol className="bounty-steps">
-            {STEPS.map((s) => (
+            {steps.map((s) => (
               <li key={s.n} className="bounty-step">
                 <span className="bounty-step-n" aria-hidden>
                   {s.n}
@@ -248,8 +217,8 @@ export default async function CommunityBountyPage({
 
       <section className="bounty-section">
         <div className="page-content-wide">
-          <p className="section-label">Resources</p>
-          <h2 className="bounty-section-title">Start with these</h2>
+          <p className="section-label">{t("resourcesLabel")}</p>
+          <h2 className="bounty-section-title">{t("resourcesTitle")}</h2>
           <ul className="bounty-resources">
             <li>
               <a
@@ -257,15 +226,15 @@ export default async function CommunityBountyPage({
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Contributing Jurisdiction Packs
+                {t("resContributing")}
               </a>
-              <span> — interface, naming, PR flow</span>
+              <span>{t("resContributingHint")}</span>
             </li>
             <li>
               <code className="bounty-code">
                 npm run new-pack -- --id=sg --name=&quot;Singapore&quot;
               </code>
-              <span> — scaffold pack + tests + registry</span>
+              <span>{t("resScaffoldHint")}</span>
             </li>
             <li>
               <a
@@ -273,9 +242,9 @@ export default async function CommunityBountyPage({
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Example Pack (us-ca)
+                {t("resExample")}
               </a>
-              <span> — reference implementation</span>
+              <span>{t("resExampleHint")}</span>
             </li>
             <li>
               <a
@@ -283,9 +252,9 @@ export default async function CommunityBountyPage({
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Discord — #jurisdiction-packs
+                {t("resDiscord")}
               </a>
-              <span> — ask questions, find collaborators</span>
+              <span>{t("resDiscordHint")}</span>
             </li>
           </ul>
         </div>
@@ -293,10 +262,10 @@ export default async function CommunityBountyPage({
 
       <section className="bounty-section bounty-section-alt">
         <div className="page-content-wide max-w-2xl mx-auto">
-          <p className="section-label">FAQ</p>
-          <h2 className="bounty-section-title mb-6">Before you claim</h2>
+          <p className="section-label">{t("faqLabel")}</p>
+          <h2 className="bounty-section-title mb-6">{t("faqTitle")}</h2>
           <div className="space-y-0">
-            {FAQ.map((item) => (
+            {faqItems.map((item) => (
               <FAQItem key={item.q} q={item.q} a={item.a} />
             ))}
           </div>
@@ -305,27 +274,22 @@ export default async function CommunityBountyPage({
 
       <section className="bounty-footer-cta">
         <div className="page-content-wide max-w-xl mx-auto text-center">
-          <h2 className="bounty-section-title mb-3">Ready to claim?</h2>
-          <p className="bounty-footer-lead">
-            Open a GitHub Issue with the bounty template — we will coordinate
-            review and reward fulfillment from there.
-          </p>
+          <h2 className="bounty-section-title mb-3">{t("footerTitle")}</h2>
+          <p className="bounty-footer-lead">{t("footerLead")}</p>
           <a
             href={primaryClaim}
             className="btn btn-primary"
             target="_blank"
             rel="noopener noreferrer"
           >
-            Claim a Bounty
+            {t("navClaim")}
           </a>
-          <p className="bounty-disclaimer mt-6">
-            Community packs are reviewed but not guaranteed. Always verify.
-          </p>
+          <p className="bounty-disclaimer mt-6">{t("footerDisclaimer")}</p>
           <Link
             href="/"
             className="inline-block mt-6 text-xs font-sans text-ink-muted hover:text-ink"
           >
-            ← Back to ClauseCheck
+            {t("backHome")}
           </Link>
         </div>
       </section>

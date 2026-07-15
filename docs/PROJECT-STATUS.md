@@ -1,14 +1,15 @@
-# ClauseCheck — 项目状态快照（2026-07-07）
+# ClauseCheck — 项目状态快照（2026-07-15 更新产品叙事）
 
-> 新开 Cursor 对话时：仓库已 commit 到 `main`，`.cursor/rules/clausecheck.mdc` 会自动加载；也可 `@clausecheck` 或阅读本文件。
+> 新开 Cursor 对话时：仓库已 commit 到 `main`，`.cursor/rules/clausecheck.mdc` 会自动加载；也可 `@clausecheck` / `@clausecheck-project` 或阅读本文件。  
+> **配额与定价以 `docs/PRICING_PLAN_A.md` + `lib/pricing.config.ts` 为准**；下方历史部署 SHA 可能滞后于当前 production。
 
 ## 生产环境（已验证）
 
 | 项目 | 值 |
 |------|-----|
-| **Git HEAD** | `1a28f12` — `feat: email/password auth and remove Apple sign-in` |
-| **Vercel Production** | `dpl_F7JsHDepaYrbR4Sxebe888sU9sdo`（2026-07-07 11:49:37 UTC+8） |
-| **状态** | Ready |
+| **Git HEAD（历史快照）** | `1a28f12` — `feat: email/password auth and remove Apple sign-in` |
+| **Vercel Production（历史）** | `dpl_F7JsHDepaYrbR4Sxebe888sU9sdo`（2026-07-07） |
+| **状态** | Soft Beta 🟢 — 以 `GET /api/health` 的 `version` 为准 |
 
 ### 线上域名
 
@@ -74,9 +75,9 @@ e446e04  P0 生产加固（服务端 quota、Postgres、Stripe webhook）
 **用户流程**：
 
 ```
-注册/登录（Google 或邮箱密码）
-  → 免费扫描（试用不限次，之后每月 3 次）
-  → /account 查看额度、升级 Pro
+注册/登录（手机 OTP / Google / 邮箱密码）
+  → 试用扫描（Plan A：每计费周期 1 份，最多约 20,000 字）
+  → /account 查看额度、升级 Pro / 加油包
   → Pro：报告历史、深度分析、修订导出
 ```
 
@@ -125,18 +126,21 @@ AUTO_START_SERVER=0 BASE_URL=https://www.clausecheck.cc npm run verify:p0
 ## 产品后端要点（未变）
 
 - 扫描 tier：**服务端权威**（`lib/server-quota.ts`），不信任客户端 `x-user-tier`
-- Free：3 天试用不限次 → 每月 3 次；Pro / 按次付费走 Stripe + DB entitlements
+- Free / Trial（Plan A）：每计费周期 **1 份**文档审阅，体验字数上限约 **20,000**；Pro / 加油包走 Stripe Payment Element + `document_quota`
 - 审阅区：**82vh 内滚**，左右分栏只读（无 TipTap 主流程）
 - 18 场景 + `scenario-knowledge.ts` RAG
+- 忘记密码：`/forgot-password` + magic token `purpose=password_reset`；重置后 `session_version` 吊销旧 JWT
+- Neon 冷启动：`/api/health` 的 database latency 偶发数秒；忘记密码首请求可能偏慢，属托管侧而非应用死循环
 
 ---
 
 ## 已知问题 / 待办
 
-1. **Resend 测试发件人**：`onboarding@resend.dev` 只能发到 Resend 注册邮箱 → 生产须用已验证自定义域名 `EMAIL_FROM`
-2. **生产免费 scan 配额**：自动化测试可能触发额度用尽
-3. **忘记密码**：尚未实现（可后续加 magic link 重置）
+1. **Resend 发件人**：生产须用已验证域名 `EMAIL_FROM`（勿长期用 `onboarding@resend.dev`）
+2. **生产试用 scan 配额**：自动化测试可能触发额度用尽（Plan A 每周期 1 份）
+3. **微信加油包**：未配 `WECHAT_PAY_QR_BASE` 时 topup 返回 503；主结账走 Stripe
 4. **Stripe Live**：若仍用 test key，需切换 live + webhook
+5. **Redis**：可选；未配时 health 为 `not_configured`
 5. **路线图**：场景落地页、accept/reject 遥测、向量 RAG 法规库等（见 `reference.md` Future direction）
 
 ---
