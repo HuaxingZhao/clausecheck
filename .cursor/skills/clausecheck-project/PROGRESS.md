@@ -2,6 +2,11 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-15 — #30 已上生产 · 软测收口
+
+- Prod `version=efd36b0`（#30）；health ok；Beta `support@`；bounty FAQ 无假「credits 页」；无 Discord 坏链；mock-qr 404。
+- **结论：无必须再修的用户面 bug**；余下为微信收银 / Redis / Discord env / TD-001 手测等 backlog。
+
 ## 2026-07-15 — Post-#29 一次过收口
 
 - Prod `89f02f5`（#29）已核：support@、mock-qr 404、topup 503。
