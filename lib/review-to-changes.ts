@@ -1,5 +1,8 @@
 import type { ContractChange, LockedReviewItem } from "./types";
 
+/** Re-export for export callers that already import from this module. */
+export { getAiDisclaimerExport } from "./ai-disclaimer";
+
 /** 将已采纳的审阅项转为可导出/修订的 ContractChange 列表 */
 export function lockedItemsToChanges(
   items: LockedReviewItem[],

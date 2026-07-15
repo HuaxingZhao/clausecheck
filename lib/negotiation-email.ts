@@ -1,3 +1,4 @@
+import { getAiDisclaimerExport } from "@/lib/ai-disclaimer";
 import type { ContractChange, LockedReviewItem, ScanResult } from "./types";
 
 export interface NegotiationEmailInput {
@@ -102,6 +103,11 @@ export function buildNegotiationEmail(input: NegotiationEmailInput): string {
     lines.push("[Your name / Company]");
     lines.push("[Date]");
   }
+
+  // Hard product constraint: every negotiation deliverable ends with AI disclaimer.
+  lines.push("");
+  lines.push("---");
+  lines.push(getAiDisclaimerExport(locale));
 
   return lines.join("\n");
 }
