@@ -22,6 +22,7 @@ export interface AddOnModalProps {
   locale: string;
   onSuccess?: () => void;
   onRequireAuth?: () => void;
+  onCnyPayContact?: () => void;
 }
 
 export default function AddOnModal({
@@ -31,6 +32,7 @@ export default function AddOnModal({
   locale,
   onSuccess,
   onRequireAuth,
+  onCnyPayContact,
 }: AddOnModalProps) {
   const t = useTranslations("pricing.addOn");
   const [packs, setPacks] = useState<AddOnPackSize>(1);
@@ -98,6 +100,10 @@ export default function AddOnModal({
               onRequireAuth?.();
             }}
             onCancel={() => setShowPayment(false)}
+            onCnyPayContact={() => {
+              handleClose(false);
+              onCnyPayContact?.();
+            }}
           />
         )}
       </DialogContent>
