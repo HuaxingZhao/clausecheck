@@ -12,7 +12,7 @@ Tone: open, respectful of professional expertise, co-creation — **not** cheap 
 | Issue template | `.github/ISSUE_TEMPLATE/pack-bounty.md` |
 | PR template | `.github/pull_request_template.md` |
 | Contributing docs | `docs/contributing-jurisdiction-packs.md` |
-| Discord invite env | `NEXT_PUBLIC_DISCORD_INVITE` (fallback placeholder on page) |
+| Discord invite env | `NEXT_PUBLIC_DISCORD_INVITE`（未设则 bounty 页不展示 Discord 链） |
 
 ---
 
@@ -27,7 +27,7 @@ If you practice (or deeply know) NY, England & Wales, Singapore, Germany, or NSW
 
 • Lifetime Pro (High priority also +$100)
 • Scaffold in one command + automated pre-check
-• Your name on the pack credits
+• Your name on the GitHub PR / release notes
 
 This is co-creation with practitioners — not gig legal work.
 

@@ -1110,7 +1110,7 @@
         },
         {
           "q": "Can multiple people collaborate?",
-          "a": "Yes — claim the bounty issue first (assign yourself), then collaborate on one PR. Split credit in the PR description; we list all named contributors on the pack credits page. First clear claim on an Open bounty is respected unless abandoned (>14 days with no PR)."
+          "a": "Yes — claim the bounty issue first (assign yourself), then collaborate on one PR. Split credit in the PR description; named contributors stay on the GitHub PR and release notes. First clear claim on an Open bounty is respected unless abandoned (>14 days with no PR)."
         },
         {
           "q": "Who owns the intellectual property?",

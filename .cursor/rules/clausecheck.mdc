@@ -28,7 +28,7 @@ Bilingual (EN/ZH) Next.js contract risk scanner. **Not legal advice** — decisi
 | Apple | **已移除** |
 | Magic link | 仅团队邀请内部；主 UI 不用 |
 
-生产：`www.clausecheck.cc` · HEAD `1a28f12` · 详见 `docs/PROJECT-STATUS.md`
+生产：`www.clausecheck.cc` · SHA 以 `GET /api/health` → `version` 为准 · 详见 `docs/PROJECT-STATUS.md`
 
 ## Product principles
 

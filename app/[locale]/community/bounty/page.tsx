@@ -246,16 +246,18 @@ export default async function CommunityBountyPage({
               </a>
               <span>{t("resExampleHint")}</span>
             </li>
-            <li>
-              <a
-                href={DISCORD_INVITE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {t("resDiscord")}
-              </a>
-              <span>{t("resDiscordHint")}</span>
-            </li>
+            {DISCORD_INVITE_URL ? (
+              <li>
+                <a
+                  href={DISCORD_INVITE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t("resDiscord")}
+                </a>
+                <span>{t("resDiscordHint")}</span>
+              </li>
+            ) : null}
           </ul>
         </div>
       </section>

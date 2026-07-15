@@ -2,6 +2,14 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-15 — Post-#29 一次过收口
+
+- Prod `89f02f5`（#29）已核：support@、mock-qr 404、topup 503。
+- tip/SHA：SKILL / PROJECT-STATUS / rules 以 health `version` 为准（含 #29）。
+- bounty FAQ：去掉不存在的「pack credits 页」→ GitHub 贡献者 / PR 署名。
+- Discord：仅当 `NEXT_PUBLIC_DISCORD_INVITE` 已设才展示链接。
+- 删除仓库内过时 `clausecheck-stage2.patch`（旧配额文案污染审计）。
+
 ## 2026-07-15 — Post-#28 域名/死代码收口
 
 - Beta / PH / README：`clausecheck.app` / `hello@…` → `www.clausecheck.cc` / `support@clausecheck.cc`。

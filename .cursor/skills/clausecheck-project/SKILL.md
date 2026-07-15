@@ -19,9 +19,9 @@ After any meaningful change—feature, fix, deploy, verification, or operations 
 ## Current status (2026-07-15)
 
 ```
-PR #19–#28 ：Plan A / mock-qr / session / magic purpose / 20k /
-              credits session / bounty i18n / 文案收口
-生产 tip   ：以 GET /api/health → version 为准（#28 ≈ 12111a0）
+PR #19–#29 ：Plan A / mock-qr / session / magic purpose / 20k /
+              credits session / bounty i18n / 域名与死代码收口
+生产 tip   ：以 GET /api/health → version 为准（#29 ≈ 89f02f5）
 状态       ：Beta 软发布 🟢
 ```
 
