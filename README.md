@@ -38,7 +38,7 @@ npm run verify:staging     # 上线前 env 检查（BASE_URL=... 可测远端）
 | `AUTH_SECRET` | **必填** — `openssl rand -base64 32` |
 | `STRIPE_SECRET_KEY` | Stripe 密钥 |
 | `STRIPE_WEBHOOK_SECRET` | **必填** — Stripe Dashboard → Webhooks |
-| `NEXT_PUBLIC_URL` | 生产域名，如 `https://clausecheck.app` |
+| `NEXT_PUBLIC_URL` | 生产域名，如 `https://www.clausecheck.cc` |
 
 ### Vercel 计划
 
@@ -80,8 +80,9 @@ npm run validate:pack -- --id=sg
 
 ## Beta & launch
 
-- Beta landing: **[/beta](https://clausecheck.app/beta)** (local: `http://localhost:3000/beta`)
+- Beta landing: **[/beta](https://www.clausecheck.cc/beta)** (local: `http://localhost:3000/beta`)
 - Community bounty: **[/community/bounty](https://www.clausecheck.cc/community/bounty)** (local: `http://localhost:3000/community/bounty`)
+- Support: **support@clausecheck.cc**
 - Product Hunt kit: [docs/launch/product-hunt-kit.md](docs/launch/product-hunt-kit.md)
 
 ## License

@@ -91,7 +91,7 @@ resolveContractReview
 - **P0 production**: server quota, Postgres, Stripe webhook, `verify:p0` / `verify:staging`
 - **Auth v2**: email/password login, Google OAuth, `/account` page, simplified `site-nav`
 - **Removed**: Apple sign-in; magic link removed from main login UI
-- **Production**: `www.clausecheck.cc`, HEAD `1a28f12` (2026-07-07) — see `docs/PROJECT-STATUS.md`
+- **Production**: `www.clausecheck.cc` — SHA via `GET /api/health` → `version`; see `docs/PROJECT-STATUS.md`
 
 ## Future direction
 

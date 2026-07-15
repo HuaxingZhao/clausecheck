@@ -2,6 +2,20 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-15 — Post-#28 域名/死代码收口
+
+- Beta / PH / README：`clausecheck.app` / `hello@…` → `www.clausecheck.cc` / `support@clausecheck.cc`。
+- EN `account.planAddOn`：Add-on document reviews；删未接线微信 UI（`wechat-pay-modal` / `use-topup-payment`）+ 顶层 `payment` i18n；topup API 保留并注释。
+- SKILL / PROJECT-STATUS / reference：生产以 health `version` 为准；Google callback 写 `www.clausecheck.cc`。
+
+## 2026-07-15 — Post-#28 巡检
+
+- Prod `12111a0` 仍绿；**无阻断 bug**。上节已收口域名与死代码。
+
+## 2026-07-15 — #28 已上生产
+
+- Prod `version=12111a0`（#28）；health ok；`/zh/community/bounty` 已出「法域 Pack 悬赏 / 认领悬赏 / 四步流程」；EN bounty 仍英文；forgot 页无「改用 Google」。
+
 ## 2026-07-15 — Post-#27 文案 / bounty i18n / 文档
 
 - 忘记密码：`forgotSentHint` + API 503/500 去掉「改用 Google」；引导 spam / support。

@@ -382,7 +382,7 @@
     "planFree": "Trial",
     "planPro": "Pro",
     "planTeam": "Team",
-    "planAddOn": "Add-on credit",
+    "planAddOn": "Add-on document reviews",
     "proUntil": "Subscription renews",
     "scanQuota": "Cycle quota",
     "trialActive": "Trial quota active",
@@ -889,22 +889,6 @@
       "error": "Could not send. Please email support@clausecheck.cc"
     }
   },
-  "payment": {
-    "processing": "Processing…",
-    "modalTitle": "WeChat Pay · {plan}",
-    "planPro": "Pro",
-    "planBoost": "Single boost",
-    "creating": "Creating order…",
-    "scanHint": "Scan with WeChat to pay",
-    "qrAlt": "WeChat Pay QR code",
-    "polling": "Waiting for payment",
-    "success": "Payment received, refreshing balance…",
-    "timeout": "Payment timed out (5 min). Please retry.",
-    "errorGeneric": "Payment failed. Check your network and retry.",
-    "retry": "Retry payment",
-    "cancel": "Cancel",
-    "close": "Close"
-  },
   "waitlist": {
     "label": "Waitlist",
     "title": "Opening soon",
@@ -1019,7 +1003,7 @@
       "title": "Ready to co-create?",
       "subtitle": "Same form. Same founding perks. No hard sell.",
       "questions": "Questions?",
-      "email": "hello@clausecheck.app",
+      "email": "support@clausecheck.cc",
       "backHome": "← Back to home"
     }
   },

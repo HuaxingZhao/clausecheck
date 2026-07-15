@@ -1201,9 +1201,6 @@
   .word-limit-modal {
     @apply w-full max-w-md rounded-2xl bg-white p-6 shadow-xl border border-border/50;
   }
-  .wechat-pay-modal {
-    @apply w-full max-w-md rounded-2xl bg-white p-6 shadow-xl border border-border/50;
-  }
 
   /* ── FAQ ── */
   .faq-item {

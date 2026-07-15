@@ -16,18 +16,17 @@ Use `@clausecheck-project` or say「按 clausecheck project」. This memory also
 
 After any meaningful change—feature, fix, deploy, verification, or operations discovery—update [PROGRESS.md](PROGRESS.md) in this folder with dated bullet(s). Do not wait for the user to ask.
 
-## Current status (2026-07-14)
+## Current status (2026-07-15)
 
 ```
-PR #9–#14  ：P0 体验修复（i18n / CTA / 响应式 / 免责 / 配额）
-PR #15     ：E2E 回归测试网（6 cases, ~4s）
-acf4fd2    ：生产发布 commit
-认知对齐 5/5 ✅
-E2E    6/6 ✅
-状态      ：Beta 软发布 🟢
+PR #19–#28 ：Plan A / mock-qr / session / magic purpose / 20k /
+              credits session / bounty i18n / 文案收口
+生产 tip   ：以 GET /api/health → version 为准（#28 ≈ 12111a0）
+状态       ：Beta 软发布 🟢
 ```
 
 - Prod: `https://www.clausecheck.cc` · Beta: `/zh/beta` · `/beta`
+- Support: `support@clausecheck.cc`（勿用 `clausecheck.app` / `hello@…`）
 - Soft launch = 熟人/社群内测 OK；Product Hunt 大宣发可选另排。
 - Always: decision support only — **not legal advice**.
 - Living detail: [PROGRESS.md](PROGRESS.md).
@@ -81,6 +80,8 @@ Review is a read-only split view. `contract-review-shell` stays at **82vh**, wit
 - Turn the 82vh split review into page-height scrolling.
 - Add SMS SDKs to the app: use Supabase Auth OTP and its hooks.
 - Imply founding perks or Pro discounts are already credited after waitlist signup.
+- Hardcode `clausecheck.app` or `hello@clausecheck.app` — use `www.clausecheck.cc` / `support@clausecheck.cc`.
+- Enable production mock WeChat pay (`ALLOW_MOCK_WECHAT_PAY`) for real traffic.
 
 ## Short workflows
 
