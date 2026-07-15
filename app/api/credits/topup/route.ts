@@ -6,6 +6,10 @@ import { createPendingOrder } from "@/lib/credits/orders";
 import { creditsSystemEnabled } from "@/lib/credits/user-credits";
 import { isWechatPayConfigured } from "@/lib/credits/wechat-pay-config";
 
+/**
+ * WeChat top-up API (no customer UI wired — pricing uses Stripe Payment Element).
+ * Returns 503 WECHAT_PAY_NOT_CONFIGURED until WECHAT_PAY_QR_BASE is set in production.
+ */
 const topupRequestSchema = z.object({
   plan: z.enum(["pro", "boost"]),
   payment_method: z.literal("wechat"),

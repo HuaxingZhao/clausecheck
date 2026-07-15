@@ -889,22 +889,6 @@
       "error": "发送失败，请发邮件至 support@clausecheck.cc"
     }
   },
-  "payment": {
-    "processing": "处理中…",
-    "modalTitle": "微信支付 · {plan}",
-    "planPro": "专业版",
-    "planBoost": "单次加油包",
-    "creating": "正在创建订单…",
-    "scanHint": "请使用微信扫一扫完成支付",
-    "qrAlt": "微信支付二维码",
-    "polling": "等待支付确认",
-    "success": "支付成功，正在刷新额度…",
-    "timeout": "支付超时（5 分钟），请重试",
-    "errorGeneric": "支付失败，请检查网络后重试",
-    "retry": "重新支付",
-    "cancel": "取消",
-    "close": "关闭"
-  },
   "waitlist": {
     "label": "等候名单",
     "title": "即将开放",
@@ -1019,7 +1003,7 @@
       "title": "准备好一起共创了吗？",
       "subtitle": "同一表单，同一创始权益。没有硬推销。",
       "questions": "有问题？",
-      "email": "hello@clausecheck.app",
+      "email": "support@clausecheck.cc",
       "backHome": "← 返回首页"
     }
   },

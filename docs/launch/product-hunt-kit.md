@@ -39,8 +39,8 @@ Beta perks for founding members:
 • 5 free DPA generations
 • Founding Member badge
 
-Join: https://clausecheck.app/beta
-Feedback channel: reply here or email hello@clausecheck.app
+Join: https://www.clausecheck.cc/beta
+Feedback channel: reply here or email support@clausecheck.cc
 
 We’re especially looking for GCs, startup operators, and counsel who review SaaS / NDA / cross-border paper weekly. Tell us what we got wrong — that’s the product.
 
@@ -116,7 +116,7 @@ AI contract review with:
 
 Beta founders co-create quality + get lifetime Pro perks.
 
-→ https://clausecheck.app/beta
+→ https://www.clausecheck.cc/beta
 
 #ProductHunt #LegalTech #SaaS #BuildInPublic
 ```
@@ -132,7 +132,7 @@ Beta is open for founding members who want to co-create the quality bar (Accurat
 
 Decision support only — not legal advice.
 
-Join the beta: https://clausecheck.app/beta
+Join the beta: https://www.clausecheck.cc/beta
 Would love feedback from GCs, founders, and counsel who live in MSAs and NDAs.
 ```
 
@@ -145,7 +145,7 @@ Problem: first-pass contract review is either too expensive or too shallow.
 What I shipped: jurisdiction-aware risk grading + redlines + DPA draft hook + feedback golden-set loop.
 Ask: beta users who review SaaS/NDA paper weekly — tell me what we miss.
 
-Link: https://clausecheck.app/beta
+Link: https://www.clausecheck.cc/beta
 PH: [paste your PH URL]
 
 Happy to share technical notes on Base+Pack prompts and hash-only feedback if useful.
