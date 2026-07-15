@@ -2,6 +2,12 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-15 — 隐藏微信入口 · 人民币咨询 CTA
+
+- 前端门控：`WECHAT_PAY_ENABLED` / `NEXT_PUBLIC_WECHAT_PAY_ENABLED !== 'true'` 时不展示微信/钱包说明（`isWechatPayUiEnabled`）。
+- CNY 下替换为「中国大陆用户？联系我们获取人民币支付通道」→ 企业咨询表单 + `support@`；Stripe 结账按钮居中。
+- 保留 `POST /api/credits/topup` 与商户配置逻辑；对接商户后设 `WECHAT_PAY_ENABLED=true` 即可恢复钱包文案。
+
 ## 2026-07-15 — Post-#29 一次过收口
 
 - Prod `89f02f5`（#29）已核：support@、mock-qr 404、topup 503。

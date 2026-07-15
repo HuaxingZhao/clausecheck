@@ -10,6 +10,7 @@ import PlanCard from "./pricing/PlanCard";
 import QuotaMeter from "./pricing/QuotaMeter";
 import AddOnModal from "./pricing/AddOnModal";
 import PaymentGateway from "./pricing/PaymentGateway";
+import ContactSalesForm from "./pricing/ContactSalesForm";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,7 +21,7 @@ import {
 import { useRouter } from "@/i18n/routing";
 import type { CheckoutPlanId } from "@/lib/pricing.config";
 
-type PlaceholderPlan = "enterprise";
+type PlaceholderPlan = "enterprise" | "cnyPayChannel";
 
 export interface PricingSectionProps {
   locale: string;
@@ -115,6 +116,7 @@ export default function PricingSection({
             billingCycle={billingCycle}
             onCurrencyChange={setCurrency}
             onBillingCycleChange={setBillingCycle}
+            onCnyPayContact={() => setPlaceholderPlan("cnyPayChannel")}
           />
         </div>
 
@@ -196,6 +198,7 @@ export default function PricingSection({
         currency={currency}
         locale={locale}
         onRequireAuth={onRequireAuth}
+        onCnyPayContact={() => setPlaceholderPlan("cnyPayChannel")}
       />
 
       <Dialog open={!!checkoutPlan} onOpenChange={(open) => !open && setCheckoutPlan(null)}>
@@ -216,6 +219,10 @@ export default function PricingSection({
                 onRequireAuth?.();
               }}
               onCancel={() => setCheckoutPlan(null)}
+              onCnyPayContact={() => {
+                setCheckoutPlan(null);
+                setPlaceholderPlan("cnyPayChannel");
+              }}
             />
           )}
         </DialogContent>
@@ -228,12 +235,34 @@ export default function PricingSection({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {placeholderPlan ? t(`${placeholderPlan}.placeholderTitle`) : ""}
+              {placeholderPlan === "cnyPayChannel"
+                ? t("cnyPayChannelTitle")
+                : placeholderPlan
+                  ? t(`${placeholderPlan}.placeholderTitle`)
+                  : ""}
             </DialogTitle>
           </DialogHeader>
-          {placeholderPlan && (
+          {placeholderPlan === "cnyPayChannel" && (
             <div className="space-y-4 font-sans text-sm text-ink-light">
-              <p>{t(`${placeholderPlan}.placeholderBody`)}</p>
+              <p>{t("cnyPayChannelBody")}</p>
+              <ContactSalesForm />
+              <p className="text-xs text-ink-muted">
+                <a
+                  href="mailto:support@clausecheck.cc?subject=人民币支付通道"
+                  className="text-accent hover:text-accent-dark"
+                >
+                  support@clausecheck.cc
+                </a>
+              </p>
+              <Button variant="outline" onClick={() => setPlaceholderPlan(null)}>
+                {t("placeholderClose")}
+              </Button>
+            </div>
+          )}
+          {placeholderPlan === "enterprise" && (
+            <div className="space-y-4 font-sans text-sm text-ink-light">
+              <p>{t("enterprise.placeholderBody")}</p>
+              <ContactSalesForm />
               <p>
                 <a
                   href="mailto:support@clausecheck.cc"

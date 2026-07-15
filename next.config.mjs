@@ -14,6 +14,12 @@ const nextConfig = {
     NEXT_PUBLIC_MONITORING_ENABLED: monitoringOn ? "true" : "false",
     NEXT_PUBLIC_SENTRY_ENVIRONMENT:
       process.env.SENTRY_ENVIRONMENT || process.env.VERCEL_ENV || process.env.NODE_ENV || "development",
+    // Mirror server flag so client pricing UI can gate WeChat CTAs without a rebuild rename.
+    NEXT_PUBLIC_WECHAT_PAY_ENABLED:
+      process.env.NEXT_PUBLIC_WECHAT_PAY_ENABLED === "true" ||
+      process.env.WECHAT_PAY_ENABLED === "true"
+        ? "true"
+        : "false",
   },
   experimental: {
     serverActions: {

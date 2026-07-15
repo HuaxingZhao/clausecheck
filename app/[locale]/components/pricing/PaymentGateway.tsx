@@ -13,6 +13,8 @@ import { canPurchaseAddOn, usePricingStore } from "@/stores/usePricingStore";
 import { Button } from "@/components/ui/button";
 import type { BillingCycle, Currency, CheckoutPlanId, PurchaseType } from "@/lib/pricing.config";
 import { localizedPath } from "@/i18n/routing";
+import { isWechatPayUiEnabled } from "@/lib/credits/wechat-pay-config";
+import CnyPayChannelCta from "./CnyPayChannelCta";
 
 export interface PaymentGatewayProps {
   purchaseType: PurchaseType;
@@ -24,6 +26,8 @@ export interface PaymentGatewayProps {
   onSuccess?: () => void;
   onRequireAuth?: () => void;
   onCancel?: () => void;
+  /** When WeChat UI is off, CNY checkout shows RMB consult CTA instead of wallet notes. */
+  onCnyPayContact?: () => void;
 }
 
 interface IntentResponse {
@@ -41,6 +45,7 @@ function PaymentForm({
   packs,
   onSuccess,
   onCancel,
+  onCnyPayContact,
 }: Omit<PaymentGatewayProps, "onRequireAuth">) {
   const t = useTranslations("pricing.payment");
   const stripe = useStripe();
@@ -50,6 +55,8 @@ function PaymentForm({
 
   const usedQuota = usePricingStore((s) => s.usedQuota);
   const quotaLimit = usePricingStore((s) => s.quotaLimit);
+  const showCnyConsult =
+    currency === "CNY" && !isWechatPayUiEnabled();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -97,18 +104,25 @@ function PaymentForm({
           }}
         />
       </div>
+      {showCnyConsult && (
+        <div className="flex justify-center">
+          <CnyPayChannelCta onContact={onCnyPayContact} />
+        </div>
+      )}
       {errorMessage && (
         <p className="text-sm text-red-700" role="alert">
           {errorMessage}
         </p>
       )}
-      <p className="text-xs text-ink-muted leading-relaxed">{t("disclaimer")}</p>
-      <div className="flex flex-col sm:flex-row gap-2">
+      <p className="text-xs text-ink-muted leading-relaxed text-center">
+        {t("disclaimer")}
+      </p>
+      <div className="flex flex-col sm:flex-row gap-2 justify-center max-w-md mx-auto w-full">
         <Button type="submit" disabled={!stripe || submitting} className="flex-1">
           {submitting ? t("processing") : t("payNow")}
         </Button>
         {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button type="button" variant="outline" onClick={onCancel} className="sm:flex-none">
             {t("cancel")}
           </Button>
         )}
