@@ -56,4 +56,4 @@
 
 - [x] 上述 25 处 user 相关 `::uuid` 全部移除
 - [x] `grep -R 'user_id.*::uuid\|userId.*::uuid' lib/invite lib/admin` 无匹配
-- [ ] `/invite` 兑换流程 + `/admin/users` 调额手测通过
+- [ ] `/invite` 兑换流程 + `/admin/users` 调额手测通过（代码 TD-001 已清；运维回归仍待勾）

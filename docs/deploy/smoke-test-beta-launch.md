@@ -266,7 +266,7 @@ BASE_URL="$BASE_URL" npm run test:smoke
 ## 7. Sign-off checklist (copy)
 
 - [ ] Preflight `/api/health` OK  
-- [ ] `/en/beta` HTTP 200 + Lighthouse a11y/BP/SEO ≥ 90  
+- [ ] `/beta` HTTP 200 + Lighthouse a11y/BP/SEO ≥ 90（`localePrefix: as-needed`，英文无 `/en` 前缀）  
 - [ ] `POST /api/beta/subscribe` writes `beta_waitlist`  
 - [ ] `/community/bounty` HTTP 200 + Claim → GitHub  
 - [ ] `/api/admin/feedback` 401/403 anonymous; 200 as admin  

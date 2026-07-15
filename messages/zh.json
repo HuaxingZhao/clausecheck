@@ -342,7 +342,7 @@
     "forgotSubtitle": "输入注册邮箱，我们将发送重置链接（30 分钟内有效）。",
     "forgotButton": "发送重置邮件",
     "forgotSent": "若该邮箱已注册，重置链接已发送，请查收邮件。",
-    "forgotSentHint": "几分钟内未收到：请检查垃圾箱；确认该邮箱已注册；或改用 Google 登录；仍不行请联系 support@clausecheck.cc。",
+    "forgotSentHint": "几分钟内未收到：请检查垃圾箱；确认该邮箱已注册；仍不行请联系 support@clausecheck.cc。",
     "forgotFailed": "发送失败，请稍后再试",
     "backToLogin": "返回登录",
     "resetTitle": "重置密码",
@@ -1060,6 +1060,84 @@
         "a": "劳动合同、租赁合同、服务协议、保密协议、自由职业合同、合伙协议都非常适合。AI 已在广泛的商业和消费合同类型上做过训练。"
       }
     ]
+  },
+  "communityBounty": {
+    "meta": {
+      "title": "法域 Pack 悬赏 | ClauseCheck 社区",
+      "description": "帮助 ClauseCheck 覆盖你熟悉的法律体系。认领悬赏、搭建 Jurisdiction Pack，赢取终身 Pro（高优先级另有现金感谢）。"
+    },
+    "navClaim": "认领悬赏",
+    "brand": "ClauseCheck 社区",
+    "heroTitle": "法域 Pack 悬赏：一起覆盖你熟悉的法律体系",
+    "heroSub": "与一线实务者共创决策支持 Pack。当前开放 {openCount} 个名额 — 高优先级含终身 Pro 与现金感谢。",
+    "readGuide": "阅读贡献指南",
+    "disclaimer": "社区 Pack 经审阅但不保证完备。请自行核实。不构成法律意见。",
+    "boardLabel": "开放悬赏",
+    "boardTitle": "悬赏看板",
+    "boardLead": "状态每小时从带 ",
+    "boardLeadCode": "bounty",
+    "boardLeadAfter": " 标签的 GitHub Issue 刷新。开工前请先在 Issue 上认领。",
+    "colJurisdiction": "法域",
+    "colPriority": "优先级",
+    "colReward": "奖励",
+    "colStatus": "状态",
+    "colAssignee": "认领人",
+    "claim": "认领",
+    "issue": "Issue #{number}",
+    "priority": {
+      "High": "高",
+      "Medium": "中",
+      "Low": "低"
+    },
+    "status": {
+      "Open": "开放",
+      "Claimed": "已认领",
+      "In Review": "审阅中",
+      "Completed": "已完成"
+    },
+    "stepsLabel": "如何参与",
+    "stepsTitle": "四步流程",
+    "steps": [
+      { "n": "1", "title": "读文档", "body": "了解 Pack 接口、命名与审阅约束。" },
+      { "n": "2", "title": "脚手架", "body": "一条命令生成 pack、测试与注册表接线。" },
+      { "n": "3", "title": "测试", "body": "补充 ± 模式测试，通过 AI / 本地预检。" },
+      { "n": "4", "title": "提 PR", "body": "打开 Pull Request；CI 校验 packs/ 变更。" }
+    ],
+    "resourcesLabel": "资源",
+    "resourcesTitle": "从这里开始",
+    "resContributing": "贡献 Jurisdiction Packs",
+    "resContributingHint": " — 接口、命名、PR 流程",
+    "resScaffoldHint": " — 脚手架 pack + 测试 + 注册表",
+    "resExample": "示例 Pack（us-ca）",
+    "resExampleHint": " — 参考实现",
+    "resDiscord": "Discord — #jurisdiction-packs",
+    "resDiscordHint": " — 提问、找协作者",
+    "faqLabel": "常见问题",
+    "faqTitle": "认领前请阅读",
+    "faq": {
+      "items": [
+        {
+          "q": "审阅标准是什么？",
+          "a": "我们检查：(1) 法域特有指引且不重复 Base；(2) 有辨识度的管辖条款模式与 ± 测试；(3) token 预算与 validate:pack；(4) 可粘贴的建议文风。法律准确性由维护者与社区善意审阅 — 非律师资格认证。"
+        },
+        {
+          "q": "奖励何时发放？",
+          "a": "PR 合并且 Pack 上线生产（或悬赏 Issue 标为 Completed）后。终身 / 一年 Pro 在 7 个工作日内开通；高优先级现金感谢在简短核验邮件后发放。"
+        },
+        {
+          "q": "可以多人协作吗？",
+          "a": "可以 — 先认领悬赏 Issue（自行 assign），再在同一 PR 协作。在 PR 说明中写清贡献分配；具名贡献者会出现在 pack credits 页。开放悬赏上先到先得的清晰认领有效，除非超过 14 天无 PR 视为放弃。"
+        },
+        {
+          "q": "知识产权归谁？",
+          "a": "提交 PR 即按仓库 LICENSE 授权贡献。你保留作者署名。请勿粘贴客户机密或超出合理引用范围的成文法全文。"
+        }
+      ]
+    },
+    "footerTitle": "准备认领了？",
+    "footerLead": "用悬赏模板打开 GitHub Issue — 我们从那里协调审阅与奖励发放。",
+    "footerDisclaimer": "社区 Pack 经审阅但不保证完备。请自行核实。",
+    "backHome": "← 返回 ClauseCheck"
   },
   "footer": {
     "text": "© {year} ClauseCheck · AI 合同助手 · 仅供参考，不构成法律意见"

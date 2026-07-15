@@ -2,6 +2,16 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-15 — Post-#27 文案 / bounty i18n / 文档
+
+- 忘记密码：`forgotSentHint` + API 503/500 去掉「改用 Google」；引导 spam / support。
+- `/community/bounty`：`communityBounty` zh/en（metadata、看板、步骤、FAQ、CTA）。
+- EN invite：`review credits` → `document reviews`；`PROJECT-STATUS` 对齐 Plan A；smoke `/beta`；TECH_DEBT 手测说明。
+
+## 2026-07-15 — Post-#27 全量巡检
+
+- Prod 已部署 #27；P0 安全项仍绿。无阻断 bug；上节已收口文案/i18n/文档。
+
 ## 2026-07-14 — Post-#26 生产巡检修复
 
 - Prod `version=0efd79f`（#26）健康：DB/OpenAI/paymentWebhook ok；mock-qr 404；微信 topup 503；bounty 无 `/en`。
