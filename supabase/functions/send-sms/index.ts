@@ -9,7 +9,7 @@
  *   SEND_SMS_HOOK_SECRET          # Dashboard 生成的 v1,whsec_...
  *   ALIYUN_ACCESS_KEY_ID
  *   ALIYUN_ACCESS_KEY_SECRET
- *   ALIYUN_SMS_SIGN_NAME          # 控制台赠送签名，如「速通互联验证码」
+ *   ALIYUN_SMS_SIGN_NAME          # 控制台赠送签名（生产验证：恒创联众）
  *   ALIYUN_SMS_TEMPLATE_CODE      # 控制台赠送模板，登录/注册一般为 100001
  *   # 可选：非 +86 回退 Twilio（启用 Hook 后默认短信通道会被替换）
  *   TWILIO_ACCOUNT_SID
