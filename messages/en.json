@@ -1,5 +1,6 @@
 {
   "ai_disclaimer_export": "⚠️ This content is AI-generated for reference only and does not constitute legal advice.",
+  "ai_notice": "ClauseCheck provides AI decision support and negotiation material — not legal advice.",
   "nav": {
     "brand": "ClauseCheck",
     "how": "How It Works",
@@ -17,7 +18,7 @@
     "title2": "Let AI Review It",
     "subtitle": "Pick your contract scenario, upload, and get industry-specific AI review in 3 minutes.",
     "cta": "Scan Your Contract Free →",
-    "trust": "Free trial · Sign in to scan · 1 review included · Encrypted",
+    "trust": "Free trial · Sign in to scan · 1 review included · Encrypted · Deleted after scan · Not legal advice",
     "sampleReport": "View sample report",
     "zhNote": ""
   },
@@ -479,7 +480,7 @@
       "Bilingual EN / 中文 reports",
       "Not legal advice — decision support only"
     ],
-    "disclaimer": "Sample uses demo contract data for illustration."
+    "disclaimer": "Sample uses demo contract data for illustration. Decision support only — not legal advice."
   },
   "emailReport": {
     "hint": "Or email this report to yourself or your lawyer (PDF attached).",
@@ -779,7 +780,7 @@
     "upgradeToDownload": "Upgrade to Download",
     "freePreviewHint": "Free plan shows a watermarked preview (~30%). Pro unlocks the full document.",
     "unlockedBadge": "Full document unlocked (Pro)",
-    "disclaimerFoot": "AI-generated draft. Review by qualified counsel before use."
+    "disclaimerFoot": "AI-generated draft for decision support only — not legal advice. Review by qualified counsel before use."
   },
   "pricing": {
     "label": "Pricing",
@@ -995,7 +996,7 @@
         },
         {
           "q": "Is this legal advice?",
-          "a": "No. ClauseCheck is decision support and negotiation material. High-stakes deals still need qualified counsel."
+          "a": "No. ClauseCheck is decision support and negotiation material — not legal advice. High-stakes deals still need qualified counsel."
         },
         {
           "q": "What happens after I subscribe?",
@@ -1124,7 +1125,7 @@
     },
     "footerTitle": "Ready to claim?",
     "footerLead": "Open a GitHub Issue with the bounty template — we will coordinate review and reward fulfillment from there.",
-    "footerDisclaimer": "Community packs are reviewed but not guaranteed. Always verify.",
+    "footerDisclaimer": "Community packs are reviewed but not guaranteed. Always verify. Not legal advice.",
     "backHome": "← Back to ClauseCheck"
   },
   "footer": {
