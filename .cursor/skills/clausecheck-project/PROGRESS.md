@@ -2,6 +2,12 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-16 — #36 已合并（§4 + 微信门控）
+
+- PR https://github.com/HuaxingZhao/clausecheck/pull/36 squash → `ed27aca`；生产 tip 以 `/api/health` → `version` 为准（部署后应 ≠旧 `1bdae8d`）。
+- §4 文案 + WeChat UI 门控（开关∧收银）+ `docs/WECHAT_PAY_ENABLEMENT.md` 已上 main。
+- 微信生产仍**不开**，等商户 `WECHAT_PAY_QR_BASE`；法务 DPA 签字仍外部并行。
+
 ## 2026-07-16 — §4 合规叙事收口 + 微信启用清单
 
 - **§4 产品侧已决：** `hero.trust` 保留「不构成法律意见」；「扫完即删」→「正文不长期保留」；FAQ/how/about/privacy/terms 与 ≤24h 硬删一致；训练措辞去歧义；`beta.benefits.disclaimer`→`perkNote`；联系邮箱统一 `support@clausecheck.cc`。
