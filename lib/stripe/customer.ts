@@ -2,33 +2,21 @@ import type Stripe from "stripe";
 
 export type StripeBillingCurrency = "usd" | "cny";
 
-async function getCustomerLockedCurrency(
-  stripe: Stripe,
-  customerId: string
-): Promise<string | null> {
-  const subs = await stripe.subscriptions.list({
-    customer: customerId,
-    limit: 1,
-    status: "all",
-  });
-  if (subs.data[0]?.currency) return subs.data[0].currency;
-
-  const items = await stripe.invoiceItems.list({ customer: customerId, limit: 1 });
-  if (items.data[0]?.currency) return items.data[0].currency;
-
-  const invoices = await stripe.invoices.list({ customer: customerId, limit: 1 });
-  if (invoices.data[0]?.currency) return invoices.data[0].currency;
-
-  return null;
-}
-
 /**
  * Stripe forbids mixing currencies on one Customer.
  * Resolve a customer per (userId, billing currency) — never reuse email-only SGD legacy records for USD/CNY.
+ *
+ * Fast path: Customer Search by metadata. If missing, create immediately.
+ * Avoids per-customer subscriptions/invoices list probes (was multi-second).
  */
 export async function resolveStripeCustomer(
   stripe: Stripe,
-  params: { userId: string; email?: string | null; phone?: string | null; currency: StripeBillingCurrency }
+  params: {
+    userId: string;
+    email?: string | null;
+    phone?: string | null;
+    currency: StripeBillingCurrency;
+  }
 ): Promise<string> {
   try {
     const search = await stripe.customers.search({
@@ -37,33 +25,22 @@ export async function resolveStripeCustomer(
     });
     if (search.data[0]) return search.data[0].id;
   } catch {
-    /* Customer Search may be unavailable — fall back to list */
+    /* Customer Search may be unavailable — fall back below */
   }
 
   if (params.email) {
-    const byEmail = await stripe.customers.list({ email: params.email, limit: 20 });
-
-    for (const customer of byEmail.data) {
-      if (
-        customer.metadata?.userId === params.userId &&
-        customer.metadata?.currency === params.currency
-      ) {
-        return customer.id;
+    try {
+      const byEmail = await stripe.customers.list({ email: params.email, limit: 10 });
+      for (const customer of byEmail.data) {
+        if (
+          customer.metadata?.userId === params.userId &&
+          customer.metadata?.currency === params.currency
+        ) {
+          return customer.id;
+        }
       }
-    }
-
-    for (const customer of byEmail.data) {
-      const locked = await getCustomerLockedCurrency(stripe, customer.id);
-      if (locked === null || locked === params.currency) {
-        await stripe.customers.update(customer.id, {
-          metadata: {
-            ...customer.metadata,
-            userId: params.userId,
-            currency: params.currency,
-          },
-        });
-        return customer.id;
-      }
+    } catch {
+      /* ignore list errors; create below */
     }
   }
 

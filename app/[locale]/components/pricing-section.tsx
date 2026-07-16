@@ -47,6 +47,11 @@ export default function PricingSection({
   const t = useTranslations("pricing");
   usePricingQuotaSync(locale);
 
+  // Prefetch Stripe.js while user browses pricing (cuts checkout open latency).
+  useEffect(() => {
+    void import("@/lib/stripe-client").then((m) => m.getStripe());
+  }, []);
+
   const billingCycle = usePricingStore((s) => s.billingCycle);
   const currency = usePricingStore((s) => s.currency);
   const usedQuota = usePricingStore((s) => s.usedQuota);

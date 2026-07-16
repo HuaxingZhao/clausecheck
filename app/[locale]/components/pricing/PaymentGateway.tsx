@@ -86,8 +86,7 @@ function CheckoutSummary({
     purchaseType === "addon"
       ? tPricing("addOn.name")
       : tPricing(`${plan ?? "pro"}.name`);
-  const cycleName =
-    purchaseType === "addon" ? null : tPricing(billingCycle);
+  const cycleName = purchaseType === "addon" ? null : tPricing(billingCycle);
 
   return (
     <div className="rounded-xl border border-ink/10 bg-paper-dark/40 px-4 py-3 space-y-2 font-sans">
@@ -95,7 +94,9 @@ function CheckoutSummary({
         <p className="text-xs font-medium text-ink-muted uppercase tracking-wide">
           {t("orderSummary")}
         </p>
-        <p className="text-xs text-ink-muted">{t("summaryHint")}</p>
+        <p className="text-xs text-ink-muted max-w-[55%] text-right leading-snug">
+          {t("summaryHint")}
+        </p>
       </div>
       <div className="flex items-end justify-between gap-3">
         <div className="min-w-0">
@@ -130,6 +131,18 @@ function CheckoutSummary({
           <p className="text-2xl font-semibold text-ink tabular-nums">{amountLabel}</p>
         </div>
       </div>
+    </div>
+  );
+}
+
+function PaymentFormSkeleton() {
+  const t = useTranslations("pricing.payment");
+  return (
+    <div className="space-y-3 font-sans" aria-busy="true" aria-live="polite">
+      <p className="text-xs text-ink-muted">{t("loading")}</p>
+      <div className="h-11 rounded-lg bg-ink/5 animate-pulse" />
+      <div className="h-11 rounded-lg bg-ink/5 animate-pulse" />
+      <div className="h-24 rounded-lg bg-ink/5 animate-pulse" />
     </div>
   );
 }
@@ -204,16 +217,6 @@ function PaymentForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 font-sans">
-      <CheckoutSummary
-        purchaseType={purchaseType}
-        currency={currency}
-        billingCycle={billingCycle}
-        locale={locale}
-        plan={plan}
-        packs={packs}
-        amount={amount}
-        prepaid={prepaid}
-      />
       <div className="w-full [&_.p-PaymentElement]:w-full">
         <PaymentElement
           options={{
@@ -256,16 +259,30 @@ function PaymentForm({
 
 export default function PaymentGateway(props: PaymentGatewayProps) {
   const t = useTranslations("pricing.payment");
-  const { purchaseType, currency, billingCycle, plan, packs, onRequireAuth } = props;
+  const { purchaseType, currency, billingCycle, plan, packs, onRequireAuth, onCancel } =
+    props;
+
+  const displayAmount = useMemo(
+    () => computeDisplayAmount(purchaseType, currency, billingCycle, plan, packs),
+    [purchaseType, currency, billingCycle, plan, packs]
+  );
+  const displayPrepaid =
+    purchaseType === "addon" ||
+    (purchaseType === "subscription" && currency === "CNY");
+
   const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [amount, setAmount] = useState(() =>
-    computeDisplayAmount(purchaseType, currency, billingCycle, plan, packs)
-  );
-  const [prepaid, setPrepaid] = useState(
-    () => purchaseType === "subscription" && currency === "CNY"
-  );
+  const [amount, setAmount] = useState(displayAmount);
+  const [prepaid, setPrepaid] = useState(displayPrepaid);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
+
+  // Warm Stripe.js as soon as the gateway mounts (parallel with intent fetch).
+  const stripePromise = useMemo(() => getStripe(), []);
+
+  useEffect(() => {
+    setAmount(displayAmount);
+    setPrepaid(displayPrepaid);
+  }, [displayAmount, displayPrepaid]);
 
   useEffect(() => {
     let cancelled = false;
@@ -273,15 +290,7 @@ export default function PaymentGateway(props: PaymentGatewayProps) {
     async function createIntent() {
       setLoading(true);
       setFetchError(null);
-      const fallbackAmount = computeDisplayAmount(
-        purchaseType,
-        currency,
-        billingCycle,
-        plan,
-        packs
-      );
-      setAmount(fallbackAmount);
-      setPrepaid(purchaseType === "subscription" && currency === "CNY");
+      setClientSecret(null);
       try {
         const body =
           purchaseType === "addon"
@@ -321,8 +330,6 @@ export default function PaymentGateway(props: PaymentGatewayProps) {
           }
           if (typeof data.prepaid === "boolean") {
             setPrepaid(data.prepaid);
-          } else {
-            setPrepaid(purchaseType === "subscription" && currency === "CNY");
           }
         }
       } catch (err) {
@@ -338,47 +345,53 @@ export default function PaymentGateway(props: PaymentGatewayProps) {
     return () => {
       cancelled = true;
     };
-  }, [
-    purchaseType,
-    currency,
-    billingCycle,
-    plan,
-    packs,
-    onRequireAuth,
-  ]);
-
-  const stripePromise = useMemo(() => getStripe(), []);
-
-  if (loading) {
-    return <p className="text-sm text-ink-muted font-sans">{t("loading")}</p>;
-  }
-
-  if (fetchError || !clientSecret) {
-    return (
-      <p className="text-sm text-red-700 font-sans" role="alert">
-        {fetchError ?? t("errors.generic")}
-      </p>
-    );
-  }
+  }, [purchaseType, currency, billingCycle, plan, packs, onRequireAuth]);
 
   return (
-    <Elements
-      stripe={stripePromise}
-      options={{
-        clientSecret,
-        locale: props.locale === "zh" ? "zh" : "en",
-        appearance: { theme: "stripe", variables: { colorPrimary: "#1A365D" } },
-      }}
-    >
-      <PaymentForm
-        {...props}
+    <div className="space-y-4">
+      <CheckoutSummary
+        purchaseType={purchaseType}
+        currency={currency}
+        billingCycle={billingCycle}
+        locale={props.locale}
+        plan={plan}
+        packs={packs}
         amount={amount}
-        prepaid={
-          purchaseType === "addon"
-            ? true
-            : prepaid || (purchaseType === "subscription" && currency === "CNY")
-        }
+        prepaid={prepaid}
       />
-    </Elements>
+
+      {fetchError && !clientSecret && (
+        <p className="text-sm text-red-700 font-sans" role="alert">
+          {fetchError}
+        </p>
+      )}
+
+      {loading && !clientSecret && <PaymentFormSkeleton />}
+
+      {clientSecret && (
+        <Elements
+          stripe={stripePromise}
+          options={{
+            clientSecret,
+            locale: props.locale === "zh" ? "zh" : "en",
+            appearance: { theme: "stripe", variables: { colorPrimary: "#1A365D" } },
+          }}
+        >
+          <PaymentForm
+            {...props}
+            amount={amount}
+            prepaid={prepaid}
+          />
+        </Elements>
+      )}
+
+      {!loading && !clientSecret && !fetchError && onCancel && (
+        <div className="flex justify-center">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            {t("cancel")}
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }
