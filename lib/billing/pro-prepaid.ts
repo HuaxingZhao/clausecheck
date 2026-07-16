@@ -1,11 +1,14 @@
-import type { BillingCycle } from "@/lib/pricing.config";
+import {
+  prepaidDaysForBillingCycle,
+  type BillingCycle,
+} from "@/lib/pricing.config";
 import { findUserById, updateUserEntitlementsById } from "@/lib/db/store";
 import { syncSubscriptionDocumentQuota } from "@/lib/db/document-quota";
 import type { SubscriptionStatus, User } from "@/lib/db/types";
 
-/** Prepaid Pro window: monthly = 30 days, annual = 365 days. */
+/** Prepaid Pro window in calendar days (30 / 90 / 182 / 365). */
 export function prepaidDaysForCycle(cycle: BillingCycle): number {
-  return cycle === "annual" ? 365 : 30;
+  return prepaidDaysForBillingCycle(cycle);
 }
 
 /**
@@ -26,6 +29,13 @@ export function computeProUntilFromCycle(
   const end = new Date(base.getTime());
   end.setUTCDate(end.getUTCDate() + days);
   return end.toISOString();
+}
+
+export function parseBillingCycle(raw: string | undefined | null): BillingCycle {
+  if (raw === "quarterly" || raw === "semi_annual" || raw === "annual" || raw === "monthly") {
+    return raw;
+  }
+  return "monthly";
 }
 
 export async function grantProPrepaid(input: {

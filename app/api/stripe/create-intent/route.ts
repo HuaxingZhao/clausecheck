@@ -4,16 +4,19 @@ import { z } from "zod";
 import { getSessionFromRequest } from "@/lib/auth/session";
 import {
   addOnTotalPrice,
-  annualBilledTotal,
   checkoutPriceId,
   getSubscriptionPaymentMethodTypes,
   isCheckoutEnabled,
+  isRecurringBillingCycle,
   monthlyUnitPrice,
+  prepaidBilledTotal,
+  prepaidDaysForBillingCycle,
   stripeCurrencyKey,
   toStripeCents,
   type BillingCycle,
   type CheckoutPlanId,
   type Currency,
+  type RecurringBillingCycle,
 } from "@/lib/pricing.config";
 import {
   extractInvoiceClientSecret,
@@ -29,7 +32,7 @@ const intentSchema = z.discriminatedUnion("purchaseType", [
   z.object({
     purchaseType: z.literal("subscription"),
     plan: z.literal("pro"),
-    billingCycle: z.enum(["monthly", "annual"]),
+    billingCycle: z.enum(["monthly", "quarterly", "semi_annual", "annual"]),
     currency: z.enum(["USD", "CNY"]),
   }),
   z.object({
@@ -49,11 +52,12 @@ async function createSubscriptionIntent(
   priceKey: string,
   userId: string
 ) {
-  const isMonthly = cycle === "monthly";
+  const recurringCycle = cycle as RecurringBillingCycle;
+  const isMonthly = recurringCycle === "monthly";
   const unitAmount = toStripeCents(
     isMonthly
       ? monthlyUnitPrice(plan, currency, "monthly")
-      : annualBilledTotal(plan, currency),
+      : prepaidBilledTotal(plan, currency, "annual"),
     currency
   );
   const label = `ClauseCheck ${plan.charAt(0).toUpperCase() + plan.slice(1)} · ${isMonthly ? "Monthly" : "Annual"}`;
@@ -86,7 +90,7 @@ async function createSubscriptionIntent(
     subscriptionId: subscription.id,
     amount: isMonthly
       ? monthlyUnitPrice(plan, currency, "monthly")
-      : annualBilledTotal(plan, currency),
+      : prepaidBilledTotal(plan, currency, "annual"),
   };
 }
 
@@ -155,12 +159,10 @@ export async function POST(req: NextRequest) {
     const cycle = body.billingCycle as BillingCycle;
 
     // CNY Pro: one-time PaymentIntent so WeChat Pay can appear (Stripe WeChat
-    // does not support recurring subscriptions). Grants prepaid 30/365 days.
+    // does not support recurring). Grants prepaid 30 / 90 / 182 / 365 days.
     if (currency === "CNY") {
-      const amount =
-        cycle === "monthly"
-          ? monthlyUnitPrice(plan, currency, "monthly")
-          : annualBilledTotal(plan, currency);
+      const amount = prepaidBilledTotal(plan, currency, cycle);
+      const days = String(prepaidDaysForBillingCycle(cycle));
       const intent = await stripe.paymentIntents.create({
         amount: toStripeCents(amount, currency),
         currency: stripeCurrency,
@@ -171,7 +173,7 @@ export async function POST(req: NextRequest) {
           userId: session.sub,
           plan,
           cycle,
-          days: cycle === "annual" ? "365" : "30",
+          days,
         },
       });
 
@@ -184,6 +186,16 @@ export async function POST(req: NextRequest) {
         plan,
         billingCycle: cycle,
       });
+    }
+
+    if (!isRecurringBillingCycle(cycle)) {
+      return NextResponse.json(
+        {
+          error:
+            "Quarterly and semi-annual billing are only available for CNY prepaid checkout.",
+        },
+        { status: 400 }
+      );
     }
 
     const paymentMethodTypes = getSubscriptionPaymentMethodTypes(currency, cycle);

@@ -188,8 +188,8 @@ export async function syncPaymentIntentSucceeded(intent: Stripe.PaymentIntent) {
   if (!userId) return null;
 
   if (purchaseType === "pro_prepaid") {
-    const cycleRaw = intent.metadata?.cycle;
-    const cycle = cycleRaw === "annual" ? "annual" : "monthly";
+    const { parseBillingCycle } = await import("./pro-prepaid");
+    const cycle = parseBillingCycle(intent.metadata?.cycle);
     const customerId =
       typeof intent.customer === "string"
         ? intent.customer

@@ -109,6 +109,7 @@ export default function PricingSection({
         <div className="flex flex-col lg:flex-row items-center justify-center gap-6 mb-8">
           <PricingToggle
             billingCycle={billingCycle}
+            currency={currency}
             onBillingCycleChange={setBillingCycle}
           />
           <CurrencySelector
