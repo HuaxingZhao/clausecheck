@@ -795,15 +795,16 @@
     "annual": "年付",
     "monthly": "月付",
     "savingsBadge": "省{percent}%",
-    "cnyWalletNote": "银行卡始终可用。微信支付等本地方式需在 Stripe 账户中开通后才会显示。",
+    "cnyWalletNote": "银行卡始终可用。若 Stripe 已开通微信支付，结账时可选择微信（一次性付款，不自动续费）。",
     "cnyPayChannelCta": "中国大陆用户？联系我们获取人民币支付通道",
     "cnyPayChannelTitle": "企业咨询 / 人民币支付通道",
-    "cnyPayChannelBody": "微信官方商户通道尚未对公开放。请留下联系方式，我们将协助开通人民币对公/对私支付通道；也可直接邮件联系 support@clausecheck.cc。",
+    "cnyPayChannelBody": "如需对公转账或其他人民币通道，请留下联系方式；也可直接邮件联系 support@clausecheck.cc。",
+    "cnyPrepaidNote": "人民币专业版为一次性预付（月付 30 天 / 年付 365 天），不自动续费；可用微信或银行卡支付。",
     "comingSoonBadge": "即将推出",
     "placeholderClose": "关闭",
     "resetNote": "配额在订阅周年日零点重置。",
     "processing": "处理中…",
-    "footnote": "加油包仅对当前计费周期有效。年付较月付节省 15%。",
+    "footnote": "加油包仅对当前计费周期有效。年付较月付节省 15%。人民币专业版为预付时长，不自动扣款。",
     "trial": {
       "name": "试用版",
       "audience": "验证需求",
@@ -825,7 +826,8 @@
         "✅ 优先审查队列",
         "✅ 云端报告历史"
       ],
-      "cta": "立即订阅"
+      "cta": "立即订阅",
+      "ctaCny": "立即购买（预付）"
     },
     "team": {
       "name": "团队版",
@@ -874,7 +876,8 @@
       "payNow": "立即支付",
       "cancel": "取消",
       "disclaimer": "支付由 Stripe 处理。ClauseCheck 提供 AI 决策支持，不构成法律意见。",
-      "cnyMonthlyWalletBlock": "微信/支付宝仅支持年付或一次性加油包。请切换为年付以使用钱包支付。",
+      "cnyPrepaidDisclaimer": "人民币专业版为一次性预付，不自动续费。支付成功后立即开通对应时长。",
+      "cnyMonthlyWalletBlock": "微信/支付宝可用于人民币一次性付款（专业版预付或加油包）。",
       "switchToAnnual": "切换为年付",
       "errors": {
         "generic": "支付失败，请重试。",

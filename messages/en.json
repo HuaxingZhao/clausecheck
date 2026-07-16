@@ -795,15 +795,16 @@
     "annual": "Annual",
     "monthly": "Monthly",
     "savingsBadge": "-{percent}%",
-    "cnyWalletNote": "Card is always available. WeChat Pay and other local methods appear when enabled in your Stripe account settings.",
+    "cnyWalletNote": "Card is always available. If WeChat Pay is enabled on your Stripe account, it appears at checkout (one-time payment — no auto-renewal).",
     "cnyPayChannelCta": "Mainland China user? Contact us for an RMB payment channel",
     "cnyPayChannelTitle": "Enterprise consult / RMB payment",
-    "cnyPayChannelBody": "Official WeChat merchant checkout is not open yet. Leave your details and we will help set up an RMB payment channel, or email support@clausecheck.cc.",
+    "cnyPayChannelBody": "For bank transfer or other RMB channels, leave your details or email support@clausecheck.cc.",
+    "cnyPrepaidNote": "RMB Pro is prepaid (30 days monthly / 365 days annually) with no auto-renewal. Pay with WeChat or card.",
     "comingSoonBadge": "Coming soon",
     "placeholderClose": "Close",
     "resetNote": "Quotas reset at midnight on your subscription anniversary date.",
     "processing": "Processing…",
-    "footnote": "Add-on reviews apply to the current billing cycle only. Annual plans save 15% vs monthly.",
+    "footnote": "Add-on reviews apply to the current billing cycle only. Annual plans save 15% vs monthly. RMB Pro is prepaid time — no auto-charge.",
     "trial": {
       "name": "Trial",
       "audience": "Validate before you commit",
@@ -825,7 +826,8 @@
         "✅ Priority review queue",
         "✅ Cloud report history"
       ],
-      "cta": "Subscribe"
+      "cta": "Subscribe",
+      "ctaCny": "Buy now (prepaid)"
     },
     "team": {
       "name": "Team",
@@ -874,7 +876,8 @@
       "payNow": "Pay now",
       "cancel": "Cancel",
       "disclaimer": "Payments are processed by Stripe. ClauseCheck provides AI decision support, not legal advice.",
-      "cnyMonthlyWalletBlock": "WeChat Pay and Alipay require annual billing or a one-time add-on purchase. Switch to annual to use wallet payment.",
+      "cnyPrepaidDisclaimer": "RMB Pro is a one-time prepaid purchase with no auto-renewal. Access starts as soon as payment succeeds.",
+      "cnyMonthlyWalletBlock": "WeChat Pay and Alipay are available for one-time RMB payments (prepaid Pro or add-ons).",
       "switchToAnnual": "Switch to annual billing",
       "errors": {
         "generic": "Payment failed. Please try again.",

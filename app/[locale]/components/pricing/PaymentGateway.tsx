@@ -13,9 +13,6 @@ import { canPurchaseAddOn, usePricingStore } from "@/stores/usePricingStore";
 import { Button } from "@/components/ui/button";
 import type { BillingCycle, Currency, CheckoutPlanId, PurchaseType } from "@/lib/pricing.config";
 import { localizedPath } from "@/i18n/routing";
-import { isWechatPayUiEnabled } from "@/lib/credits/wechat-pay-config";
-import CnyPayChannelCta from "./CnyPayChannelCta";
-
 export interface PaymentGatewayProps {
   purchaseType: PurchaseType;
   currency: Currency;
@@ -26,7 +23,7 @@ export interface PaymentGatewayProps {
   onSuccess?: () => void;
   onRequireAuth?: () => void;
   onCancel?: () => void;
-  /** When WeChat UI is off, CNY checkout shows RMB consult CTA instead of wallet notes. */
+  /** @deprecated CNY Stripe Element shows prepaid note; consult CTA unused here. */
   onCnyPayContact?: () => void;
 }
 
@@ -45,9 +42,9 @@ function PaymentForm({
   packs,
   onSuccess,
   onCancel,
-  onCnyPayContact,
 }: Omit<PaymentGatewayProps, "onRequireAuth">) {
   const t = useTranslations("pricing.payment");
+  const tPricing = useTranslations("pricing");
   const stripe = useStripe();
   const elements = useElements();
   const [submitting, setSubmitting] = useState(false);
@@ -55,8 +52,8 @@ function PaymentForm({
 
   const usedQuota = usePricingStore((s) => s.usedQuota);
   const quotaLimit = usePricingStore((s) => s.quotaLimit);
-  const showCnyConsult =
-    currency === "CNY" && !isWechatPayUiEnabled();
+  const showCnyPrepaidNote =
+    currency === "CNY" && purchaseType === "subscription";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -104,10 +101,15 @@ function PaymentForm({
           }}
         />
       </div>
-      {showCnyConsult && (
-        <div className="flex justify-center">
-          <CnyPayChannelCta onContact={onCnyPayContact} />
-        </div>
+      {showCnyPrepaidNote && (
+        <p className="text-xs text-amber-800 leading-relaxed text-center font-sans">
+          {t("cnyPrepaidDisclaimer")}
+        </p>
+      )}
+      {currency === "CNY" && !showCnyPrepaidNote && (
+        <p className="text-xs text-ink-muted leading-relaxed text-center font-sans">
+          {tPricing("cnyWalletNote")}
+        </p>
       )}
       {errorMessage && (
         <p className="text-sm text-red-700" role="alert">

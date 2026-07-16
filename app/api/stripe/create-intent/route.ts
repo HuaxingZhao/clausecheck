@@ -153,6 +153,39 @@ export async function POST(req: NextRequest) {
       );
     }
     const cycle = body.billingCycle as BillingCycle;
+
+    // CNY Pro: one-time PaymentIntent so WeChat Pay can appear (Stripe WeChat
+    // does not support recurring subscriptions). Grants prepaid 30/365 days.
+    if (currency === "CNY") {
+      const amount =
+        cycle === "monthly"
+          ? monthlyUnitPrice(plan, currency, "monthly")
+          : annualBilledTotal(plan, currency);
+      const intent = await stripe.paymentIntents.create({
+        amount: toStripeCents(amount, currency),
+        currency: stripeCurrency,
+        customer: customerId,
+        automatic_payment_methods: { enabled: true },
+        metadata: {
+          purchaseType: "pro_prepaid",
+          userId: session.sub,
+          plan,
+          cycle,
+          days: cycle === "annual" ? "365" : "30",
+        },
+      });
+
+      return NextResponse.json({
+        clientSecret: intent.client_secret,
+        purchaseType: "subscription",
+        prepaid: true,
+        amount,
+        currency,
+        plan,
+        billingCycle: cycle,
+      });
+    }
+
     const paymentMethodTypes = getSubscriptionPaymentMethodTypes(currency, cycle);
     const priceKey = checkoutPriceId(plan, cycle);
 

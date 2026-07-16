@@ -36,7 +36,7 @@ PR #19–#35 ：Plan A / 安全收口 / 微信门控 / 导出免责 /
 | 主题 | 状态 | 指针 |
 |------|------|------|
 | 专家评估附件 | ✅ #35；桌面 zip 曾导出 | `docs/EXPERT_BRIEF.md` + privacy/i18n 审计 |
-| 微信支付 UI | ✅ 默认关；CNY→人民币咨询 CTA；门控=开关∧收银 | `docs/WECHAT_PAY_ENABLEMENT.md`（缺 `QR_BASE`） |
+| 微信支付 | ✅ Stripe WeChat：加油包 + **CNY Pro 预付**；独立 QR topup 仍关 | CNY Pro=`pro_prepaid` PI；USD Pro 仍订阅 |
 | 导出免责声明 | ✅ Word 横幅+页眉；邮件文末 | `ai_disclaimer_export` / `lib/ai-disclaimer.ts` |
 | 隐私硬删 | ✅ 小时 Cron ≤24h；报告脱敏 | `/api/cron/purge-contract-data` + `CRON_SECRET` |
 | 合规 i18n | ✅ §4 产品侧已收口；DPA 签字仍外部 | `docs/I18N_COMPLIANCE_DIFF_REPORT.md` |

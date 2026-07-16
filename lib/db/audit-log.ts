@@ -12,7 +12,8 @@ export type AuditAction =
   | "quota.addon_grant"
   | "payment.subscription_created"
   | "payment.invoice_succeeded"
-  | "payment.addon_succeeded";
+  | "payment.addon_succeeded"
+  | "payment.pro_prepaid";
 
 export async function writeAuditLog(input: {
   userId?: string | null;

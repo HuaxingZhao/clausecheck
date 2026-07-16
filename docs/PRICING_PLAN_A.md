@@ -46,17 +46,22 @@ Banned UI copy: *token*, *unlimited*, *credits* → use **文档审阅配额 / �
 
 All checkout uses **Stripe Payment Element** (`PaymentGateway`). Methods are filtered server-side via `getPaymentMethodTypes()` in `pricing.config.ts`.
 
-### USD / CNY subscriptions
+### USD Pro (recurring subscription)
 
 | Purchase | Billing | Server-side types | Payment Element |
 |----------|---------|-------------------|-----------------|
-| Pro subscription | Monthly / Annual | `card` only | Apple Pay, Google Pay, Link, WeChat, etc. when **enabled in [Stripe Dashboard](https://dashboard.stripe.com/settings/payment_methods)** |
+| Pro subscription | Monthly / Annual | `card` only | Apple Pay, Google Pay, Link when enabled in Stripe Dashboard |
 
-We intentionally do **not** pass `us_bank_account`, `wechat_pay`, or `alipay` in subscription `payment_settings` unless your Stripe account has them activated — otherwise checkout fails with “payment method type is invalid”.
+We intentionally do **not** pass `wechat_pay` on **subscriptions** — Stripe WeChat does not support recurring payments.
 
-### CNY add-ons
+### CNY Pro (prepaid one-time)
 
-One-time add-ons use `automatic_payment_methods` on PaymentIntent — Stripe shows whatever is enabled on your account.
+CNY Pro uses a **PaymentIntent** (`purchaseType` metadata `pro_prepaid`) with `automatic_payment_methods` so WeChat Pay can appear.  
+Grants `pro_until` for **30 days** (monthly) or **365 days** (annual); **no auto-renewal**. Webhook: `payment_intent.succeeded` → `grantProPrepaid`.
+
+### CNY / USD add-ons
+
+One-time add-ons use `automatic_payment_methods` on PaymentIntent — Stripe shows whatever is enabled on your account (including WeChat when Dashboard-enabled).
 
 ### Client quota gate
 
