@@ -2,6 +2,13 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-17 — 冒烟签字 + Cron 核查 + 状态刷新 + 微信行动包
+
+- 生产 tip `3469836`：health ok；mock-qr 404；两路 cron 无鉴权 401；`CRON_SECRET` 已在 Vercel（Sensitive，CLI 不可 pull）。
+- `test:e2e:beta-p0` 6/6（对齐 perkNote）；`test:smoke` 8 pass；CNY 咨询 CTA 浏览器通过。
+- 刷新 `PROJECT-STATUS.md` / skill 看板；新增 `ops-cron-verify.md`、`wechat-merchant-founder-actions.md`。
+- 微信商户：代码门控正确关闭；创始人商业步骤落文档（无法代签 KYC）。
+
 ## 2026-07-17 — 发布前全链路冒烟清单
 
 - 新增 `docs/deploy/smoke-test-release-checklist.md`：注册→扫描→Word/邮件免责→退出再登→可选 24h 硬删；含 P0/P1 门禁表与排查方向。

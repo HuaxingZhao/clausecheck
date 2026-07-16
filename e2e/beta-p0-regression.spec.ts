@@ -26,14 +26,14 @@ test.describe("Beta P0 回归（PR #9–#14）", () => {
   test("1. zh/en 权益免责声明可见", async ({ browser, baseURL }) => {
     const zh = await newBetaContext(browser, "zh", baseURL);
     await expect(zh.page.locator(".beta-perks-disclaimer")).toContainText(
-      "正式版发布时统一发放"
+      "正式版发布时由运营统一人工发放"
     );
     await zh.context.close();
 
     const en = await newBetaContext(browser, "en", baseURL);
     // localePrefix: as-needed — 英文默认 /beta（/en/beta 会 307）
     await expect(en.page.locator(".beta-perks-disclaimer")).toContainText(
-      "credited to your account upon official launch"
+      "credited manually when the official product launches"
     );
     await en.context.close();
   });
