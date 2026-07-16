@@ -2,6 +2,11 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-17 — 发布前全链路冒烟清单
+
+- 新增 `docs/deploy/smoke-test-release-checklist.md`：注册→扫描→Word/邮件免责→退出再登→可选 24h 硬删；含 P0/P1 门禁表与排查方向。
+- `EXPERT_BRIEF` / `PROJECT-STATUS` 已挂链接。
+
 ## 2026-07-17 — 微信入口门控复验 + 人民币咨询 CTA 挂回
 
 - 仓库无 `PricingCard` / `api/wechat-pay`；独立微信 topup 仍为 `app/api/credits/topup`（保留，无前端调用）。
