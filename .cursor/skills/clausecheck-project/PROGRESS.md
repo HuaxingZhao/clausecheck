@@ -10,6 +10,12 @@ Living checkpoint for `clausecheck project`. Add dated bullets after every meani
 
 - `docs/WECHAT_PAY_ENABLEMENT.md`：补全路径 A（选商→KYC→收银适配页→webhook→Vercel）；强调聚合商通常只给 API，需薄适配层才能当 `WECHAT_PAY_QR_BASE`。
 
+## 2026-07-17 — 结账加载加速 + 订单摘要已上线
+
+- #41 订单摘要已合并；结账弹窗立刻显示金额/周期，Stripe 表单骨架并行加载。
+- `resolveStripeCustomer` 去掉逐客户 subscriptions/invoices 探测，避免多次 Stripe 往返拖慢 intent。
+- 定价页 mount 时预热 `loadStripe`。
+
 ## 2026-07-17 — Pro 预付到期提醒邮件自动化
 
 - 用户字段 `pro_billing`：`prepaid` | `subscription`；预付购买写入 prepaid。
