@@ -2,6 +2,13 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-15 — 隐私：合同数据硬删除 + ≤24h Cron
+
+- 审计见 `docs/PRIVACY_DATA_RETENTION_AUDIT.md`：扫描请求仍不落库；修复点是 Pro `reports`/`revisions` 曾无限期保留原文。
+- `sanitizeScanResultForPersistence` 写入前剥离 `contractReview.source`；修订稿不存 `original_file`。
+- 新增小时级 Cron `/api/cron/purge-contract-data`：对过期 `revisions` **物理 DELETE**（≤24h），并 scrub 报告残留原文；无软删除列。
+- Migration `20260716_contract_data_retention_rls.sql`：索引 + `reports`/`revisions` RLS；生产需配 `CRON_SECRET`。
+
 ## 2026-07-15 — 导出物强制 AI 免责声明
 
 - `messages` 新增顶层 `ai_disclaimer_export`（zh/en）；`getAiDisclaimerExport` 供服务端/客户端共用。

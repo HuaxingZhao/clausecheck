@@ -265,13 +265,17 @@ export async function saveReport(input: {
   const user = await findUserById(input.userId);
   const id = crypto.randomUUID();
   const sql = getSql();
+  const { sanitizeScanResultForPersistence } = await import(
+    "@/lib/privacy/contract-retention"
+  );
+  const safeResult = sanitizeScanResultForPersistence(input.result);
   await sql`
     INSERT INTO reports (id, user_id, team_id, title, file_name, locale, score_num, score_text, result)
     VALUES (
       ${id}, ${input.userId}, ${user?.teamId ?? null},
       ${input.title}, ${input.fileName ?? null}, ${input.locale},
-      ${input.result.scoreNum}, ${input.result.scoreText},
-      ${sql.json(input.result as any)}
+      ${safeResult.scoreNum}, ${safeResult.scoreText},
+      ${sql.json(safeResult as any)}
     )`;
   return (await getReportForUser(input.userId, id))!;
 }
@@ -337,14 +341,61 @@ export async function saveRevision(input: {
   const user = await findUserById(input.userId);
   const id = crypto.randomUUID();
   const sql = getSql();
+  // Never persist original upload bytes. Body text is hard-deleted by cron ≤24h.
   await sql`
     INSERT INTO revisions (id, user_id, team_id, title, locale, original_text, revised_contract, changes, original_file, original_file_type)
     VALUES (
       ${id}, ${input.userId}, ${user?.teamId ?? null},
       ${input.title}, ${input.locale}, ${input.originalText}, ${input.revisedContract},
-      ${sql.json(input.changes as any)}, ${input.originalFile ?? null}, ${input.originalFileType ?? null}
+      ${sql.json(input.changes as any)}, NULL, NULL
     )`;
   return (await getRevisionForUser(input.userId, id))!;
+}
+
+/** Physical DELETE of expired revision bodies + scrub leftover report sources. */
+export async function purgeExpiredContractData(now: Date = new Date()): Promise<{
+  revisionsDeleted: number;
+  reportsScrubbed: number;
+  cutoffIso: string;
+}> {
+  await ensureSchema();
+  const {
+    contractBodyCutoffDate,
+    sanitizeScanResultForPersistence,
+  } = await import("@/lib/privacy/contract-retention");
+  const cutoff = contractBodyCutoffDate(now);
+  const sql = getSql();
+
+  const deleted = await sql`
+    DELETE FROM revisions
+    WHERE created_at < ${cutoff}
+    RETURNING id`;
+
+  // Drop any leftover upload blobs immediately (hard null, not soft-delete).
+  await sql`
+    UPDATE revisions
+    SET original_file = NULL, original_file_type = NULL
+    WHERE original_file IS NOT NULL`;
+
+  const dirty = await sql`
+    SELECT id, result FROM reports
+    WHERE COALESCE(result #>> '{contractReview,source}', '') <> ''
+       OR result ? 'contractText'`;
+
+  let reportsScrubbed = 0;
+  for (const row of dirty) {
+    const safe = sanitizeScanResultForPersistence(row.result as Parameters<
+      typeof sanitizeScanResultForPersistence
+    >[0]);
+    await sql`UPDATE reports SET result = ${sql.json(safe as any)} WHERE id = ${row.id as string}`;
+    reportsScrubbed += 1;
+  }
+
+  return {
+    revisionsDeleted: deleted.length,
+    reportsScrubbed,
+    cutoffIso: cutoff.toISOString(),
+  };
 }
 
 export async function createTeam(name: string, ownerId: string): Promise<Team> {

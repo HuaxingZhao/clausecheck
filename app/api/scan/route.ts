@@ -252,6 +252,9 @@ export async function POST(req: NextRequest) {
       tokens_used: estimateDocumentTokens(charCount),
     });
 
+    // Privacy: scan path is request-ephemeral — no INSERT of contractText/result.
+    // Pro history (if any) goes through saveReport which strips full source;
+    // revision bodies are hard-deleted by /api/cron/purge-contract-data ≤24h.
     return NextResponse.json({
       ...result,
       contractText,

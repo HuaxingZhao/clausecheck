@@ -7,6 +7,8 @@ import { findUserById } from "@/lib/db/store";
 export const SESSION_COOKIE = "cc_session";
 const SESSION_DAYS = 30;
 
+/** Session JWT expiry does not purge contract rows — see /api/cron/purge-contract-data. */
+
 function getSecret(): Uint8Array {
   return new TextEncoder().encode(getAuthSecret());
 }
