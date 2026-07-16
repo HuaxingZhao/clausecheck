@@ -58,8 +58,8 @@ We intentionally do **not** pass `wechat_pay` on **subscriptions** — Stripe We
 
 CNY Pro uses a **PaymentIntent** (`purchaseType` metadata `pro_prepaid`) with `automatic_payment_methods` so WeChat Pay can appear.  
 Billing cycles: **monthly (30d)** / **quarterly (90d, ~5% off)** / **semi-annual (182d, ~10% off)** / **annual (365d, 15% off)**.  
-**No auto-renewal**; copy promises a renewal reminder + link before expiry (automation TBD).  
-Webhook: `payment_intent.succeeded` → `grantProPrepaid`. Default CNY cycle in UI: **quarterly**.
+**No auto-renewal**. Daily cron `/api/cron/pro-renewal-reminders` emails prepaid users at ~7d and ~1d before `pro_until` with a renewal link (`/zh/pricing?plan=pro`).  
+Webhook: `payment_intent.succeeded` → `grantProPrepaid` (sets `pro_billing=prepaid`). Default CNY cycle in UI: **quarterly**.
 
 ### CNY / USD add-ons
 

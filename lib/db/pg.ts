@@ -99,6 +99,10 @@ export async function ensureSchema() {
       await db`ALTER TABLE revisions ADD COLUMN IF NOT EXISTS original_file TEXT`;
       await db`ALTER TABLE revisions ADD COLUMN IF NOT EXISTS original_file_type TEXT`;
       await db`ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT`;
+      await db`ALTER TABLE users ADD COLUMN IF NOT EXISTS pro_billing TEXT`;
+      await db`CREATE INDEX IF NOT EXISTS idx_users_pro_renewal
+        ON users (pro_until)
+        WHERE pro_billing = 'prepaid' AND pro_until IS NOT NULL AND email IS NOT NULL`;
       await db`
         CREATE TABLE IF NOT EXISTS app_metrics (
           key TEXT PRIMARY KEY,

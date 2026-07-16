@@ -10,11 +10,17 @@ Living checkpoint for `clausecheck project`. Add dated bullets after every meani
 
 - `docs/WECHAT_PAY_ENABLEMENT.md`：补全路径 A（选商→KYC→收银适配页→webhook→Vercel）；强调聚合商通常只给 API，需薄适配层才能当 `WECHAT_PAY_QR_BASE`。
 
+## 2026-07-17 — Pro 预付到期提醒邮件自动化
+
+- 用户字段 `pro_billing`：`prepaid` | `subscription`；预付购买写入 prepaid。
+- 每日 Cron `0 1 * * *` UTC → `/api/cron/pro-renewal-reminders`（7 天 + 1 天窗口，audit 幂等）。
+- 邮件含续费链接 `/zh/pricing?plan=pro`；无邮箱的手机号账号跳过。
+
 ## 2026-07-17 — CNY Pro 季付 / 半年付预付周期
 
 - BillingCycle 扩展 `quarterly` / `semi_annual`（仅 CNY 预付；USD 仍月/年订阅）。
 - 金额：季≈5% off、半年≈10% off、年 15% off；时长 90 / 182 / 365 天；默认 CNY 选季付。
-- 文案承诺到期前提醒 + 续费链接（自动化提醒后续再做）。
+- #39 已合并；文案 + Cron 提醒现已接线。
 
 ## 2026-07-16 — #38 已合并（CNY Pro 预付 + 微信）
 

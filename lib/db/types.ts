@@ -1,6 +1,8 @@
 import type { ScanResult, ContractChange } from "../types";
 
 export type SubscriptionStatus = "active" | "canceled" | "past_due" | "none";
+/** How Pro access was granted — prepaid gets renewal reminder emails. */
+export type ProBilling = "prepaid" | "subscription";
 export type TeamRole = "owner" | "member";
 
 export interface Team {
@@ -24,6 +26,8 @@ export interface User {
   stripeCustomerId: string | null;
   subscriptionStatus: SubscriptionStatus;
   proUntil: string | null;
+  /** prepaid = CNY one-time; subscription = Stripe recurring. */
+  proBilling: ProBilling | null;
   teamId: string | null;
   teamRole: TeamRole | null;
   /** Bumped on password reset — JWT must carry matching sv. */
