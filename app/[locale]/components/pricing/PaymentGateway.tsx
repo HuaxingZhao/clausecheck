@@ -11,8 +11,17 @@ import {
 import { getStripe } from "@/lib/stripe-client";
 import { canPurchaseAddOn, usePricingStore } from "@/stores/usePricingStore";
 import { Button } from "@/components/ui/button";
-import type { BillingCycle, Currency, CheckoutPlanId, PurchaseType } from "@/lib/pricing.config";
+import {
+  addOnTotalPrice,
+  prepaidBilledTotal,
+  type BillingCycle,
+  type Currency,
+  type CheckoutPlanId,
+  type PurchaseType,
+} from "@/lib/pricing.config";
+import { formatMoney } from "@/lib/pricing/currency";
 import { localizedPath } from "@/i18n/routing";
+
 export interface PaymentGatewayProps {
   purchaseType: PurchaseType;
   currency: Currency;
@@ -31,6 +40,98 @@ interface IntentResponse {
   clientSecret?: string;
   error?: string;
   paymentMethodTypes?: string[];
+  amount?: number;
+  currency?: Currency;
+  billingCycle?: BillingCycle;
+  prepaid?: boolean;
+}
+
+function computeDisplayAmount(
+  purchaseType: PurchaseType,
+  currency: Currency,
+  billingCycle: BillingCycle,
+  plan?: CheckoutPlanId,
+  packs?: number
+): number {
+  if (purchaseType === "addon") {
+    return addOnTotalPrice(packs ?? 1, currency);
+  }
+  return prepaidBilledTotal(plan ?? "pro", currency, billingCycle);
+}
+
+function CheckoutSummary({
+  purchaseType,
+  currency,
+  billingCycle,
+  locale,
+  plan,
+  packs,
+  amount,
+  prepaid,
+}: {
+  purchaseType: PurchaseType;
+  currency: Currency;
+  billingCycle: BillingCycle;
+  locale: string;
+  plan?: CheckoutPlanId;
+  packs?: number;
+  amount: number;
+  prepaid: boolean;
+}) {
+  const t = useTranslations("pricing.payment");
+  const tPricing = useTranslations("pricing");
+  const fmtLocale = locale === "zh" ? "zh-CN" : "en-US";
+  const amountLabel = formatMoney(amount, currency, fmtLocale);
+  const planName =
+    purchaseType === "addon"
+      ? tPricing("addOn.name")
+      : tPricing(`${plan ?? "pro"}.name`);
+  const cycleName =
+    purchaseType === "addon" ? null : tPricing(billingCycle);
+
+  return (
+    <div className="rounded-xl border border-ink/10 bg-paper-dark/40 px-4 py-3 space-y-2 font-sans">
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="text-xs font-medium text-ink-muted uppercase tracking-wide">
+          {t("orderSummary")}
+        </p>
+        <p className="text-xs text-ink-muted">{t("summaryHint")}</p>
+      </div>
+      <div className="flex items-end justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-sm text-ink">
+            <span className="text-ink-muted">{t("planLabel")}: </span>
+            {planName}
+          </p>
+          {cycleName && (
+            <p className="text-sm text-ink mt-0.5">
+              <span className="text-ink-muted">{t("cycleLabel")}: </span>
+              {cycleName}
+              <span className="text-ink-muted">
+                {" · "}
+                {prepaid ? t("billingModePrepaid") : t("billingModeSubscription")}
+              </span>
+            </p>
+          )}
+          {purchaseType === "addon" && (
+            <p className="text-sm text-ink mt-0.5">
+              <span className="text-ink-muted">{t("packsLabel")}: </span>
+              {packs ?? 1}
+              <span className="text-ink-muted"> · {t("addonNote")}</span>
+            </p>
+          )}
+          <p className="text-sm text-ink mt-0.5">
+            <span className="text-ink-muted">{t("currencyLabel")}: </span>
+            {currency}
+          </p>
+        </div>
+        <div className="text-right shrink-0">
+          <p className="text-xs text-ink-muted">{t("dueNow")}</p>
+          <p className="text-2xl font-semibold text-ink tabular-nums">{amountLabel}</p>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function PaymentForm({
@@ -40,9 +141,14 @@ function PaymentForm({
   locale,
   plan,
   packs,
+  amount,
+  prepaid,
   onSuccess,
   onCancel,
-}: Omit<PaymentGatewayProps, "onRequireAuth">) {
+}: Omit<PaymentGatewayProps, "onRequireAuth"> & {
+  amount: number;
+  prepaid: boolean;
+}) {
   const t = useTranslations("pricing.payment");
   const tPricing = useTranslations("pricing");
   const stripe = useStripe();
@@ -54,6 +160,11 @@ function PaymentForm({
   const quotaLimit = usePricingStore((s) => s.quotaLimit);
   const showCnyPrepaidNote =
     currency === "CNY" && purchaseType === "subscription";
+  const amountLabel = formatMoney(
+    amount,
+    currency,
+    locale === "zh" ? "zh-CN" : "en-US"
+  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -93,6 +204,16 @@ function PaymentForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 font-sans">
+      <CheckoutSummary
+        purchaseType={purchaseType}
+        currency={currency}
+        billingCycle={billingCycle}
+        locale={locale}
+        plan={plan}
+        packs={packs}
+        amount={amount}
+        prepaid={prepaid}
+      />
       <div className="w-full [&_.p-PaymentElement]:w-full">
         <PaymentElement
           options={{
@@ -121,7 +242,7 @@ function PaymentForm({
       </p>
       <div className="flex flex-col sm:flex-row gap-2 justify-center max-w-md mx-auto w-full">
         <Button type="submit" disabled={!stripe || submitting} className="flex-1">
-          {submitting ? t("processing") : t("payNow")}
+          {submitting ? t("processing") : t("payNowAmount", { amount: amountLabel })}
         </Button>
         {onCancel && (
           <Button type="button" variant="outline" onClick={onCancel} className="sm:flex-none">
@@ -137,14 +258,30 @@ export default function PaymentGateway(props: PaymentGatewayProps) {
   const t = useTranslations("pricing.payment");
   const { purchaseType, currency, billingCycle, plan, packs, onRequireAuth } = props;
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [amount, setAmount] = useState(() =>
+    computeDisplayAmount(purchaseType, currency, billingCycle, plan, packs)
+  );
+  const [prepaid, setPrepaid] = useState(
+    () => purchaseType === "subscription" && currency === "CNY"
+  );
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
+
   useEffect(() => {
     let cancelled = false;
 
     async function createIntent() {
       setLoading(true);
       setFetchError(null);
+      const fallbackAmount = computeDisplayAmount(
+        purchaseType,
+        currency,
+        billingCycle,
+        plan,
+        packs
+      );
+      setAmount(fallbackAmount);
+      setPrepaid(purchaseType === "subscription" && currency === "CNY");
       try {
         const body =
           purchaseType === "addon"
@@ -177,7 +314,17 @@ export default function PaymentGateway(props: PaymentGatewayProps) {
         if (!res.ok || !data.clientSecret) {
           throw new Error(data.error || "Failed to initialize payment");
         }
-        if (!cancelled) setClientSecret(data.clientSecret);
+        if (!cancelled) {
+          setClientSecret(data.clientSecret);
+          if (typeof data.amount === "number" && Number.isFinite(data.amount)) {
+            setAmount(data.amount);
+          }
+          if (typeof data.prepaid === "boolean") {
+            setPrepaid(data.prepaid);
+          } else {
+            setPrepaid(purchaseType === "subscription" && currency === "CNY");
+          }
+        }
       } catch (err) {
         if (!cancelled) {
           setFetchError(err instanceof Error ? err.message : "Error");
@@ -223,7 +370,15 @@ export default function PaymentGateway(props: PaymentGatewayProps) {
         appearance: { theme: "stripe", variables: { colorPrimary: "#1A365D" } },
       }}
     >
-      <PaymentForm {...props} />
+      <PaymentForm
+        {...props}
+        amount={amount}
+        prepaid={
+          purchaseType === "addon"
+            ? true
+            : prepaid || (purchaseType === "subscription" && currency === "CNY")
+        }
+      />
     </Elements>
   );
 }
