@@ -18,7 +18,7 @@
     "title2": "Let AI Review It",
     "subtitle": "Pick your contract scenario, upload, and get industry-specific AI review in 3 minutes.",
     "cta": "Scan Your Contract Free →",
-    "trust": "Free trial · Sign in to scan · 1 review included · Encrypted · Deleted after scan · Not legal advice",
+    "trust": "Free trial · Sign in to scan · 1 review included · Encrypted · No long-term body retention · Not legal advice",
     "sampleReport": "View sample report",
     "zhNote": ""
   },
@@ -28,7 +28,7 @@
     "step1": {
       "num": "01",
       "title": "Upload Contract",
-      "desc": "Supports PDF & DOCX. Drag and drop or click to select. Your file is encrypted end-to-end and auto-deleted after analysis."
+      "desc": "Supports PDF & DOCX. Drag and drop or click to select. Transfers are HTTPS-encrypted; contract bodies are not kept long-term, and revision drafts are hard-deleted within 24 hours."
     },
     "step2": {
       "num": "02",
@@ -933,7 +933,7 @@
       "invalidEmail": "Please enter a valid email address."
     },
     "benefits": {
-      "disclaimer": "🎁 Eligibility only for now — perks are credited manually when the official product launches (not automatic on Beta signup). Join to lock your spot."
+      "perkNote": "🎁 Eligibility only for now — perks are credited manually when the official product launches (not automatic on Beta signup). Join to lock your spot."
     },
     "subscribe": {
       "success": {
@@ -1018,7 +1018,7 @@
     "items": [
       {
         "q": "Is my contract secure and private?",
-        "a": "Uploaded files are used only for the current scan and are immediately deleted from our servers afterward. All transfers are HTTPS-encrypted. We never store, view, or reuse your contract content."
+        "a": "Uploads are used for the active analysis only, over HTTPS. Scan requests are not written to our database as a durable corpus. If you save a report while signed in, we keep scrubbed analysis metadata (not the full contract body); revision workbooks are hard-deleted within 24 hours. See our Privacy Policy."
       },
       {
         "q": "How accurate is the AI? Can it replace a lawyer?",
@@ -1038,7 +1038,7 @@
       },
       {
         "q": "Will my data be used to train AI models?",
-        "a": "No. We use OpenAI's API under their business data protection terms. Your contract content is never used to train or improve AI models — not by us, not by OpenAI."
+        "a": "We do not use your uploads to train or improve our models. Analysis runs through the OpenAI API under their business API data-use terms. Infrastructure providers (hosting/logs) may retain operational logs under their own policies — see our Privacy Policy."
       },
       {
         "q": "Can I cancel my Pro subscription anytime?",
@@ -1046,7 +1046,7 @@
       },
       {
         "q": "What types of contracts work best?",
-        "a": "Employment agreements, lease contracts, service agreements, NDAs, freelance contracts, and partnership agreements all work great. The AI is trained on a wide range of commercial and consumer contract types."
+        "a": "Employment agreements, lease contracts, service agreements, NDAs, freelance contracts, and partnership agreements all work great. The model covers a wide range of commercial and consumer contract types (not trained on your uploads)."
       }
     ]
   },

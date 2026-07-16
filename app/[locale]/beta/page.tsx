@@ -151,7 +151,7 @@ export default async function BetaPage({
             <span className="beta-perks-disclaimer-icon" aria-hidden="true">
               i
             </span>
-            <span>{t("benefits.disclaimer")}</span>
+            <span>{t("benefits.perkNote")}</span>
           </p>
         </div>
       </section>

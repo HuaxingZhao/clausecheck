@@ -66,7 +66,7 @@ https://www.clausecheck.cc/api/auth/google/callback
 | `NEXT_PUBLIC_URL` | ✅ `https://www.clausecheck.cc` |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | ✅ |
 | `CRON_SECRET` | ✅（`/api/cron/purge-contract-data`） |
-| `WECHAT_PAY_ENABLED` | ⬜ 默认关 → 前端无微信入口 |
+| `WECHAT_PAY_ENABLED` | ⬜ 默认关；开入口须同时有 `QR_BASE`（见 `WECHAT_PAY_ENABLEMENT.md`） |
 | `WECHAT_PAY_QR_BASE` | ⬜ 未配 → WeChat topup API **503**（主结账 Stripe） |
 | `REDIS_URL` | ⬜ 可选；health `not_configured` |
 

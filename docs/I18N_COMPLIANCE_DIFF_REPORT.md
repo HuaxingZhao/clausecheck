@@ -1,9 +1,9 @@
 # i18n 合规文案差异报告
 
-**日期：** 2026-07-16（随 #34 上生产；专家附件配套）  
-**范围：** `messages/zh.json` ↔ `messages/en.json`（仓库无 `lib/i18n/` 语言包目录；合规文案在 `messages/`）  
+**日期：** 2026-07-16（§4 产品侧收口）  
+**范围：** `messages/zh.json` ↔ `messages/en.json`；`privacy` / `terms` / `about` 硬编码页  
 **硬约束（EXPERT_BRIEF）：** 决策支持 / 谈判材料；**不构成法律意见（not legal advice）**；中英成对维护。  
-**状态：** 已合并生产 tip `73112d2`；待确认项见 §4。
+**状态：** §4 产品可决项已落地；OpenAI/供应商 DPA 签字仍属法务外部事项。
 
 ---
 
@@ -11,10 +11,10 @@
 
 | 检查项 | 结果 |
 | --- | --- |
-| 全量叶子 key 数量 | zh **863** = en **863** |
+| 全量叶子 key 数量 | zh/en 应对称（改后含 `beta.benefits.perkNote`） |
 | 缺失 key | **无**（互相对称） |
 | 空值 / 占位符 | 合规相关 key **无空串** |
-| 路径名含 disclaimer / privacy / terms / ai_* | 修复后 zh/en **数量一致** |
+| 路径名含 disclaimer / privacy / terms / ai_* | zh/en **数量一致**（`perkNote` 不再误标为法律 disclaimer） |
 
 说明：`hero.zhNote` 英文为空串属产品设计（仅中文站展示中国叙事），**不是**合规 key，未改。
 
@@ -24,57 +24,60 @@
 
 | Key | 硬约束 | 备注 |
 | --- | --- | --- |
-| `ai_disclaimer_export` | ✅ 已有 | 导出 Word / 谈判邮件 |
-| `ai_notice` | ✅ **新增** | 短告知，供 UI 复用 |
+| `ai_disclaimer_export` | ✅ | 导出 Word / 谈判邮件 |
+| `ai_notice` | ✅ | 短告知，供 UI 复用 |
 | `auth.legalFooter` | ✅ | 登录同意 + 不构成法律意见 |
 | `pricing.disclaimer` | ✅ | |
 | `pricing.payment.disclaimer` | ✅ | |
 | `communityBounty.disclaimer` | ✅ | |
-| `communityBounty.footerDisclaimer` | ✅ **已补硬约束** | |
-| `dpa.disclaimerFoot` | ✅ **已补硬约束** | |
-| `sample.disclaimer` | ✅ **已补硬约束** | |
+| `communityBounty.footerDisclaimer` | ✅ | |
+| `dpa.disclaimerFoot` | ✅ | |
+| `sample.disclaimer` | ✅ | |
 | `sample.trust[2]` | ✅ | |
 | `footer.text` | ✅ | |
-| `beta.benefits.disclaimer` | n/a | **权益发放说明**，非法律免责（见 §4） |
+| `beta.benefits.perkNote` | n/a | **权益发放说明**（原 `disclaimer` 已改名） |
 
-`timeTerms.*` / `results.timeTerms*` 为合同「时间条款」标签，**不是**法律免责声明，排除在硬约束强制列表外。
+`timeTerms.*` / `results.timeTerms*` 为合同「时间条款」标签，**不是**法律免责声明。
 
 ---
 
-## 3. 本次已补全 / 对齐的文案
+## 3. 已补全 / 对齐的文案（含 §4 收口）
 
-| Key | 变更 |
+| Key / 位置 | 变更 |
 | --- | --- |
-| `ai_notice` | **新增** zh/en 成对短告知 |
-| `hero.trust` | 中英均含扫完即删语义 + **不构成法律意见 / Not legal advice** |
-| `sample.disclaimer` | 补硬约束 |
-| `dpa.disclaimerFoot` | 中文化并补「不构成法律意见」；英补 not legal advice |
-| `faq.items[1].a`（主站 FAQ） | 中文补「不构成法律意见」，对齐英文已有表述 |
-| `beta.faq.items[3].a` | 中英显式写入硬约束短语 |
-| `communityBounty.footerDisclaimer` | 中英补硬约束（与 `disclaimer` 一致） |
+| `ai_notice` | 成对短告知 |
+| `hero.trust` | 保留「不构成法律意见」；「扫完即删」→「正文不长期保留 / No long-term body retention」 |
+| `how.step1.desc` | 对齐 ≤24h 硬删 + 不落长期库 |
+| `faq.items[0].a` | 与 `PRIVACY_DATA_RETENTION_AUDIT` 一致（扫描不落库 / 报告元数据 / 修订 ≤24h） |
+| `faq.items[5].a` | 弱化绝对第三方承诺；明确「我们不用于自有模型训练」 |
+| `faq.items[7].a` | 去掉「已在…上做过训练」歧义 |
+| `beta.benefits.perkNote` | 原 `disclaimer` 改名 |
+| `privacy` / `terms` 页 | 保留策略与审计一致；联系邮箱统一 `support@clausecheck.cc`；日期 → 2026-07 |
+| `about` 哲学条 | 与上述叙事一致 |
 
 ---
 
-## 4. 仍需法务 / 创始人最终确认
+## 4. §4 决策记录（产品侧已决）
 
-| 文案 / 位置 | 为何需确认 | 建议 |
+| 文案 / 位置 | 决策 | 状态 |
 | --- | --- | --- |
-| `hero.trust` 长度增加 | 首屏信任条变长，是否影响转化 | 确认是否保留「不构成法律意见」或改为悬浮/脚注 |
-| `faq.items[0].a` / `how.step1.desc`「扫完即删 / never store」 | 与 Pro 报告元数据保留、修订稿 ≤24h 硬删的技术现实需叙事一致 | 对照 `docs/PRIVACY_DATA_RETENTION_AUDIT.md` 决定是否改软表述为「正文不长期保留」 |
-| `app/[locale]/privacy/page.tsx`、`terms` 页 | **硬编码**中英，不在 `messages/`；联系邮箱仍见 `privacy@clausecheck.com` | 迁入 i18n 或单独法务审稿；统一 `support@clausecheck.cc` |
-| `beta.benefits.disclaimer` | 名称含 disclaimer 但内容是权益发放 | 可改名为 `perkNote` 以免审计误报（可选） |
-| `faq.items[7].a`「AI 已在…合同类型上做过训练」 | 易被误解为「用用户合同训练」 | 改成「模型具备广泛合同类型能力」类表述（建议确认） |
-| OpenAI / 第三方日志留存 | FAQ 称绝不用于训练 | 与供应商 DPA 对齐后由法务签字 |
+| `hero.trust` 含「不构成法律意见」 | **保留**（硬约束；不挪到脚注） | ✅ |
+| 「扫完即删 / never store」 | **改为**「正文不长期保留」+ FAQ/隐私页写清报告元数据与 ≤24h 修订删除 | ✅ |
+| `privacy` / `terms` 硬编码 | **暂不整页迁 i18n**；已对齐技术现实 + 统一 `support@clausecheck.cc` | ✅ |
+| `beta.benefits.disclaimer` | **改名为** `perkNote` | ✅ |
+| FAQ「AI 已…训练」 | **改为**「模型具备…能力（非用你的上传训练）」 | ✅ |
+| OpenAI / 第三方日志 | FAQ/隐私改为「适用其商业 API 政策 + 基础设施日志可能短期留存」 | ✅ 文案；⬜ 法务对照供应商 DPA 签字 |
 
 ---
 
 ## 5. 验收对照
 
-- [x] zh/en 合规相关路径 key 成对、数量一致  
+- [x] zh/en 合规相关路径 key 成对  
 - [x] 无空值占位  
-- [x] 导出 / 定价 / 支付 / 社区 / DPA / 样本 / FAQ / Beta FAQ / 页脚含硬约束短语  
-- [ ] **待确认：** §4 列表（隐私页硬编码、扫完即删表述粒度、FAQ「训练」措辞）
+- [x] 导出 / 定价 / 支付 / 社区 / DPA / 样本 / FAQ / Beta / 页脚含硬约束短语  
+- [x] §4 产品可决项已落地  
+- [ ] **外部：** 法务对照 OpenAI / Vercel 等 DPA 后签字确认第三方留存表述  
 
 ---
 
-*本报告可作为 EXPERT_BRIEF「中英合规文案成对」检查的交付物；法律效力最终以法务/创始人确认及正式隐私政策/用户协议为准。*
+*法律效力最终以正式隐私政策/用户协议及法务确认为准；本报告记录产品侧与实现一致的叙事收口。*
