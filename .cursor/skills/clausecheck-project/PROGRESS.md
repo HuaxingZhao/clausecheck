@@ -2,6 +2,11 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-16 — i18n 合规文案 zh/en 对齐
+
+- 审计/补全 `messages/zh.json` ↔ `en.json`：新增 `ai_notice`；补强 hero/FAQ/DPA/样本/社区 footer 等「不构成法律意见 / not legal advice」。
+- 差异报告：`docs/I18N_COMPLIANCE_DIFF_REPORT.md`（含待法务确认项：隐私页硬编码、扫完即删表述、FAQ「训练」措辞）。
+
 ## 2026-07-15 — 隐私：合同数据硬删除 + ≤24h Cron
 
 - 审计见 `docs/PRIVACY_DATA_RETENTION_AUDIT.md`：扫描请求仍不落库；修复点是 Pro `reports`/`revisions` 曾无限期保留原文。
