@@ -2,6 +2,12 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-16 — 专家附件包刷新（#31–#34 + 短信运维）
+
+- 更新 `docs/EXPERT_BRIEF.md`（§0 收口表、隐私/导出/微信/i18n/短信、手测清单）；`PROJECT-STATUS` / SKILL tip → prod `73112d2`（#34）。
+- 配套：`PRIVACY_DATA_RETENTION_AUDIT`、`I18N_COMPLIANCE_DIFF_REPORT`；`ALIYUN_SMS_HOOK` / `PHONE_AUTH` 签名改为生产可用 **恒创联众** + `100001`。
+- 运维确认：+86 发码成功；列表其它赠送签名 API 可能无效，以 OpenAPI 试发为准。
+
 ## 2026-07-16 — i18n 合规文案 zh/en 对齐
 
 - 审计/补全 `messages/zh.json` ↔ `en.json`：新增 `ai_notice`；补强 hero/FAQ/DPA/样本/社区 footer 等「不构成法律意见 / not legal advice」。

@@ -26,8 +26,10 @@ supabase.auth.signInWithOtp({ phone: '+86xxxxxxxxxx' })
 ### 1.2 取赠送签名与模板
 
 1. 号码认证控制台 → **短信认证服务** → **短信认证参数管理**（或「赠送签名/模板配置」）
-2. **签名配置 → 赠送签名**：任选一条，记下 **签名名称**  
-   - 示例（以控制台实际列表为准）：`速通互联验证码`、`恒创联众` 等
+2. **签名配置 → 赠送签名**：任选一条，记下 **签名名称**（须与列表**一字不差**）  
+   - 生产已验证可用：`恒创联众` + 模板 `100001`  
+   - 列表里其它名称（如带「科技」）可能显示「通过」但 API 仍返回「签名或者模版无效」——以 OpenAPI 试发为准  
+   - 勿继续使用即将停用的「历史赠送签名」（阿里云通知约 2026-08-31）
 3. **模板配置 → 赠送模板**：选 **登录/注册**  
    - 常见 Code：`100001`（以控制台为准）  
    - 其它：`100002` 改绑、`100003` 重置密码等
@@ -100,7 +102,7 @@ supabase.auth.signInWithOtp({ phone: '+86xxxxxxxxxx' })
 SEND_SMS_HOOK_SECRET=v1,whsec_xxxxxxxx
 ALIYUN_ACCESS_KEY_ID=
 ALIYUN_ACCESS_KEY_SECRET=
-ALIYUN_SMS_SIGN_NAME=速通互联验证码
+ALIYUN_SMS_SIGN_NAME=恒创联众
 ALIYUN_SMS_TEMPLATE_CODE=100001
 TWILIO_ACCOUNT_SID=
 TWILIO_AUTH_TOKEN=
@@ -131,7 +133,7 @@ npx supabase secrets set \
   SEND_SMS_HOOK_SECRET="v1,whsec_你的secret" \
   ALIYUN_ACCESS_KEY_ID="..." \
   ALIYUN_ACCESS_KEY_SECRET="..." \
-  ALIYUN_SMS_SIGN_NAME="速通互联验证码" \
+  ALIYUN_SMS_SIGN_NAME="恒创联众" \
   ALIYUN_SMS_TEMPLATE_CODE="100001" \
   TWILIO_ACCOUNT_SID="AC..." \
   TWILIO_AUTH_TOKEN="..." \

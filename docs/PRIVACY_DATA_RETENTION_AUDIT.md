@@ -1,8 +1,9 @@
 # Privacy data retention audit — contract scan data
 
-**Date:** 2026-07-15  
+**Date:** 2026-07-16（#33 已上生产；专家附件配套）  
 **Scope:** Align backend retention with privacy promise「扫完即删 / 不用于模型训练」.  
-**Status after fix:** Hard-delete only; hourly cron ≤24h; RLS on `reports` / `revisions`.
+**Status after fix:** Hard-delete only; hourly cron ≤24h; RLS on `reports` / `revisions`.  
+**Ops:** Production `CRON_SECRET` configured; manual smoke returns `{"ok":true,...}`.
 
 ---
 

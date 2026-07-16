@@ -7,7 +7,7 @@ ClauseCheck 使用 **Supabase Auth Phone Provider** 发短信 OTP，验证成功
 ### Done
 
 - 手机 OTP 已接入 Supabase Auth Phone，并由应用 API send/verify 桥接到 `cc_session`；登录面板已有手机号 Tab。Neon migration 为 `20260715_phone_auth_and_audit_log.sql`，并记录 `audit_log`。
-- 中国大陆 `+86` 已实测端到端可发码并登录：Supabase Send SMS Hook → `send-sms` Edge Function → 阿里云 PNVS `SendSmsVerifyCode`（系统签名/模板）。
+- 中国大陆 `+86` 已实测端到端可发码并登录：Supabase Send SMS Hook → `send-sms` Edge Function → 阿里云 PNVS `SendSmsVerifyCode`（赠送签名 **`恒创联众`** + 模板 **`100001`**；避开 8/31 历史赠送签名停用）。
 - `send-sms` 已部署到项目 `hwtibqeugchlwbcxuduu`，使用 `--no-verify-jwt`。Aliyun `ALIYUN_*` secrets 在 +86 验证时已存在。
 - Vercel 构建已通过将 `supabase/functions` 排除出 Next TypeScript 检查及 Deno 入口 `// @ts-nocheck` 修复；不要重新部署旧的 `6f1f402`。
 - 登出会清除会话；手机号没有密码，因此再次登录需重新请求 OTP（预期行为）。
