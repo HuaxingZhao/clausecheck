@@ -53,7 +53,9 @@ export default function PlanCard({
     ? t(`${planKey}.comingSoonCta`)
     : loading
       ? t("processing")
-      : t(`${planKey}.cta`);
+      : planId === "pro" && currency === "CNY"
+        ? t("pro.ctaCny")
+        : t(`${planKey}.cta`);
 
   return (
     <div

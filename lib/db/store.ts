@@ -169,6 +169,25 @@ export async function findUserByStripeCustomerId(customerId: string) {
   return db.users.find((u) => u.stripeCustomerId === customerId) ?? null;
 }
 
+export async function updateUserEntitlementsById(
+  userId: string,
+  patch: Partial<Pick<User, "stripeCustomerId" | "subscriptionStatus" | "proUntil">>
+) {
+  if (usePostgres()) return pg.updateUserEntitlementsById(userId, patch);
+  const db = await readJson();
+  const idx = db.users.findIndex((u) => u.id === userId);
+  if (idx < 0) return null;
+  const now = new Date().toISOString();
+  const user = normalizeJsonUser({
+    ...db.users[idx],
+    ...patch,
+    updatedAt: now,
+  });
+  db.users[idx] = user;
+  await writeJson(db);
+  return user;
+}
+
 export async function upsertUser(
   email: string,
   patch: Partial<

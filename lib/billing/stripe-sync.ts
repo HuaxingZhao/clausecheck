@@ -185,13 +185,70 @@ export async function syncInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
 export async function syncPaymentIntentSucceeded(intent: Stripe.PaymentIntent) {
   const purchaseType = intent.metadata?.purchaseType;
   const userId = intent.metadata?.userId;
-  if (purchaseType !== "addon" || !userId) return null;
+  if (!userId) return null;
+
+  if (purchaseType === "pro_prepaid") {
+    const cycleRaw = intent.metadata?.cycle;
+    const cycle = cycleRaw === "annual" ? "annual" : "monthly";
+    const customerId =
+      typeof intent.customer === "string"
+        ? intent.customer
+        : intent.customer?.id ?? null;
+
+    if (await alreadyGrantedProPrepaid(intent.id)) {
+      return { userId, cycle, duplicate: true };
+    }
+
+    const { grantProPrepaid } = await import("./pro-prepaid");
+    const granted = await grantProPrepaid({
+      userId,
+      cycle,
+      stripeCustomerId: customerId,
+    });
+    if (!granted) return null;
+
+    await writeAuditLog({
+      userId,
+      action: "payment.pro_prepaid",
+      meta: {
+        intentId: intent.id,
+        cycle,
+        proUntil: granted.proUntil,
+        amount: intent.amount,
+        currency: intent.currency,
+      },
+    });
+    return { userId, cycle, proUntil: granted.proUntil };
+  }
+
+  if (purchaseType !== "addon") return null;
 
   const packs = Number(intent.metadata?.packs ?? "1");
   if (!Number.isFinite(packs) || packs < 1) return null;
 
   await grantAddonDocumentQuota(userId, packs);
+  await writeAuditLog({
+    userId,
+    action: "payment.addon_succeeded",
+    meta: { intentId: intent.id, packs },
+  });
   return { userId, packs };
+}
+
+async function alreadyGrantedProPrepaid(intentId: string): Promise<boolean> {
+  const { usePostgres, getSql, ensureSchema } = await import("../db/pg");
+  if (!usePostgres()) return false;
+  try {
+    await ensureSchema();
+    const rows = await getSql()`
+      SELECT 1 FROM public.audit_log
+      WHERE action = 'payment.pro_prepaid'
+        AND meta->>'intentId' = ${intentId}
+      LIMIT 1`;
+    return rows.length > 0;
+  } catch {
+    return false;
+  }
 }
 
 export async function syncPaymentMethodAttached(

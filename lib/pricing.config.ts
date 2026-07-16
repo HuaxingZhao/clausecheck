@@ -137,12 +137,11 @@ export function getQuotaForPlan(plan: PlanId): number {
 
 export function allowsWechatAlipay(
   currency: Currency,
-  cycle: BillingCycle,
-  purchaseType: PurchaseType
+  _cycle: BillingCycle,
+  _purchaseType: PurchaseType
 ): boolean {
-  if (currency !== "CNY") return false;
-  if (purchaseType === "addon") return true;
-  return cycle === "annual";
+  // CNY Pro is prepaid (one-time PI); add-ons are one-time — both can show WeChat.
+  return currency === "CNY";
 }
 
 /**

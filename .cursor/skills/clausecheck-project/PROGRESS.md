@@ -10,6 +10,12 @@ Living checkpoint for `clausecheck project`. Add dated bullets after every meani
 
 - `docs/WECHAT_PAY_ENABLEMENT.md`：补全路径 A（选商→KYC→收银适配页→webhook→Vercel）；强调聚合商通常只给 API，需薄适配层才能当 `WECHAT_PAY_QR_BASE`。
 
+## 2026-07-16 — CNY 专业版预付（方案 A：可用微信）
+
+- CNY Pro 结账改为一次性 PaymentIntent（`pro_prepaid`），不再建 Stripe Subscription；USD Pro 仍走订阅。
+- `payment_intent.succeeded` → `grantProPrepaid`：写 `pro_until`（月 30 / 年 365 天，可叠加）+ 同步 Pro 配额；audit 幂等。
+- UI：CNY CTA「立即购买（预付）」+ 结账预付说明；去掉结账窗内误导性「联系我们」CTA。
+
 ## 2026-07-16 — #36 已合并（§4 + 微信门控）
 
 - PR https://github.com/HuaxingZhao/clausecheck/pull/36 squash → `ed27aca`；生产 tip 以 `/api/health` → `version` 为准（部署后应 ≠旧 `1bdae8d`）。

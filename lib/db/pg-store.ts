@@ -152,6 +152,23 @@ export async function setPasswordHash(email: string, passwordHash: string): Prom
     WHERE email = ${key}`;
 }
 
+export async function updateUserEntitlementsById(
+  userId: string,
+  patch: Partial<Pick<User, "stripeCustomerId" | "subscriptionStatus" | "proUntil">>
+): Promise<User | null> {
+  await ensureSchema();
+  const existing = await findUserById(userId);
+  if (!existing) return null;
+  await getSql()`
+    UPDATE users SET
+      stripe_customer_id = COALESCE(${patch.stripeCustomerId ?? null}, stripe_customer_id),
+      subscription_status = COALESCE(${patch.subscriptionStatus ?? null}, subscription_status),
+      pro_until = COALESCE(${patch.proUntil ? new Date(patch.proUntil) : null}, pro_until),
+      updated_at = NOW()
+    WHERE id = ${userId}`;
+  return findUserById(userId);
+}
+
 export async function upsertUser(
   email: string,
   patch: Partial<
