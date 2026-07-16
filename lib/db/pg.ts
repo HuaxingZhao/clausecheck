@@ -130,6 +130,11 @@ export async function ensureSchema() {
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         )`;
       await db`CREATE INDEX IF NOT EXISTS idx_analytics_events_name ON analytics_events(name, created_at DESC)`;
+      await db`CREATE INDEX IF NOT EXISTS idx_revisions_created_at ON revisions(created_at)`;
+      await db`CREATE INDEX IF NOT EXISTS idx_reports_created_at ON reports(created_at)`;
+      // PostgREST lockdown (no client policies); app uses DATABASE_URL owner role.
+      await db`ALTER TABLE reports ENABLE ROW LEVEL SECURITY`;
+      await db`ALTER TABLE revisions ENABLE ROW LEVEL SECURITY`;
       await ensureCreditsSchema(db);
       await ensureDocumentQuotaSchema(db);
       await ensureInviteSchema(db);

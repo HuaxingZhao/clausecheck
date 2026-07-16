@@ -274,6 +274,10 @@ export async function saveReport(input: {
   result: SavedReport["result"];
 }) {
   if (usePostgres()) return pg.saveReport(input);
+  const { sanitizeScanResultForPersistence } = await import(
+    "@/lib/privacy/contract-retention"
+  );
+  const safeResult = sanitizeScanResultForPersistence(input.result);
   const db = await readJson();
   const user = db.users.find((u) => u.id === input.userId);
   const report: SavedReport = {
@@ -283,9 +287,9 @@ export async function saveReport(input: {
     title: input.title,
     fileName: input.fileName ?? null,
     locale: input.locale,
-    scoreNum: input.result.scoreNum,
-    scoreText: input.result.scoreText,
-    result: input.result,
+    scoreNum: safeResult.scoreNum,
+    scoreText: safeResult.scoreText,
+    result: safeResult,
     createdAt: new Date().toISOString(),
   };
   db.reports.unshift(report);
@@ -336,13 +340,54 @@ export async function saveRevision(input: {
     originalText: input.originalText,
     revisedContract: input.revisedContract,
     changes: input.changes,
-    originalFile: input.originalFile ?? null,
-    originalFileType: input.originalFileType ?? null,
+    // Never persist upload bytes; body rows hard-deleted by purge ≤24h.
+    originalFile: null,
+    originalFileType: null,
     createdAt: new Date().toISOString(),
   };
   db.revisions.unshift(revision);
   await writeJson(db);
   return revision;
+}
+
+/** Physical purge for Postgres or local JSON — no soft-delete. */
+export async function purgeExpiredContractData(now: Date = new Date()) {
+  if (usePostgres()) return pg.purgeExpiredContractData(now);
+  const {
+    contractBodyCutoffDate,
+    sanitizeScanResultForPersistence,
+  } = await import("@/lib/privacy/contract-retention");
+  const cutoff = contractBodyCutoffDate(now);
+  const db = await readJson();
+  const before = db.revisions.length;
+  db.revisions = db.revisions.filter(
+    (r) => new Date(r.createdAt).getTime() >= cutoff.getTime()
+  );
+  for (const r of db.revisions) {
+    r.originalFile = null;
+    r.originalFileType = null;
+  }
+  let reportsScrubbed = 0;
+  db.reports = db.reports.map((report) => {
+    const source = report.result?.contractReview?.source;
+    const hasText = Boolean(source && source.length > 0);
+    const hasContractText = "contractText" in (report.result as object);
+    if (!hasText && !hasContractText) return report;
+    reportsScrubbed += 1;
+    const safe = sanitizeScanResultForPersistence(report.result);
+    return {
+      ...report,
+      result: safe,
+      scoreNum: safe.scoreNum,
+      scoreText: safe.scoreText,
+    };
+  });
+  await writeJson(db);
+  return {
+    revisionsDeleted: before - db.revisions.length,
+    reportsScrubbed,
+    cutoffIso: cutoff.toISOString(),
+  };
 }
 
 export async function createTeam(name: string, ownerId: string) {

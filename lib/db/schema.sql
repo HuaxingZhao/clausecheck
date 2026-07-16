@@ -33,6 +33,8 @@ CREATE TABLE IF NOT EXISTS team_invites (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Pro history metadata only. Never store full contract in result.contractReview.source.
+-- RLS enabled in migrations / ensureSchema (no client policies).
 CREATE TABLE IF NOT EXISTS reports (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -52,6 +54,8 @@ CREATE TABLE IF NOT EXISTS magic_tokens (
   expires_at TIMESTAMPTZ NOT NULL
 );
 
+-- Ephemeral revision bodies: hard-DELETED by /api/cron/purge-contract-data within 24h.
+-- No soft-delete columns (is_deleted / deleted_at). original_file must stay NULL.
 CREATE TABLE IF NOT EXISTS revisions (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -68,9 +72,11 @@ CREATE TABLE IF NOT EXISTS revisions (
 
 CREATE INDEX IF NOT EXISTS idx_reports_user ON reports(user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_reports_team ON reports(team_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_reports_created_at ON reports(created_at);
 CREATE INDEX IF NOT EXISTS idx_users_team ON users(team_id);
 CREATE INDEX IF NOT EXISTS idx_revisions_user ON revisions(user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_revisions_team ON revisions(team_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_revisions_created_at ON revisions(created_at);
 
 CREATE TABLE IF NOT EXISTS app_metrics (
   key TEXT PRIMARY KEY,
