@@ -97,6 +97,7 @@ https://www.clausecheck.cc/api/auth/google/callback
 | 文档 | 用途 |
 |------|------|
 | `docs/EXPERT_BRIEF.md` | **发给专家的主附件** |
+| `docs/deploy/smoke-test-release-checklist.md` | **发布前全链路冒烟清单**（注册→扫描→导出→退出） |
 | `docs/PRIVACY_DATA_RETENTION_AUDIT.md` | 隐私实现审计 |
 | `docs/I18N_COMPLIANCE_DIFF_REPORT.md` | 合规文案差异 |
 | `docs/PRICING_PLAN_A.md` | 定价 |

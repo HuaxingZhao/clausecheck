@@ -151,6 +151,9 @@ Upload /api/scan          ← 请求内 ephemeral，不 INSERT 合同全文
 
 ### 线上手测（约 25 分钟）
 
+可执行勾选清单（含步骤 / 预期 / 排查 / 免责专项）：  
+[`docs/deploy/smoke-test-release-checklist.md`](deploy/smoke-test-release-checklist.md)
+
 1. https://www.clausecheck.cc/zh — 试用文案、场景、上传；信任条含「不构成法律意见」  
 2. 登录 → 扫一份短合同 → 摘要/风险/审阅分栏  
 3. 采纳后下载谈判邮件 /（Pro）Word — 检查免责声明是否醒目  
@@ -158,7 +161,7 @@ Upload /api/scan          ← 请求内 ephemeral，不 INSERT 合同全文
 5. 定价区 — Trial/Pro/Enterprise；CNY 无微信按钮，有人民币咨询 CTA；Stripe 可用  
 6. https://www.clausecheck.cc/zh/community/bounty — 中文悬赏 + footer 免责  
 7. 手机 +86 OTP（可选）— 短信签名【恒创联众】  
-8. `GET https://www.clausecheck.cc/api/health` → `status: ok`，`version` ≈ `73112d2`  
+8. `GET https://www.clausecheck.cc/api/health` → `status: ok`（`version` 以 health 为准）  
 9. （有 `CRON_SECRET`）`Authorization: Bearer …` 调 `/api/cron/purge-contract-data` → `ok: true`
 
 ---
