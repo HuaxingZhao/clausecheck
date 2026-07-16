@@ -2,11 +2,20 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
-## 2026-07-16 — 专家附件包刷新（#31–#34 + 短信运维）
+## 2026-07-16 — 新对话 handoff 写入 skill
 
-- 更新 `docs/EXPERT_BRIEF.md`（§0 收口表、隐私/导出/微信/i18n/短信、手测清单）；`PROJECT-STATUS` / SKILL tip → prod `73112d2`（#34）。
-- 配套：`PRIVACY_DATA_RETENTION_AUDIT`、`I18N_COMPLIANCE_DIFF_REPORT`；`ALIYUN_SMS_HOOK` / `PHONE_AUTH` 签名改为生产可用 **恒创联众** + `100001`。
+- `clausecheck-project/SKILL.md`：Current status + Handoff board（#19–#35、专家包、隐私/微信/导出/短信）。
+- 生产 tip：`397a53d`（#35 专家附件包）；health ok。
+- 专家外发：`docs/EXPERT_BRIEF.md` + privacy/i18n 审计；桌面 zip `ClauseCheck-Expert-Pack.zip`。
+- +86：`ALIYUN_SMS_SIGN_NAME=恒创联众` + `100001` 已验证收码；其它赠送签名名常 API 无效。
+- 下一对话入口：`@clausecheck-project` → 读 SKILL + PROGRESS；专家评估用 `@clausecheck-expert-review` / `EXPERT_BRIEF`。
+
+## 2026-07-16 — 专家附件包刷新（#31–#34 + 短信运维）→ 已合并 #35
+
+- 更新 `docs/EXPERT_BRIEF.md`（§0 收口表、隐私/导出/微信/i18n/短信、手测清单）；`PROJECT-STATUS` / SKILL tip。
+- 配套：`PRIVACY_DATA_RETENTION_AUDIT`、`I18N_COMPLIANCE_DIFF_REPORT`；`ALIYUN_SMS_HOOK` / `PHONE_AUTH` 签名改为 **恒创联众** + `100001`。
 - 运维确认：+86 发码成功；列表其它赠送签名 API 可能无效，以 OpenAPI 试发为准。
+- Prod tip after merge：`397a53d`（#35）。
 
 ## 2026-07-16 — i18n 合规文案 zh/en 对齐
 

@@ -12,7 +12,7 @@
 | **主域名** | https://www.clausecheck.cc |
 | **别名** | https://clausecheck.cc · Vercel preview `huaxingzhao-clausecheck.vercel.app` |
 | **Support** | support@clausecheck.cc |
-| **最近已知 prod tip** | `73112d2` — #34 合规 i18n（以 health `version` 复核） |
+| **最近已知 prod tip** | `397a53d` — #35 专家附件包（以 health `version` 复核） |
 | **状态** | Soft Beta 🟢 |
 
 ### 近期已合并（#19–#34）

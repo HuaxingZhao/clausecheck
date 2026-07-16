@@ -40,6 +40,7 @@ ClauseCheck is a bilingual EN/ZH contract-risk scanner for decision support and 
 - Auth: email/password, Google OAuth, and Supabase Phone OTP. Apple is removed; magic links are only for internal team invites.
 - Phone OTP bridges Supabase identity to `cc_session`.
 - China `+86` uses the Supabase Send SMS Hook and Aliyun Edge Function route; other countries use Twilio through Edge Function secrets.
+- Production Aliyun gift sign: **`恒创联众`** + template **`100001`** (Supabase secrets). Other listed gift names often return「签名或者模版无效」— verify with OpenAPI before changing.
 - Do not add SMS SDKs to the app. Use Supabase Auth OTP and its hooks.
 
 ## Beta (soft launch 🟢 — SHA via prod `/api/health` → `version`)
@@ -54,6 +55,7 @@ ClauseCheck is a bilingual EN/ZH contract-risk scanner for decision support and 
 
 - Current status and handoff history: `.cursor/skills/clausecheck-project/PROGRESS.md`
 - Skill entry: `.cursor/skills/clausecheck-project/SKILL.md`
+- Expert attach pack: `docs/EXPERT_BRIEF.md` (+ privacy/i18n audits); skill `clausecheck-expert-review`
 - Phone architecture: `docs/PHONE_AUTH_SUPABASE.md`
 - Aliyun hook operations: `docs/ALIYUN_SMS_HOOK.md`
 - Production context: `docs/PROJECT-STATUS.md`

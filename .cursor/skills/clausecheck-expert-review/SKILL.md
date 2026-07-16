@@ -25,7 +25,7 @@ Read that file first. It includes product facts, §0 recent compliance/privacy/S
 ## How to use (for agents)
 
 1. Open `docs/EXPERT_BRIEF.md`.
-2. Verify live prod: `GET https://www.clausecheck.cc/api/health` (expect tip ≈ `73112d2` / #34).
+2. Verify live prod: `GET https://www.clausecheck.cc/api/health` (expect tip ≈ `397a53d` / #35 or newer).
 3. Spot-check files listed in §6 of the brief.
 4. Answer using the template in §9 of the brief (功能结论 + 战略建议).
 
