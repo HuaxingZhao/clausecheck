@@ -4,6 +4,7 @@ import { ensureSchema, getSql } from "./pg";
 import type {
   MagicToken,
   MagicTokenPurpose,
+  ProBilling,
   SavedReport,
   SavedRevision,
   Team,
@@ -28,6 +29,10 @@ function rowToUser(r: Record<string, unknown>): User {
     stripeCustomerId: (r.stripe_customer_id as string) ?? null,
     subscriptionStatus: (r.subscription_status as User["subscriptionStatus"]) ?? "none",
     proUntil: r.pro_until ? new Date(r.pro_until as string).toISOString() : null,
+    proBilling:
+      r.pro_billing === "prepaid" || r.pro_billing === "subscription"
+        ? (r.pro_billing as ProBilling)
+        : null,
     teamId: (r.team_id as string) ?? null,
     teamRole: (r.team_role as TeamRole) ?? null,
     sessionVersion: typeof r.session_version === "number" ? r.session_version : 0,
@@ -154,16 +159,29 @@ export async function setPasswordHash(email: string, passwordHash: string): Prom
 
 export async function updateUserEntitlementsById(
   userId: string,
-  patch: Partial<Pick<User, "stripeCustomerId" | "subscriptionStatus" | "proUntil">>
+  patch: Partial<
+    Pick<User, "stripeCustomerId" | "subscriptionStatus" | "proUntil" | "proBilling">
+  > & { clearProBilling?: boolean; clearProUntil?: boolean }
 ): Promise<User | null> {
   await ensureSchema();
   const existing = await findUserById(userId);
   if (!existing) return null;
+  const nextBilling = patch.clearProBilling
+    ? null
+    : (patch.proBilling ?? existing.proBilling);
+  const nextProUntil = patch.clearProUntil
+    ? null
+    : patch.proUntil
+      ? new Date(patch.proUntil)
+      : existing.proUntil
+        ? new Date(existing.proUntil)
+        : null;
   await getSql()`
     UPDATE users SET
       stripe_customer_id = COALESCE(${patch.stripeCustomerId ?? null}, stripe_customer_id),
       subscription_status = COALESCE(${patch.subscriptionStatus ?? null}, subscription_status),
-      pro_until = COALESCE(${patch.proUntil ? new Date(patch.proUntil) : null}, pro_until),
+      pro_until = ${nextProUntil},
+      pro_billing = ${nextBilling},
       updated_at = NOW()
     WHERE id = ${userId}`;
   return findUserById(userId);
@@ -172,20 +190,38 @@ export async function updateUserEntitlementsById(
 export async function upsertUser(
   email: string,
   patch: Partial<
-    Pick<User, "stripeCustomerId" | "subscriptionStatus" | "proUntil" | "teamId" | "teamRole">
-  >
+    Pick<
+      User,
+      | "stripeCustomerId"
+      | "subscriptionStatus"
+      | "proUntil"
+      | "proBilling"
+      | "teamId"
+      | "teamRole"
+    >
+  > & { clearProBilling?: boolean; clearProUntil?: boolean }
 ): Promise<User> {
   await ensureSchema();
   const key = normalizeEmail(email);
   const existing = await findUserByEmail(key);
-  const now = new Date().toISOString();
 
   if (existing) {
+    const nextBilling = patch.clearProBilling
+      ? null
+      : (patch.proBilling ?? existing.proBilling);
+    const nextProUntil = patch.clearProUntil
+      ? null
+      : patch.proUntil
+        ? new Date(patch.proUntil)
+        : existing.proUntil
+          ? new Date(existing.proUntil)
+          : null;
     await getSql()`
       UPDATE users SET
         stripe_customer_id = COALESCE(${patch.stripeCustomerId ?? null}, stripe_customer_id),
         subscription_status = COALESCE(${patch.subscriptionStatus ?? null}, subscription_status),
-        pro_until = COALESCE(${patch.proUntil ? new Date(patch.proUntil) : null}, pro_until),
+        pro_until = ${nextProUntil},
+        pro_billing = ${nextBilling},
         team_id = COALESCE(${patch.teamId ?? null}, team_id),
         team_role = COALESCE(${patch.teamRole ?? null}, team_role),
         updated_at = NOW()
@@ -195,12 +231,14 @@ export async function upsertUser(
 
   const id = crypto.randomUUID();
   await getSql()`
-    INSERT INTO users (id, email, stripe_customer_id, subscription_status, pro_until, team_id, team_role)
-    VALUES (
+    INSERT INTO users (
+      id, email, stripe_customer_id, subscription_status, pro_until, pro_billing, team_id, team_role
+    ) VALUES (
       ${id}, ${key},
       ${patch.stripeCustomerId ?? null},
       ${patch.subscriptionStatus ?? "none"},
       ${patch.proUntil ? new Date(patch.proUntil) : null},
+      ${patch.proBilling ?? null},
       ${patch.teamId ?? null},
       ${patch.teamRole ?? null}
     )`;

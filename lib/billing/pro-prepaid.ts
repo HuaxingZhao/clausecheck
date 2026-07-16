@@ -52,6 +52,7 @@ export async function grantProPrepaid(input: {
     stripeCustomerId: input.stripeCustomerId ?? undefined,
     subscriptionStatus: input.status ?? "active",
     proUntil,
+    proBilling: "prepaid",
   });
   if (!updated) return null;
 

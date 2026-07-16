@@ -13,7 +13,8 @@ export type AuditAction =
   | "payment.subscription_created"
   | "payment.invoice_succeeded"
   | "payment.addon_succeeded"
-  | "payment.pro_prepaid";
+  | "payment.pro_prepaid"
+  | "billing.pro_renewal_reminder";
 
 export async function writeAuditLog(input: {
   userId?: string | null;

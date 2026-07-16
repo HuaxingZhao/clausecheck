@@ -68,6 +68,10 @@ function normalizeJsonUser(u: User): User {
     phoneE164: u.phoneE164 ?? null,
     phoneVerifiedAt: u.phoneVerifiedAt ?? null,
     supabaseUserId: u.supabaseUserId ?? null,
+    proBilling:
+      u.proBilling === "prepaid" || u.proBilling === "subscription"
+        ? u.proBilling
+        : null,
     teamId: u.teamId ?? null,
     teamRole: u.teamRole ?? null,
     sessionVersion: typeof u.sessionVersion === "number" ? u.sessionVersion : 0,
@@ -123,6 +127,7 @@ export async function upsertPhoneUser(input: {
     stripeCustomerId: null,
     subscriptionStatus: "none",
     proUntil: null,
+    proBilling: null,
     teamId: null,
     teamRole: null,
     sessionVersion: 0,
@@ -171,16 +176,23 @@ export async function findUserByStripeCustomerId(customerId: string) {
 
 export async function updateUserEntitlementsById(
   userId: string,
-  patch: Partial<Pick<User, "stripeCustomerId" | "subscriptionStatus" | "proUntil">>
+  patch: Partial<
+    Pick<User, "stripeCustomerId" | "subscriptionStatus" | "proUntil" | "proBilling">
+  > & { clearProBilling?: boolean; clearProUntil?: boolean }
 ) {
   if (usePostgres()) return pg.updateUserEntitlementsById(userId, patch);
   const db = await readJson();
   const idx = db.users.findIndex((u) => u.id === userId);
   if (idx < 0) return null;
   const now = new Date().toISOString();
+  const prev = db.users[idx];
   const user = normalizeJsonUser({
-    ...db.users[idx],
+    ...prev,
     ...patch,
+    proUntil: patch.clearProUntil ? null : (patch.proUntil ?? prev.proUntil),
+    proBilling: patch.clearProBilling
+      ? null
+      : (patch.proBilling ?? prev.proBilling),
     updatedAt: now,
   });
   db.users[idx] = user;
@@ -191,8 +203,16 @@ export async function updateUserEntitlementsById(
 export async function upsertUser(
   email: string,
   patch: Partial<
-    Pick<User, "stripeCustomerId" | "subscriptionStatus" | "proUntil" | "teamId" | "teamRole">
-  >
+    Pick<
+      User,
+      | "stripeCustomerId"
+      | "subscriptionStatus"
+      | "proUntil"
+      | "proBilling"
+      | "teamId"
+      | "teamRole"
+    >
+  > & { clearProBilling?: boolean; clearProUntil?: boolean }
 ) {
   if (usePostgres()) return pg.upsertUser(email, patch);
   const db = await readJson();
@@ -200,7 +220,15 @@ export async function upsertUser(
   const now = new Date().toISOString();
   let user = db.users.find((u) => u.email === key);
   if (user) {
-    user = normalizeJsonUser({ ...user, ...patch, updatedAt: now });
+    user = normalizeJsonUser({
+      ...user,
+      ...patch,
+      proUntil: patch.clearProUntil ? null : (patch.proUntil ?? user.proUntil),
+      proBilling: patch.clearProBilling
+        ? null
+        : (patch.proBilling ?? user.proBilling),
+      updatedAt: now,
+    });
     db.users = db.users.map((u) => (u.id === user!.id ? user! : u));
   } else {
     user = normalizeJsonUser({
@@ -212,6 +240,7 @@ export async function upsertUser(
       stripeCustomerId: patch.stripeCustomerId ?? null,
       subscriptionStatus: patch.subscriptionStatus ?? "none",
       proUntil: patch.proUntil ?? null,
+      proBilling: patch.proBilling ?? null,
       teamId: patch.teamId ?? null,
       teamRole: patch.teamRole ?? null,
       sessionVersion: 0,

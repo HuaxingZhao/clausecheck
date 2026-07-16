@@ -73,13 +73,15 @@ export async function activateProSubscription(input: {
     stripeCustomerId: input.stripeCustomerId ?? undefined,
     subscriptionStatus: input.status ?? "active",
     proUntil: input.proUntil ?? null,
+    proBilling: "subscription",
   });
 }
 
 export async function deactivateProSubscription(email: string) {
   return upsertUser(email, {
     subscriptionStatus: "canceled",
-    proUntil: null,
+    clearProUntil: true,
+    clearProBilling: true,
   });
 }
 
