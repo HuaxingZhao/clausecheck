@@ -1,6 +1,9 @@
 {
   "ai_disclaimer_export": "⚠️ This content is AI-generated for reference only and does not constitute legal advice.",
   "ai_notice": "ClauseCheck provides AI decision support and negotiation material — not legal advice.",
+  "no_model_training": "We commit not to use user-uploaded content for training our own models",
+  "openai_api_data_policy": "Contract analysis is performed via OpenAI's commercial API, which commits not to use customer data for model training and does not retain input content",
+  "ops_log_retention": "For service security, the system may generate operational logs without contract content; such logs will be physically deleted within 24 hours",
   "nav": {
     "brand": "ClauseCheck",
     "how": "How It Works",

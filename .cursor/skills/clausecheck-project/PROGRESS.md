@@ -2,6 +2,14 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-16 — 合规 i18n 三 key 文案
+
+- `messages/zh.json` / `en.json`：新建顶层合规 key（原先不存在）`no_model_training`、`openai_api_data_policy`、`ops_log_retention`，置于 `ai_notice` 旁；仅改这三处字符串，未动组件/导出/支付逻辑。
+
+## 2026-07-16 — 微信路径 A 操作手册扩写
+
+- `docs/WECHAT_PAY_ENABLEMENT.md`：补全路径 A（选商→KYC→收银适配页→webhook→Vercel）；强调聚合商通常只给 API，需薄适配层才能当 `WECHAT_PAY_QR_BASE`。
+
 ## 2026-07-16 — #36 已合并（§4 + 微信门控）
 
 - PR https://github.com/HuaxingZhao/clausecheck/pull/36 squash → `ed27aca`；生产 tip 以 `/api/health` → `version` 为准（部署后应 ≠旧 `1bdae8d`）。

@@ -1,6 +1,9 @@
 {
   "ai_disclaimer_export": "⚠️ 本内容由 AI 生成，仅供决策参考，不构成法律意见。",
   "ai_notice": "ClauseCheck 提供 AI 决策支持与谈判材料，不构成法律意见。",
+  "no_model_training": "我们承诺不将用户上传内容用于自有模型训练",
+  "openai_api_data_policy": "合同分析通过 OpenAI 商业 API 完成，该 API 承诺不使用客户数据进行模型训练，且输入内容不会被留存",
+  "ops_log_retention": "为保障服务安全，系统可能生成不含合同原文的运维日志，此类日志将在 24 小时内自动物理删除",
   "nav": {
     "brand": "ClauseCheck",
     "how": "怎么用",
