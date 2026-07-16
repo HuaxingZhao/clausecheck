@@ -36,10 +36,10 @@ PR #19–#35 ：Plan A / 安全收口 / 微信门控 / 导出免责 /
 | 主题 | 状态 | 指针 |
 |------|------|------|
 | 专家评估附件 | ✅ #35；桌面 zip 曾导出 | `docs/EXPERT_BRIEF.md` + privacy/i18n 审计 |
-| 微信支付 UI | ✅ 默认关；CNY→人民币咨询 CTA | `WECHAT_PAY_ENABLED=true` 可恢复；API 保留 |
+| 微信支付 UI | ✅ 默认关；CNY→人民币咨询 CTA；门控=开关∧收银 | `docs/WECHAT_PAY_ENABLEMENT.md`（缺 `QR_BASE`） |
 | 导出免责声明 | ✅ Word 横幅+页眉；邮件文末 | `ai_disclaimer_export` / `lib/ai-disclaimer.ts` |
 | 隐私硬删 | ✅ 小时 Cron ≤24h；报告脱敏 | `/api/cron/purge-contract-data` + `CRON_SECRET` |
-| 合规 i18n | ✅ zh/en 对齐；待法务确认见报告 §4 | `docs/I18N_COMPLIANCE_DIFF_REPORT.md` |
+| 合规 i18n | ✅ §4 产品侧已收口；DPA 签字仍外部 | `docs/I18N_COMPLIANCE_DIFF_REPORT.md` |
 | +86 短信签名 | ✅ 生产 `恒创联众` + `100001` | 列表其它签名 API 常无效；OpenAPI 试发为准 |
 | Stripe | ✅ 主结账 | 微信商户仍未接 → topup 503 |
 
@@ -94,7 +94,7 @@ Review is a read-only split view. `contract-review-shell` stays at **82vh**, wit
 
 ## Beta page constraints (P0)
 
-- Founding perks are marketing until official launch — keep `beta.benefits.disclaimer` (正式版统一发放).
+- Founding perks are marketing until official launch — keep `beta.benefits.perkNote` (正式版统一发放).
 - Waitlist subscribe ≠ account; success UI must offer register (`/account` via i18n `Link`) + dismiss.
 - 「体验产品」hint uses `getQuotaForPlan("trial")` — never hardcode the count.
 - EN default routes omit `/en` prefix (`localePrefix: as-needed`); use `@/i18n/routing` `Link`.
@@ -111,7 +111,7 @@ Review is a read-only split view. `contract-review-shell` stays at **82vh**, wit
 - Hardcode `clausecheck.app` or `hello@clausecheck.app` — use `www.clausecheck.cc` / `support@clausecheck.cc`.
 - Enable production mock WeChat pay (`ALLOW_MOCK_WECHAT_PAY`) for real traffic.
 - Soft-delete contract bodies (`is_deleted` / `deleted_at`) — hard DELETE only.
-- Expose WeChat pay CTA unless `WECHAT_PAY_ENABLED=true`.
+- Expose WeChat pay CTA unless `WECHAT_PAY_ENABLED=true` **and** `WECHAT_PAY_QR_BASE` (or allowed mock) is set.
 
 ## Short workflows
 

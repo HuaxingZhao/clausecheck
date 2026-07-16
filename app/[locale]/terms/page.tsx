@@ -30,7 +30,7 @@ const content: Record<"en" | "zh", {
   zh: {
     back: "← 返回首页",
     title: "用户协议",
-    updated: "最后更新：2026 年 6 月",
+    updated: "最后更新：2026 年 7 月",
     metaTitle: "用户协议 — ClauseCheck",
     metaDesc: "ClauseCheck 的用户协议，了解使用条款、免责声明和权利义务。",
     sections: [
@@ -88,7 +88,7 @@ const content: Record<"en" | "zh", {
       },
       {
         heading: "8. 隐私与数据",
-        body: "我们对数据隐私的承诺详见隐私政策。简而言之：合同文件在分析完成后立即删除，不用于 AI 模型训练，不分享给第三方（除必要的技术服务提供商外）。",
+        body: "我们对数据隐私的承诺详见隐私政策。简而言之：合同正文不作为长期语料库保存；修订对照相关数据 ≤24 小时内物理删除；我们不将你的上传用于训练自有模型；除必要技术服务提供商外不与第三方分享。",
       },
       {
         heading: "9. 责任限制",
@@ -111,14 +111,14 @@ const content: Record<"en" | "zh", {
       },
       {
         heading: "12. 联系我们",
-        body: ["如果你对用户协议有任何疑问，请通过以下方式联系：", "📧 legal@clausecheck.com"],
+        body: ["如果你对用户协议有任何疑问，请通过以下方式联系：", "📧 support@clausecheck.cc"],
       },
     ],
   },
   en: {
     back: "← Back to Home",
     title: "Terms of Service",
-    updated: "Last updated: June 2026",
+    updated: "Last updated: July 2026",
     metaTitle: "Terms of Service — ClauseCheck",
     metaDesc: "ClauseCheck's Terms of Service — understand usage terms, disclaimers, and your rights and obligations.",
     sections: [
@@ -176,7 +176,7 @@ const content: Record<"en" | "zh", {
       },
       {
         heading: "8. Privacy and Data",
-        body: "Our commitment to data privacy is detailed in the Privacy Policy. In short: contract files are deleted immediately after analysis, are not used for AI model training, and are not shared with third parties (except necessary technical service providers).",
+        body: "Our commitment to data privacy is detailed in the Privacy Policy. In short: contract bodies are not retained as a long-term corpus; revision-workbook data is physically deleted within 24 hours; we do not use your uploads to train our own models; and we do not share with third parties except necessary technical service providers.",
       },
       {
         heading: "9. Limitation of Liability",
@@ -199,7 +199,7 @@ const content: Record<"en" | "zh", {
       },
       {
         heading: "12. Contact Us",
-        body: ["If you have any questions about these Terms of Service, please contact us at:", "📧 legal@clausecheck.com"],
+        body: ["If you have any questions about these Terms of Service, please contact us at:", "📧 support@clausecheck.cc"],
       },
     ],
   },

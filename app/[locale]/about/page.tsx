@@ -64,7 +64,7 @@ const content: Record<"en" | "zh", {
         {
           number: "04",
           title: "数据安全不是可选项",
-          body: "每条上传的合同在扫描完成后自动删除。全程传输加密，绝不用于模型训练。你的合同是你的，不是我的。",
+          body: "合同正文不长期保留；修订稿按计划硬删。全程传输加密，绝不用于训练自有模型。你的合同是你的，不是我的。",
         },
       ],
     },
@@ -118,7 +118,7 @@ const content: Record<"en" | "zh", {
         {
           number: "04",
           title: "Data Security Is Not Optional",
-          body: "Every uploaded contract is automatically deleted after scanning. End-to-end encryption throughout transmission. Never used for model training. Your contract is yours, not mine.",
+          body: "Contract bodies are not kept long-term; revision drafts are hard-deleted on schedule. Transfers are encrypted. Never used to train our own models. Your contract is yours, not mine.",
         },
       ],
     },

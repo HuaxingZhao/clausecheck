@@ -74,7 +74,7 @@
 | # | 项目 | 跟踪 |
 |---|------|------|
 | P1-1 | Admin / invite `::uuid` | ✅ 代码已修（TD-001）；手测可选 |
-| P1-2 | 微信加油包 `WECHAT_PAY_QR_BASE` | 未配时 API 返回 **503** `WECHAT_PAY_NOT_CONFIGURED`；主结账走 Stripe |
+| P1-2 | 微信加油包 `WECHAT_PAY_QR_BASE` | 未配 → API **503**；UI 需 `ENABLED`+收银同时满足。启用步骤见 `docs/WECHAT_PAY_ENABLEMENT.md` |
 | P1-3 | Redis（可选） | health `not_configured` 可接受 |
 
 ---

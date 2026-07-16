@@ -16,10 +16,10 @@
 | **微信收银入口** | 前端默认隐藏；CNY 改为「人民币支付通道」企业咨询 CTA；`WECHAT_PAY_ENABLED=true` 可恢复钱包文案 | #31 · `lib/credits/wechat-pay-config.ts` · `CnyPayChannelCta` |
 | **导出免责声明** | Word 首页横幅 + 页眉；谈判邮件文末；`ai_disclaimer_export` zh/en 成对 | #32 · `lib/generateRevisionDocx.ts` · `lib/negotiation-email.ts` · `lib/ai-disclaimer.ts` |
 | **隐私 / 扫完即删** | 扫描请求仍不落库；报告写入剥离全文；修订稿 ≤24h **物理 DELETE**；小时 Cron + `CRON_SECRET`；`reports`/`revisions` RLS | #33 · `docs/PRIVACY_DATA_RETENTION_AUDIT.md` · `/api/cron/purge-contract-data` |
-| **合规 i18n** | zh/en key 对齐；硬约束「不构成法律意见 / not legal advice」补强；`ai_notice` | #34 · `docs/I18N_COMPLIANCE_DIFF_REPORT.md` |
+| **合规 i18n** | zh/en key 对齐；硬约束「不构成法律意见 / not legal advice」补强；`ai_notice`；§4 产品侧叙事已与 ≤24h 硬删对齐 | #34 + 后续收口 · `docs/I18N_COMPLIANCE_DIFF_REPORT.md` |
 | **中国 +86 短信** | Hook → Aliyun `SendSmsVerifyCode`；生产签名已切至可用赠送签名 **`恒创联众`** + 模板 **`100001`**（避开 8/31 历史赠送签名停用）；端到端已验证可收码 | 运维：Supabase Secret `ALIYUN_SMS_SIGN_NAME` · `docs/ALIYUN_SMS_HOOK.md` |
 
-**仍待法务/创始人确认（见 i18n 报告 §4）：** 隐私政策页部分硬编码、FAQ「扫完即删」与「报告元数据短期保留」的对外表述粒度、FAQ「模型训练」措辞。
+**对外合规叙事（已产品收口）：** 隐私/条款页统一 `support@clausecheck.cc`；「正文不长期保留」+ 修订 ≤24h；FAQ 不再暗示「用用户合同训练」。**仍待法务外部签字：** 对照 OpenAI / 托管方 DPA 确认第三方日志表述。
 
 ---
 
@@ -173,7 +173,7 @@ Upload /api/scan          ← 请求内 ephemeral，不 INSERT 合同全文
 4. **审阅 UX：** 82vh 分栏 + 采纳 + Word 导出，律师/商务能否真用？缺什么？  
 5. **试用漏斗：** 1 份/周期 + 登录门槛，是否过狠或过松？转化路径是否顺？  
 6. **中英与中国市场：** OTP、人民币咨询入口、中文叙事是否够？缺微信收银是否致命？  
-7. **安全/合规叙事：** 扫完即删、不训练、免责声明与实现是否匹配？（请对照 `PRIVACY_DATA_RETENTION_AUDIT` / `I18N_COMPLIANCE_DIFF_REPORT`）  
+7. **安全/合规叙事：** 正文不长期保留、修订 ≤24h、不用于自有模型训练、免责声明与实现是否匹配？（请对照 `PRIVACY_DATA_RETENTION_AUDIT` / `I18N_COMPLIANCE_DIFF_REPORT`）  
 8. **法域 Pack：** 插件化是否值得做成核心差异化？众包 bounty 是否可行？
 
 ---
@@ -202,7 +202,8 @@ Upload /api/scan          ← 请求内 ephemeral，不 INSERT 合同全文
 | 向量 RAG / 微调 | 偏未来 | 质量上限 |
 | Redis / 更强硬限流 | 未配 | 规模化 |
 | Discord 社群 | 需 env 才展示 | 社区运营 |
-| 隐私政策页迁入 i18n / 表述对齐 | 部分硬编码；待法务确认 | 合规叙事一致性 |
+| 隐私政策页迁入 i18n | 硬编码但已与保留策略对齐；整页迁 i18n 可选 | 合规叙事一致性 |
+| 微信商户收银 URL | 启用清单已写；缺 `WECHAT_PAY_QR_BASE` | 中国加油包转化 |
 | Product Hunt 大宣发 | 材料有，节奏可选 | 获客 |
 
 ### 请专家拍板的优先序（选 1–2 个下一季度主轴）

@@ -22,14 +22,15 @@ const content: Record<"en" | "zh", { back: string; title: string; updated: strin
   zh: {
     back: "← 返回首页",
     title: "隐私政策",
-    updated: "最后更新：2026 年 6 月",
+    updated: "最后更新：2026 年 7 月",
     metaTitle: "隐私政策 — ClauseCheck",
     metaDesc: "ClauseCheck 的隐私政策，了解我们如何收集、使用和保护你的个人信息。",
     sections: [
       {
         heading: "1. 我们收集哪些信息",
         body: [
-          "ClauseCheck 是一个极简工具。你上传的合同文件仅在前端选中后、通过 HTTPS 加密传输至我们的服务器进行 AI 分析，分析完成后立即永久删除。我们不会存储你的合同原文、分析结果摘要或任何可识别的合同内容。",
+          "ClauseCheck 是一个极简工具。你上传的合同文件经 HTTPS 加密传输至服务器，仅用于当次 AI 分析。扫描请求本身不会作为持久语料写入数据库。我们不会把合同全文当作长期语料库保存。",
+          "若你登录并主动保存分析报告，我们可能保留脱敏后的分析元数据（如风险摘要、截断引文与建议），不会长期保留完整合同正文。若你导出修订对照稿，相关修订数据在创建后 ≤24 小时内物理删除。",
           "我们可能自动收集以下技术信息：浏览器类型、设备类型、访问时间、来源页面 URL 等，这些信息仅用于改善服务，不直接关联到你的个人身份。",
           "如果你选择订阅专业版或购买按次服务，支付由 Stripe 处理。我们不会存储你的信用卡号或完整支付信息——这些数据直接由 Stripe 加密处理。我们会保留你的邮箱（如有提供）用于发送收据和服务通知。",
         ],
@@ -38,7 +39,7 @@ const content: Record<"en" | "zh", { back: string; title: string; updated: strin
         heading: "2. 信息如何使用",
         body: [
           "我们收集的信息仅用于以下目的：提供合同扫描和风险分析服务；处理支付和订阅管理；改善产品体验和修复 bug；发送与服务相关的通知（如账单提醒、重大更新）；遵守法律法规要求。",
-          "我们不会将你的合同内容用于训练 AI 模型。所有 AI 分析均通过 OpenAI API 完成，OpenAI 也不会将 API 调用数据用于模型训练（见 OpenAI API 数据使用政策）。",
+          "我们不会将你的合同内容用于训练或改进自有 AI 模型。分析通过 OpenAI API 完成，适用其商业 API 数据使用政策。第三方基础设施（托管、监控等）可能按各自政策短期保留运维日志。",
         ],
       },
       {
@@ -47,13 +48,13 @@ const content: Record<"en" | "zh", { back: string; title: string; updated: strin
       },
       {
         heading: "4. 数据存储与安全",
-        body: "我们的服务部署在安全云基础设施上，数据传输全程使用 HTTPS/TLS 加密。合同文件在分析完成后立即从服务器文件系统中删除，不留任何副本。我们不维护合同数据库或长期存储用户上传内容。我们采取行业标准的技术和管理措施保护你的信息安全，但没有任何互联网传输或电子存储是 100% 安全的。如果你对数据安全有特殊顾虑，欢迎联系我们。",
+        body: "我们的服务部署在安全云基础设施上，数据传输全程使用 HTTPS/TLS 加密。合同正文不作为长期语料库保存；修订对照相关数据按 ≤24 小时计划物理删除。我们采取行业标准的技术和管理措施保护你的信息安全，但没有任何互联网传输或电子存储是 100% 安全的。如果你对数据安全有特殊顾虑，欢迎联系我们。",
       },
       {
         heading: "5. 第三方服务",
         body: [
           "我们依赖以下第三方服务交付核心功能：",
-          "OpenAI：提供 AI 文本分析能力。你的合同内容会发送至 OpenAI API 进行处理，OpenAI 承诺不会用 API 数据训练模型。",
+          "OpenAI：提供 AI 文本分析能力。你的合同内容会发送至 OpenAI API 进行处理，适用其商业 API 数据使用政策。",
           "Stripe：处理支付和订阅。你的支付信息由 Stripe 直接收集和处理。详见 Stripe 隐私政策。",
           "Vercel：托管我们的应用。Vercel 可能会收集访问日志等基础设施级别的数据。",
           "我们不会将你的信息出售、出租或与非上述服务提供商的第三方分享。",
@@ -67,7 +68,7 @@ const content: Record<"en" | "zh", { back: string; title: string; updated: strin
           "撤回同意（但可能影响后续服务）",
           "要求我们限制或停止处理你的个人信息",
           "向我们提出投诉",
-          "由于我们不长期存储合同内容和用户个人信息，大部分权利请求实际上自动满足。如需行使权利，请联系下方邮箱。",
+          "由于合同正文不长期保留，多数与合同原文相关的权利请求在技术上已自动满足。账户与账单信息可按下方邮箱联系处理。",
         ],
       },
       {
@@ -80,21 +81,22 @@ const content: Record<"en" | "zh", { back: string; title: string; updated: strin
       },
       {
         heading: "9. 联系我们",
-        body: ["如果你对隐私政策有任何疑问或顾虑，请通过以下方式联系：", "📧 privacy@clausecheck.com"],
+        body: ["如果你对隐私政策有任何疑问或顾虑，请通过以下方式联系：", "📧 support@clausecheck.cc"],
       },
     ],
   },
   en: {
     back: "← Back to Home",
     title: "Privacy Policy",
-    updated: "Last updated: June 2026",
+    updated: "Last updated: July 2026",
     metaTitle: "Privacy Policy — ClauseCheck",
     metaDesc: "ClauseCheck privacy policy — learn how we collect, use, and protect your personal information.",
     sections: [
       {
         heading: "1. What Information We Collect",
         body: [
-          "ClauseCheck is a minimalist tool. Contract files you upload are transmitted to our servers via HTTPS encryption solely for AI analysis, and are permanently deleted immediately after analysis is complete. We do not store your original contracts, analysis summaries, or any identifiable contract content.",
+          "ClauseCheck is a minimalist tool. Contract files you upload are transmitted to our servers over HTTPS solely for the active AI analysis. Scan requests are not written to our database as a durable training corpus. We do not retain full contract bodies as a long-term dataset.",
+          "If you sign in and choose to save an analysis report, we may keep scrubbed analysis metadata (such as risk summaries, truncated quotes, and suggestions), not the full contract text. If you export a revision workbook, related revision data is physically deleted within 24 hours of creation.",
           "We may automatically collect the following technical information: browser type, device type, access time, referring page URL, etc. This information is used solely to improve our service and is not directly linked to your personal identity.",
           "If you choose to subscribe to Pro or purchase pay-per-use services, payments are processed by Stripe. We do not store your credit card numbers or full payment information — this data is handled directly by Stripe with encryption. We retain your email address (if provided) for sending receipts and service notifications.",
         ],
@@ -103,7 +105,7 @@ const content: Record<"en" | "zh", { back: string; title: string; updated: strin
         heading: "2. How We Use Information",
         body: [
           "The information we collect is used solely for the following purposes: providing contract scanning and risk analysis services; processing payments and subscription management; improving product experience and fixing bugs; sending service-related notifications (such as billing reminders and major updates); and complying with legal and regulatory requirements.",
-          "We do not use your contract content to train AI models. All AI analysis is conducted via the OpenAI API, and OpenAI likewise does not use API call data for model training (see the OpenAI API Data Usage Policy).",
+          "We do not use your contract content to train or improve our own AI models. Analysis runs through the OpenAI API under their business API data-use terms. Infrastructure providers (hosting, monitoring, etc.) may retain operational logs under their own policies.",
         ],
       },
       {
@@ -112,13 +114,13 @@ const content: Record<"en" | "zh", { back: string; title: string; updated: strin
       },
       {
         heading: "4. Data Storage and Security",
-        body: "Our service is deployed on secure cloud infrastructure, and all data transmission is encrypted via HTTPS/TLS. Contract files are deleted from our server filesystem immediately after analysis, leaving no copies. We do not maintain a contract database or long-term storage of user-uploaded content. We implement industry-standard technical and administrative measures to protect your information, though no internet transmission or electronic storage is 100% secure. If you have specific data security concerns, please contact us.",
+        body: "Our service is deployed on secure cloud infrastructure, and all data transmission is encrypted via HTTPS/TLS. Contract bodies are not retained as a long-term corpus; revision-workbook data is physically deleted on a ≤24-hour schedule. We implement industry-standard technical and administrative measures to protect your information, though no internet transmission or electronic storage is 100% secure. If you have specific data security concerns, please contact us.",
       },
       {
         heading: "5. Third-Party Services",
         body: [
           "We rely on the following third-party services to deliver core functionality:",
-          "OpenAI: provides AI text analysis capabilities. Your contract content is sent to the OpenAI API for processing. OpenAI commits to not using API data for model training.",
+          "OpenAI: provides AI text analysis capabilities. Your contract content is sent to the OpenAI API for processing under their business API data-use terms.",
           "Stripe: handles payments and subscriptions. Your payment information is collected and processed directly by Stripe. See Stripe's Privacy Policy for details.",
           "Vercel: hosts our application. Vercel may collect infrastructure-level data such as access logs.",
           "We do not sell, rent, or share your information with third parties other than the service providers listed above.",
@@ -132,7 +134,7 @@ const content: Record<"en" | "zh", { back: string; title: string; updated: strin
           "Withdraw consent (which may affect subsequent services)",
           "Request that we restrict or cease processing your personal information",
           "Lodge a complaint with us",
-          "Since we do not store contract content or user personal information long-term, most rights requests are automatically satisfied. To exercise your rights, please contact us at the email below.",
+          "Because contract bodies are not retained long-term, most requests about original contract text are already satisfied by design. For account or billing data, contact us at the email below.",
         ],
       },
       {
@@ -145,7 +147,7 @@ const content: Record<"en" | "zh", { back: string; title: string; updated: strin
       },
       {
         heading: "9. Contact Us",
-        body: ["If you have any questions or concerns about this Privacy Policy, please contact us at:", "📧 privacy@clausecheck.com"],
+        body: ["If you have any questions or concerns about this Privacy Policy, please contact us at:", "📧 support@clausecheck.cc"],
       },
     ],
   },

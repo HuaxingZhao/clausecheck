@@ -10,20 +10,53 @@ describe("isWechatPayUiEnabled", () => {
     assert.equal(isWechatPayUiEnabled({}), false);
   });
 
-  it("true when WECHAT_PAY_ENABLED=true", () => {
-    assert.equal(isWechatPayUiEnabled({ WECHAT_PAY_ENABLED: "true" }), true);
+  it("false when flag on but production has no cashier", () => {
+    assert.equal(
+      isWechatPayUiEnabled({
+        NODE_ENV: "production",
+        WECHAT_PAY_ENABLED: "true",
+      }),
+      false
+    );
   });
 
-  it("true when NEXT_PUBLIC_WECHAT_PAY_ENABLED=true", () => {
+  it("true when flag on and WECHAT_PAY_QR_BASE set", () => {
     assert.equal(
-      isWechatPayUiEnabled({ NEXT_PUBLIC_WECHAT_PAY_ENABLED: "true" }),
+      isWechatPayUiEnabled({
+        NODE_ENV: "production",
+        WECHAT_PAY_ENABLED: "true",
+        WECHAT_PAY_QR_BASE: "https://pay.example/qr",
+      }),
       true
     );
   });
 
-  it("false for non-true values", () => {
-    assert.equal(isWechatPayUiEnabled({ WECHAT_PAY_ENABLED: "1" }), false);
-    assert.equal(isWechatPayUiEnabled({ WECHAT_PAY_ENABLED: "false" }), false);
+  it("true when NEXT_PUBLIC flag on and QR base set", () => {
+    assert.equal(
+      isWechatPayUiEnabled({
+        NODE_ENV: "production",
+        NEXT_PUBLIC_WECHAT_PAY_ENABLED: "true",
+        WECHAT_PAY_QR_BASE: "https://pay.example/qr",
+      }),
+      true
+    );
+  });
+
+  it("false for non-true flag values even with QR base", () => {
+    assert.equal(
+      isWechatPayUiEnabled({
+        WECHAT_PAY_ENABLED: "1",
+        WECHAT_PAY_QR_BASE: "https://pay.example/qr",
+      }),
+      false
+    );
+    assert.equal(
+      isWechatPayUiEnabled({
+        WECHAT_PAY_ENABLED: "false",
+        WECHAT_PAY_QR_BASE: "https://pay.example/qr",
+      }),
+      false
+    );
   });
 });
 
