@@ -1,6 +1,10 @@
 import {
   ADD_ON_CONFIG,
-  annualBilledTotal,
+  ANNUAL_SAVINGS_PERCENT,
+  QUARTERLY_SAVINGS_PERCENT,
+  SEMI_ANNUAL_SAVINGS_PERCENT,
+  billingCycleMonths,
+  prepaidBilledTotal,
   monthlyUnitPrice,
   type BillingCycle,
   type Currency,
@@ -40,20 +44,42 @@ export function formatPlanPrice(
   const perMonth = monthlyUnitPrice(plan, currency, cycle);
   const main = formatMoney(perMonth, currency, locale);
   const period = "/mo";
+  const isZh = (locale ?? FORMAT_LOCALE[currency]) === "zh-CN";
+  const months = billingCycleMonths(cycle);
 
-  if (cycle === "annual") {
-    const total = annualBilledTotal(plan, currency);
-    const isZh = (locale ?? FORMAT_LOCALE[currency]) === "zh-CN";
+  if (months === 1) {
+    return { main, period };
+  }
+
+  const total = prepaidBilledTotal(plan, currency, cycle);
+
+  if (cycle === "quarterly") {
     return {
       main,
       period,
       sub: isZh
-        ? `按年付 ${formatMoney(total, currency, locale)} · 省 15%`
-        : `Billed ${formatMoney(total, currency, locale)}/yr · save 15%`,
+        ? `按季付 ${formatMoney(total, currency, locale)} · 省 ${QUARTERLY_SAVINGS_PERCENT}%`
+        : `Billed ${formatMoney(total, currency, locale)}/quarter · save ${QUARTERLY_SAVINGS_PERCENT}%`,
+    };
+  }
+  if (cycle === "semi_annual") {
+    return {
+      main,
+      period,
+      sub: isZh
+        ? `半年付 ${formatMoney(total, currency, locale)} · 省 ${SEMI_ANNUAL_SAVINGS_PERCENT}%`
+        : `Billed ${formatMoney(total, currency, locale)}/6 mo · save ${SEMI_ANNUAL_SAVINGS_PERCENT}%`,
     };
   }
 
-  return { main, period };
+  // annual
+  return {
+    main,
+    period,
+    sub: isZh
+      ? `按年付 ${formatMoney(total, currency, locale)} · 省 ${ANNUAL_SAVINGS_PERCENT}%`
+      : `Billed ${formatMoney(total, currency, locale)}/yr · save ${ANNUAL_SAVINGS_PERCENT}%`,
+  };
 }
 
 export function formatAddOnPrice(currency: Currency, locale?: string): string {

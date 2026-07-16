@@ -3,6 +3,8 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import {
+  coerceBillingCycleForCurrency,
+  DEFAULT_CNY_BILLING_CYCLE,
   getQuotaForPlan,
   tierToPlan,
   type BillingCycle,
@@ -55,7 +57,14 @@ export const usePricingStore = create<PricingState & PricingActions>()(
 
       setSelectedPlan: (selectedPlan) => set({ selectedPlan }),
       setBillingCycle: (billingCycle) => set({ billingCycle }),
-      setCurrency: (currency) => set({ currency }),
+      setCurrency: (currency) => {
+        const prev = get().billingCycle;
+        const billingCycle =
+          currency === "CNY" && (prev === "monthly" || prev === "annual")
+            ? DEFAULT_CNY_BILLING_CYCLE
+            : coerceBillingCycleForCurrency(prev, currency);
+        set({ currency, billingCycle });
+      },
       setAddOnCount: (addOnCount) => set({ addOnCount }),
       setUsedQuota: (usedQuota) => set({ usedQuota }),
       setQuotaLimit: (quotaLimit) => set({ quotaLimit }),

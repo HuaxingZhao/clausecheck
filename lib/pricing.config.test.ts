@@ -4,14 +4,19 @@ import {
   ADD_ON_CONFIG,
   ANNUAL_DISCOUNT,
   CNY_RATE,
+  QUARTERLY_DISCOUNT,
+  SEMI_ANNUAL_DISCOUNT,
   addOnTotalPrice,
   annualBilledTotal,
+  coerceBillingCycleForCurrency,
   cnyFromUsd,
   getAddOnPaymentMethodTypes,
   getSubscriptionPaymentMethodTypes,
   PLAN_DEFINITIONS,
   isCheckoutEnabled,
   monthlyUnitPrice,
+  prepaidBilledTotal,
+  prepaidDaysForBillingCycle,
   usdFromCny,
   validatePricingConfig,
 } from "./pricing.config";
@@ -60,9 +65,26 @@ describe("pricing.config currency conversion", () => {
     assert.equal(monthlyUnitPrice("team", "CNY", "annual"), 424);
   });
 
-  it("computes annual billed totals as 12 × discounted monthly", () => {
+  it("computes annual billed totals with cycle discount on full period", () => {
     assert.equal(annualBilledTotal("pro", "USD"), 295.8);
-    assert.equal(annualBilledTotal("team", "CNY"), 5088);
+    // round(499 * 12 * 0.85) — discount applied to period total
+    assert.equal(annualBilledTotal("team", "CNY"), 5090);
+  });
+
+  it("computes CNY prepaid quarterly and semi-annual totals", () => {
+    assert.equal(prepaidBilledTotal("pro", "CNY", "quarterly"), Math.round(199 * 3 * QUARTERLY_DISCOUNT));
+    assert.equal(
+      prepaidBilledTotal("pro", "CNY", "semi_annual"),
+      Math.round(199 * 6 * SEMI_ANNUAL_DISCOUNT)
+    );
+    assert.equal(prepaidDaysForBillingCycle("quarterly"), 90);
+    assert.equal(prepaidDaysForBillingCycle("semi_annual"), 182);
+  });
+
+  it("coerces CNY-only cycles when switching to USD", () => {
+    assert.equal(coerceBillingCycleForCurrency("quarterly", "USD"), "monthly");
+    assert.equal(coerceBillingCycleForCurrency("semi_annual", "USD"), "annual");
+    assert.equal(coerceBillingCycleForCurrency("quarterly", "CNY"), "quarterly");
   });
 
   it("converts between USD and CNY at fixed rate", () => {

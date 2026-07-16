@@ -7,6 +7,12 @@ export const CNY_RATE = 7.25 as const;
 /** Multiplier applied to monthly price when billing annually (15% off). */
 export const ANNUAL_DISCOUNT = 0.85 as const;
 export const ANNUAL_SAVINGS_PERCENT = Math.round((1 - ANNUAL_DISCOUNT) * 100);
+/** CNY prepaid: quarterly ~5% off list months. */
+export const QUARTERLY_DISCOUNT = 0.95 as const;
+/** CNY prepaid: semi-annual ~10% off list months. */
+export const SEMI_ANNUAL_DISCOUNT = 0.9 as const;
+export const QUARTERLY_SAVINGS_PERCENT = Math.round((1 - QUARTERLY_DISCOUNT) * 100);
+export const SEMI_ANNUAL_SAVINGS_PERCENT = Math.round((1 - SEMI_ANNUAL_DISCOUNT) * 100);
 
 export type PlanId = "trial" | "pro" | "team" | "enterprise";
 export type SelfServePlanId = Exclude<PlanId, "enterprise">;
@@ -14,9 +20,78 @@ export type SelfServePlanId = Exclude<PlanId, "enterprise">;
 export type PaidPlanId = "pro" | "team";
 /** Phase 1: only Pro accepts real checkout. Team/Enterprise are visual placeholders. */
 export type CheckoutPlanId = "pro";
-export type BillingCycle = "monthly" | "annual";
+/** USD recurring: monthly | annual. CNY prepaid also supports quarterly | semi_annual. */
+export type BillingCycle = "monthly" | "quarterly" | "semi_annual" | "annual";
+export type RecurringBillingCycle = "monthly" | "annual";
 export type Currency = "USD" | "CNY";
 export type PurchaseType = "subscription" | "addon";
+
+export const BILLING_CYCLES: readonly BillingCycle[] = [
+  "monthly",
+  "quarterly",
+  "semi_annual",
+  "annual",
+] as const;
+
+export function isRecurringBillingCycle(
+  cycle: BillingCycle
+): cycle is RecurringBillingCycle {
+  return cycle === "monthly" || cycle === "annual";
+}
+
+export function billingCycleMonths(cycle: BillingCycle): number {
+  switch (cycle) {
+    case "monthly":
+      return 1;
+    case "quarterly":
+      return 3;
+    case "semi_annual":
+      return 6;
+    case "annual":
+      return 12;
+  }
+}
+
+/** Access window for CNY prepaid Pro (calendar-day grant). */
+export function prepaidDaysForBillingCycle(cycle: BillingCycle): number {
+  switch (cycle) {
+    case "monthly":
+      return 30;
+    case "quarterly":
+      return 90;
+    case "semi_annual":
+      return 182;
+    case "annual":
+      return 365;
+  }
+}
+
+export function billingCycleDiscount(cycle: BillingCycle): number {
+  switch (cycle) {
+    case "monthly":
+      return 1;
+    case "quarterly":
+      return QUARTERLY_DISCOUNT;
+    case "semi_annual":
+      return SEMI_ANNUAL_DISCOUNT;
+    case "annual":
+      return ANNUAL_DISCOUNT;
+  }
+}
+
+/** When switching currency, keep a valid cycle for that currency. */
+export function coerceBillingCycleForCurrency(
+  cycle: BillingCycle,
+  currency: Currency
+): BillingCycle {
+  if (currency === "USD" && !isRecurringBillingCycle(cycle)) {
+    return cycle === "semi_annual" ? "annual" : "monthly";
+  }
+  return cycle;
+}
+
+/** Default cycle when user picks CNY (quarterly is easier than annual). */
+export const DEFAULT_CNY_BILLING_CYCLE: BillingCycle = "quarterly";
 
 export interface PlanDefinition {
   id: PlanId;
@@ -95,14 +170,26 @@ export function monthlyUnitPrice(
 ): number {
   const def = PLAN_DEFINITIONS[plan];
   const base = currency === "USD" ? def.monthlyUsd! : def.monthlyCny!;
-  if (cycle === "annual") {
-    return roundMoney(base * ANNUAL_DISCOUNT, currency);
-  }
-  return base;
+  const months = billingCycleMonths(cycle);
+  if (months === 1) return base;
+  // Effective per-month after cycle discount (for card display "/mo").
+  return roundMoney((base * months * billingCycleDiscount(cycle)) / months, currency);
+}
+
+/** Total charged for a prepaid / billed period (CNY WeChat path uses this). */
+export function prepaidBilledTotal(
+  plan: PaidPlanId,
+  currency: Currency,
+  cycle: BillingCycle
+): number {
+  const def = PLAN_DEFINITIONS[plan];
+  const base = currency === "USD" ? def.monthlyUsd! : def.monthlyCny!;
+  const months = billingCycleMonths(cycle);
+  return roundMoney(base * months * billingCycleDiscount(cycle), currency);
 }
 
 export function annualBilledTotal(plan: PaidPlanId, currency: Currency): number {
-  return roundMoney(monthlyUnitPrice(plan, currency, "annual") * 12, currency);
+  return prepaidBilledTotal(plan, currency, "annual");
 }
 
 export function addOnUnitPrice(currency: Currency): number {
