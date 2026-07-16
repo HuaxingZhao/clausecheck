@@ -16,13 +16,13 @@ Use `@clausecheck-project` or say「按 clausecheck project」. This memory also
 
 After any meaningful change—feature, fix, deploy, verification, or operations discovery—update [PROGRESS.md](PROGRESS.md) in this folder with dated bullet(s). Do not wait for the user to ask.
 
-## Current status (2026-07-16) — new-chat handoff
+## Current status (2026-07-17) — new-chat handoff
 
 ```
-PR #19–#35 ：Plan A / 安全收口 / 微信门控 / 导出免责 /
-              隐私硬删 Cron / 合规 i18n / 专家附件包
-生产 tip   ：以 GET /api/health → version 为准（#35 ≈ 397a53d）
-状态       ：Beta 软发布 🟢 · 专家包已就绪可外发
+PR #19–#44 ：Plan A / 合规 / CNY 预付 / 结账 UX /
+              冒烟清单 / 人民币 CTA
+生产 tip   ：以 GET /api/health → version 为准（#44 ≈ 3469836）
+状态       ：Beta 软发布 🟢 · 自动化冒烟已签字 · 全链路手测待人
 ```
 
 - Prod: `https://www.clausecheck.cc` · Beta: `/zh/beta` · `/beta`
@@ -35,13 +35,14 @@ PR #19–#35 ：Plan A / 安全收口 / 微信门控 / 导出免责 /
 
 | 主题 | 状态 | 指针 |
 |------|------|------|
-| 专家评估附件 | ✅ #35；桌面 zip 曾导出 | `docs/EXPERT_BRIEF.md` + privacy/i18n 审计 |
-| 微信支付 | ✅ Stripe WeChat：加油包 + **CNY Pro 预付**；独立 QR topup 仍关 | CNY Pro=`pro_prepaid` PI；USD Pro 仍订阅 |
-| 导出免责声明 | ✅ Word 横幅+页眉；邮件文末 | `ai_disclaimer_export` / `lib/ai-disclaimer.ts` |
-| 隐私硬删 | ✅ 小时 Cron ≤24h；报告脱敏 | `/api/cron/purge-contract-data` + `CRON_SECRET` |
-| 合规 i18n | ✅ §4 产品侧已收口；DPA 签字仍外部 | `docs/I18N_COMPLIANCE_DIFF_REPORT.md` |
-| +86 短信签名 | ✅ 生产 `恒创联众` + `100001` | 列表其它签名 API 常无效；OpenAPI 试发为准 |
-| Stripe | ✅ 主结账 | 微信商户仍未接 → topup 503 |
+| 专家评估附件 | ✅ #35 | `docs/EXPERT_BRIEF.md` + privacy/i18n 审计 |
+| 微信支付 | ✅ Stripe CNY 预付可微信；独立 QR topup 仍关 | `wechat-merchant-founder-actions.md` |
+| 导出免责声明 | ✅ Word 横幅+页眉；邮件文末 | `ai_disclaimer_export` |
+| 隐私硬删 | ✅ 小时 Cron；密钥已配；无鉴权 401 | `ops-cron-verify.md` |
+| 合规 i18n | ✅ §4 产品侧已收口；DPA 签字仍外部 | `I18N_COMPLIANCE_DIFF_REPORT.md` |
+| +86 短信签名 | ✅ `恒创联众` + `100001` | `ALIYUN_SMS_HOOK.md` |
+| 发布冒烟 | ✅ 自动化签字；手测 TC-1–5 待人 | `smoke-test-release-checklist.md` |
+| Stripe | ✅ 主结账 + 订单摘要/加载优化 | #38–#42 |
 
 ### 专家包路径
 

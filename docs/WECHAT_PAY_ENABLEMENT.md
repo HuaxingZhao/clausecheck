@@ -1,7 +1,8 @@
 # 微信支付加油包 — 启用清单
 
-**状态（2026-07-16）：** 代码就绪；**生产未开**（缺商户收银 URL）。  
-**主结账仍走 Stripe。** 本清单只覆盖加油包 WeChat topup。  
+**状态（2026-07-17）：** 代码就绪；**生产未开**（`WECHAT_PAY_*` 均未设 — 正确）。  
+**主结账仍走 Stripe**（CNY Pro 预付可走 Stripe WeChat）。  
+独立 topup 启用前请先完成 [`docs/deploy/wechat-merchant-founder-actions.md`](./deploy/wechat-merchant-founder-actions.md)。  
 金额单位：`amount_cents` = **人民币分**（例：加油包 `3900` = ¥39；专业版档 `19900` = ¥199）。
 
 ---

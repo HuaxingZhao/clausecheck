@@ -29,11 +29,25 @@
 
 | 字段 | 填写 |
 |------|------|
-| 测试日期 | |
-| 环境 URL | |
-| Health `version` | |
-| 执行人 | |
-| 总结果 | ☐ 通过 · ☐ 有阻断 · ☐ 有非阻断问题 |
+| 测试日期 | 2026-07-17 |
+| 环境 URL | https://www.clausecheck.cc |
+| Health `version` | `3469836` |
+| 执行人 | Cursor agent（自动化）+ 待创始人手测 TC-1–5 |
+| 总结果 | ☑ 自动化通过 · ☐ 全链路手测完成 · ☐ 有阻断 |
+
+### 2026-07-17 自动化签字摘录
+
+| 项 | 结果 |
+|----|------|
+| TC-0.1 Health | ✅ |
+| TC-0.3 mock-qr 404 | ✅ |
+| TC-0.4 CNY 咨询 CTA / 无微信按钮 | ✅ 浏览器 |
+| Cron 无鉴权 401 | ✅ 两路 |
+| `npm run test:e2e:beta-p0` | ✅ 6/6 |
+| `npm run test:smoke` | ✅ 8 pass / 4 skip |
+| 免责声明单测 | ✅ |
+| TC-1–5 注册扫描导出 | ⬜ 需真人账号 |
+| TC-6 Cron Bearer 正向 | ⬜ 见 `ops-cron-verify.md`（Sensitive） |
 
 ---
 
