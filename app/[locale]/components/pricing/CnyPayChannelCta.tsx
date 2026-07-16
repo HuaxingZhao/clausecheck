@@ -10,8 +10,9 @@ export interface CnyPayChannelCtaProps {
 }
 
 /**
- * When WeChat Pay UI is disabled, replace wallet/WeChat copy with an RMB consult CTA.
- * When enabled, restore the Stripe wallet note (WeChat may appear in Payment Element).
+ * Conditional WeChat / RMB channel entry (does not delete merchant API code).
+ * - WECHAT_PAY_ENABLED !== true → enterprise consult CTA (no top-up button → no 503).
+ * - Enabled + cashier configured → restore wallet copy for Stripe/WeChat one-time path.
  */
 export default function CnyPayChannelCta({
   onContact,

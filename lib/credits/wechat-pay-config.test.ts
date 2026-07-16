@@ -42,6 +42,28 @@ describe("isWechatPayUiEnabled", () => {
     );
   });
 
+  it("true on client when mirrored ENABLED + CONFIGURED (no QR URL in bundle)", () => {
+    assert.equal(
+      isWechatPayUiEnabled({
+        NODE_ENV: "production",
+        NEXT_PUBLIC_WECHAT_PAY_ENABLED: "true",
+        NEXT_PUBLIC_WECHAT_PAY_CONFIGURED: "true",
+      }),
+      true
+    );
+  });
+
+  it("false on client when ENABLED mirrored but cashier not configured", () => {
+    assert.equal(
+      isWechatPayUiEnabled({
+        NODE_ENV: "production",
+        NEXT_PUBLIC_WECHAT_PAY_ENABLED: "true",
+        NEXT_PUBLIC_WECHAT_PAY_CONFIGURED: "false",
+      }),
+      false
+    );
+  });
+
   it("false for non-true flag values even with QR base", () => {
     assert.equal(
       isWechatPayUiEnabled({
