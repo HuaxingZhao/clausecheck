@@ -21,6 +21,7 @@ import {
 } from "@/lib/pricing.config";
 import { formatMoney } from "@/lib/pricing/currency";
 import { localizedPath } from "@/i18n/routing";
+import CnyPayChannelCta from "./CnyPayChannelCta";
 
 export interface PaymentGatewayProps {
   purchaseType: PurchaseType;
@@ -32,7 +33,7 @@ export interface PaymentGatewayProps {
   onSuccess?: () => void;
   onRequireAuth?: () => void;
   onCancel?: () => void;
-  /** @deprecated CNY Stripe Element shows prepaid note; consult CTA unused here. */
+  /** RMB consult when independent WeChat merchant UI is off. */
   onCnyPayContact?: () => void;
 }
 
@@ -150,20 +151,16 @@ function PaymentFormSkeleton() {
 function PaymentForm({
   purchaseType,
   currency,
-  billingCycle,
   locale,
-  plan,
-  packs,
   amount,
-  prepaid,
   onSuccess,
   onCancel,
+  onCnyPayContact,
 }: Omit<PaymentGatewayProps, "onRequireAuth"> & {
   amount: number;
   prepaid: boolean;
 }) {
   const t = useTranslations("pricing.payment");
-  const tPricing = useTranslations("pricing");
   const stripe = useStripe();
   const elements = useElements();
   const [submitting, setSubmitting] = useState(false);
@@ -230,10 +227,8 @@ function PaymentForm({
           {t("cnyPrepaidDisclaimer")}
         </p>
       )}
-      {currency === "CNY" && !showCnyPrepaidNote && (
-        <p className="text-xs text-ink-muted leading-relaxed text-center font-sans">
-          {tPricing("cnyWalletNote")}
-        </p>
+      {currency === "CNY" && (
+        <CnyPayChannelCta onContact={onCnyPayContact} />
       )}
       {errorMessage && (
         <p className="text-sm text-red-700" role="alert">

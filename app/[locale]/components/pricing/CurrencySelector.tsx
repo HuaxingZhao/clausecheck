@@ -3,13 +3,14 @@
 import { useTranslations } from "next-intl";
 import { Select } from "@/components/ui/select";
 import type { BillingCycle, Currency } from "@/lib/pricing.config";
+import CnyPayChannelCta from "./CnyPayChannelCta";
 
 export interface CurrencySelectorProps {
   currency: Currency;
   billingCycle: BillingCycle;
   onCurrencyChange: (currency: Currency) => void;
   onBillingCycleChange?: (cycle: BillingCycle) => void;
-  /** Kept for callers; CNY now shows prepaid note (Stripe WeChat path). */
+  /** Opens enterprise / RMB channel contact when WeChat merchant UI is off. */
   onCnyPayContact?: () => void;
   className?: string;
 }
@@ -17,6 +18,7 @@ export interface CurrencySelectorProps {
 export default function CurrencySelector({
   currency,
   onCurrencyChange,
+  onCnyPayContact,
   className,
 }: CurrencySelectorProps) {
   const t = useTranslations("pricing");
@@ -33,9 +35,13 @@ export default function CurrencySelector({
         ]}
       />
       {currency === "CNY" && (
-        <p className="text-xs text-ink-muted text-center max-w-sm leading-relaxed">
-          {t("cnyPrepaidNote")}
-        </p>
+        <>
+          <p className="text-xs text-ink-muted text-center max-w-sm leading-relaxed">
+            {t("cnyPrepaidNote")}
+          </p>
+          {/* WeChat merchant CTA gated; consult link when WECHAT_PAY_ENABLED !== true */}
+          <CnyPayChannelCta onContact={onCnyPayContact} />
+        </>
       )}
     </div>
   );

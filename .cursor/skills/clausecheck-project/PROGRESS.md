@@ -2,6 +2,13 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-17 — 微信入口门控复验 + 人民币咨询 CTA 挂回
+
+- 仓库无 `PricingCard` / `api/wechat-pay`；独立微信 topup 仍为 `app/api/credits/topup`（保留，无前端调用）。
+- 缺口：`CnyPayChannelCta` 曾断线；已挂回 `CurrencySelector`（CNY）与结账 `PaymentGateway`。
+- `WECHAT_PAY_ENABLED !== true` → 无微信按钮，显示「中国大陆用户？联系我们获取人民币支付通道」→ 咨询表单 / mailto。
+- `next.config` 镜像 `NEXT_PUBLIC_WECHAT_PAY_CONFIGURED`，客户端可正确判断收银是否就绪。
+
 ## 2026-07-16 — 合规 i18n 三 key 文案
 
 - `messages/zh.json` / `en.json`：新建顶层合规 key（原先不存在）`no_model_training`、`openai_api_data_policy`、`ops_log_retention`，置于 `ai_notice` 旁；仅改这三处字符串，未动组件/导出/支付逻辑。
