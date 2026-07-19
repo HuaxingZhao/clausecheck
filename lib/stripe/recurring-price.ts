@@ -26,7 +26,14 @@ export async function resolveRecurringPriceId(
     hit.currency === params.currency &&
     hit.recurring?.interval === params.interval
   ) {
-    return hit.id;
+    // Price can stay "active" while its Product is inactive — Stripe then
+    // rejects subscription create with invalid_request_error (HTTP 400).
+    const productId = typeof hit.product === "string" ? hit.product : hit.product.id;
+    const product = await stripe.products.retrieve(productId);
+    if (product.active) {
+      return hit.id;
+    }
+    // Fall through: recreate product+price and transfer the lookup key.
   }
 
   const product = await stripe.products.create({

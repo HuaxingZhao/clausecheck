@@ -13,7 +13,7 @@
     "deploy:env": "bash scripts/push-vercel-env.sh",
     "db:check": "node scripts/db-check.mjs",
     "db:verify-consume-credit": "node scripts/verify-consume-credit.mjs",
-    "test": "node --import tsx --test lib/generateRevisionDocx.test.ts lib/negotiation-email.test.ts lib/privacy/contract-retention.test.ts lib/pricing.config.test.ts lib/credits/mock-pay.test.ts lib/credits/wechat-pay-config.test.ts lib/ai/review-contract.test.ts lib/ai/validate-review-output.test.ts lib/jurisdiction.test.ts lib/ai/retrieve-compliance-rules.test.ts lib/prompts/jurisdiction-packs/jurisdiction-packs.test.ts lib/prompts/jurisdiction-packs/fewshots.test.ts lib/feedback/feedback.test.ts lib/dpa/dpa.test.ts lib/upload-safe.test.ts",
+    "test": "node --import tsx --test lib/generateRevisionDocx.test.ts lib/negotiation-email.test.ts lib/privacy/contract-retention.test.ts lib/pricing.config.test.ts lib/credits/mock-pay.test.ts lib/credits/wechat-pay-config.test.ts lib/ai/review-contract.test.ts lib/ai/validate-review-output.test.ts lib/ai/provider.test.ts lib/ai/env-assert.test.ts lib/jurisdiction.test.ts lib/ai/retrieve-compliance-rules.test.ts lib/prompts/jurisdiction-packs/jurisdiction-packs.test.ts lib/prompts/jurisdiction-packs/fewshots.test.ts lib/feedback/feedback.test.ts lib/dpa/dpa.test.ts lib/upload-safe.test.ts",
     "test:review": "tsx scripts/test-review-contract.ts",
     "test:review:dry": "tsx scripts/test-review-contract.ts --dry-run",
     "test:review:validate": "tsx scripts/validate-review-output.ts",

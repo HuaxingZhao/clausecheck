@@ -2,6 +2,21 @@
 
 Living checkpoint for `clausecheck project`. Add dated bullets after every meaningful feature, fix, deploy, or operations discovery. Newest first.
 
+## 2026-07-17 — 创始人完整配置手册
+
+- 新增 `docs/deploy/FOUNDER-COMPLETE-SETUP.md`：A→H 阶段（Health / Env / 千问·DeepSeek / Cron / 手测 / 微信 KYC）可勾选。
+
+## 2026-07-17 — 双区域 AI 路由（CN Qwen / GLOBAL GPT）
+
+- 新增 `lib/ai/provider.ts` · `router.ts` · `region.ts` · `prompts/contract-review.ts`；SSE `POST /api/contract/review`（`X-AI-Region`）。
+- CN→Qwen，超时/5xx→DeepSeek；GLOBAL→GPT，降级 gpt-4o-mini；`FORCE_AI_REGION` 可覆盖。
+- `next.config.mjs` 可选按 `X-User-Region` rewrite 到上下游；冒烟 TC-AI-01…05 + 门禁行。
+- 既有 `/api/scan` GPT 管线未删；前端契约未改。
+
+## 2026-07-17 — 冒烟清单 5 项验收细则增量
+
+- `smoke-test-release-checklist.md`：免责 messages 逐字比对；支付 5xx 降级子用例；生命周期 DB/`data_purge_completed` 验证手段；流程中途中英切换；P1 历史合同回归 TC-P1-R。仅增量，未删改原条目。
+
 ## 2026-07-17 — 冒烟签字 + Cron 核查 + 状态刷新 + 微信行动包
 
 - 生产 tip `3469836`：health ok；mock-qr 404；两路 cron 无鉴权 401；`CRON_SECRET` 已在 Vercel（Sensitive，CLI 不可 pull）。

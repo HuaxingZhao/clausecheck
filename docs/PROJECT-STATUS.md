@@ -134,6 +134,7 @@ Vercel 定时任务会在请求中注入 `Authorization: Bearer $CRON_SECRET`。
 | 文档 | 用途 |
 |------|------|
 | `docs/EXPERT_BRIEF.md` | **发给专家的主附件** |
+| `docs/deploy/FOUNDER-COMPLETE-SETUP.md` | **创始人一步一步完整配置手册**（Env / AI / Cron / 手测 / 微信） |
 | `docs/deploy/smoke-test-release-checklist.md` | **发布前全链路冒烟清单** |
 | `docs/deploy/ops-cron-verify.md` | Cron 密钥 / 两路任务抽查 |
 | `docs/deploy/wechat-merchant-founder-actions.md` | 微信商户创始人行动清单 |

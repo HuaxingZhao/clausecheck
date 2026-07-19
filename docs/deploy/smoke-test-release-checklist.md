@@ -25,6 +25,8 @@
 
 界面侧还应可见信任条 / `ai_notice` 类表述含「不构成法律意见」或 *not legal advice*。
 
+> **校验细则（合规声明注入 · 全文适用 TC-3 / TC-4）：** 导出文件中的免责声明文案，需与 `messages/zh.json` / `messages/en.json` 中 `ai_disclaimer_export` 的**最新内容逐字比对一致**，禁止仅校验「存在声明」。验收前请先打开仓库当前 messages 核对字符串，再与 Word / 谈判邮件全文对照（含标点与 emoji）。
+
 ### 结果记录
 
 | 字段 | 填写 |
@@ -69,6 +71,14 @@
 | **预期** | 可见「不构成法律意见」或等价表述；Support 指向 `support@clausecheck.cc`（非 `clausecheck.app`） |
 | **失败排查** | `messages/zh.json` 未部署；CDN 缓存旧页 → 硬刷新；对照 `I18N_COMPLIANCE_DIFF_REPORT.md` |
 
+#### TC-0.2a 关键流程中途切换语言（校验细则）
+
+| | |
+|--|--|
+| **步骤** | 在**导出页（合同审阅 / 导出按钮区）、支付页（结账弹窗 / 定价结账）**等关键流程**中途**，用顶栏切换中英文（各至少一次往返） |
+| **预期** | 文案实时刷新；占位符（金额、周期、配额数字等）正确渲染；布局无溢出错位；无控制台 JS 报错 |
+| **失败排查** | `next-intl` 未重挂载；硬编码中文残留；结账弹窗未随 locale 更新 `ai_disclaimer_export` / 支付文案 |
+
 ### TC-0.3 生产 Mock 支付关闭（P0）
 
 | | |
@@ -84,6 +94,14 @@
 | **步骤** | 打开定价区（`/zh` 滚动到定价或 `/zh/pricing`）；币种切到 **CNY** |
 | **预期** | **无**独立「微信支付」按钮；可见文案「中国大陆用户？联系我们获取人民币支付通道」；点击可打开咨询表单或 `mailto:support@clausecheck.cc`；无控制台报错、无 503 弹窗 |
 | **失败排查** | `CnyPayChannelCta` 未挂载；误设 `WECHAT_PAY_ENABLED=true` 且无 `QR_BASE`；见 `docs/WECHAT_PAY_ENABLEMENT.md` |
+
+#### TC-0.4a 支付接口 5xx / 超时降级（子用例 · 支付入口兜底）
+
+| | |
+|--|--|
+| **步骤** | 1. 打开 Pro / 加油包结账（Stripe Intent 创建路径）<br>2. 用浏览器 DevTools → Network **阻断或改写**相关支付请求（如 `/api/stripe/create-intent` / `/api/create-subscription`）使其返回 **5xx**，或 **Throttle 模拟超时**<br>3. 观察结账弹窗 / 定价区 UI |
+| **预期** | 页面自动降级，仍可到达「企业咨询 / 人民币支付通道」入口（或等价联系 CTA）；**无**未捕获 JS 报错；**无**大块空白/错位布局；用户可关闭弹窗继续浏览 |
+| **失败排查** | `PaymentGateway` 错误态未渲染；仅 spinner 死锁；未暴露 `onCnyPayContact` / `CnyPayChannelCta` |
 
 ---
 
@@ -175,6 +193,8 @@
 | **预期** | **第一眼**可见完整中文免责声明（见上文对照表）；页眉中亦有同款或等价醒目声明；正文为修订对照，**不是**静默覆盖用户原文件 |
 | **失败排查** | `/api/review/export`；`lib/generateRevisionDocx.ts` / `ai_disclaimer_export`；Pro 鉴权失败 |
 
+> **校验细则（合规声明注入）：** 将文档内声明与 `messages/zh.json` → `ai_disclaimer_export` **逐字比对**（含 `⚠️` 与句末标点）；禁止仅勾选「有一段灰色提示」。
+
 ### TC-3.2 英文界面导出 Word（语言一致性）
 
 | | |
@@ -183,7 +203,9 @@
 | **预期** | 免责声明为**英文**完整句（见对照表）；不得仍为中文 |
 | **失败排查** | 导出请求未传 `locale=en`；`getAiDisclaimerExport` |
 
-**免责声明勾选：** ☐ 首页横幅可见 · ☐ 页眉可见 · ☐ 中英随界面切换  
+> **校验细则（合规声明注入）：** 与 `messages/en.json` → `ai_disclaimer_export` **逐字比对一致**；禁止仅校验「存在声明」或模糊匹配 *legal advice*。
+
+**免责声明勾选：** ☐ 首页横幅可见 · ☐ 页眉可见 · ☐ 中英随界面切换 · ☐ 已与 messages 逐字一致  
 
 **本段结果：** ☐ 通过 · ☐ 跳过 · ☐ 失败 · 备注：____________
 
@@ -201,6 +223,8 @@
 | **预期** | 正文为谈判口吻；**文末**在分隔线后出现完整中文 `ai_disclaimer_export`；审阅栏旁也可看到同款提示 |
 | **失败排查** | `lib/negotiation-email.ts`；`review-actions-bar` 未传 locale |
 
+> **校验细则（合规声明注入）：** 文末字符串须与 `messages/zh.json` → `ai_disclaimer_export` **逐字一致**；禁止仅确认「文末有免责」而未打开 messages 对照。
+
 ### TC-4.2 英文谈判邮件
 
 | | |
@@ -209,7 +233,9 @@
 | **预期** | 文末为完整**英文**免责声明 |
 | **失败排查** | 同上，检查 `locale === "en"` |
 
-**免责声明勾选：** ☐ 中文文末完整 · ☐ 英文文末完整 · ☐ 与界面语言一致  
+> **校验细则（合规声明注入）：** 与 `messages/en.json` → `ai_disclaimer_export` **逐字比对**；禁止仅校验「存在声明」。
+
+**免责声明勾选：** ☐ 中文文末完整 · ☐ 英文文末完整 · ☐ 与界面语言一致 · ☐ 已与 messages 逐字一致  
 
 **本段结果：** ☐ 通过 · ☐ 失败 · 备注：____________
 
@@ -265,6 +291,10 @@
 | **预期** | 超时后正文不可再取；无「软删除列仍可读」；报告历史若仍在则为脱敏摘要 |
 | **失败排查** | Cron 未跑；时区；误用软删除 |
 
+> **校验细则（数据生命周期 · 验证手段）：** 对照 `PRIVACY_DATA_RETENTION_AUDIT.md`：会话超时**本身**不会立刻删库；修订正文依赖 ≤24h Cron 硬删。验收时须采用以下**至少一种**手段，禁止仅凭「页面打不开」推断已删：  
+> 1. 查询数据库 / 对象存储，确认对应 `revisions`（及上传字节残留）记录已**物理 DELETE**（非软删列）；或  
+> 2. 检查运维日志中存在 `data_purge_completed` 事件，且事件时间戳表明净化窗口 **≤24h**（相对 `created_at` / 策略截止时间）。
+
 ### TC-6.3 扫描请求不落全文（抽查）
 
 | | |
@@ -295,7 +325,61 @@
 | P1 | +86 OTP（签名恒创联众） | TC-1.3 | ☐ |
 | P1 | 配额徽章 / credits 态 | TC-5.3 | ☐ |
 | P1 | 退出再登历史 | TC-5 | ☐ |
+| P1 | 历史合同回归安全（见 TC-P1-R） | TC-P1-R | ☐ |
+| P0 | 双模型回归测试通过（见 TC-AI-ROUTER） | TC-AI-01…05 | ☐ |
 | — | Stripe 结账（非阻断手测） | 见下方 TC-A | ☐ |
+
+### TC-AI-ROUTER 双区域智能模型路由（增量）
+
+> 接口：`POST /api/contract/review` · 头 `X-User-Region` / 响应 `X-AI-Region` · 环境见 `lib/ai/router.ts` JSDoc。
+
+#### TC-AI-01 FORCE_AI_REGION=CN 时调用千问成功
+
+| | |
+|--|--|
+| **步骤** | 本地/预览设置 `FORCE_AI_REGION=CN` 与有效 `QWEN_API_KEY`（或 `DASHSCOPE_API_KEY`）→ `POST /api/contract/review` body `{ "contract": "…", "lang": "zh" }` |
+| **预期** | HTTP 200 SSE；响应头 `X-AI-Region: CN`；至少一条合法 ReviewChunk（sectionId/riskLevel/summary/suggestion） |
+| **失败排查** | 百炼 Key/地域；`QWEN_BASE_URL`；DashScope 兼容模式是否开通 |
+
+#### TC-AI-02 FORCE_AI_REGION=GLOBAL 时调用 GPT 成功
+
+| | |
+|--|--|
+| **步骤** | `FORCE_AI_REGION=GLOBAL` + `OPENAI_API_KEY` → 同上 POST，`lang: "en"` |
+| **预期** | `X-AI-Region: GLOBAL`；SSE 产出合法 ReviewChunk |
+| **失败排查** | OpenAI Key/配额；模型名 `OPENAI_REVIEW_MODEL` |
+
+#### TC-AI-03 主模型超时时自动降级且不中断流
+
+| | |
+|--|--|
+| **步骤** | 模拟主模型超时或 5xx（如错误 Key 触发上游 5xx，或本地 mock）；确保对应 fallback Key 可用（CN=`DEEPSEEK_API_KEY`，GLOBAL 依赖 `OPENAI_API_KEY`+mini） |
+| **预期** | SSE 仍持续推送；最终有 Chunk 或标准化 error Chunk；连接以 `data: [DONE]` 结束，进程不崩溃 |
+| **失败排查** | `isRetryableProviderError`；fallback 环境变量缺失 |
+
+#### TC-AI-04 两套 Prompt 输出 JSON Schema 一致性校验
+
+| | |
+|--|--|
+| **步骤** | 运行 `node --import tsx --test lib/ai/provider.test.ts`；或人工比对 `CONTRACT_REVIEW_PROMPT_CN` / `_GLOBAL` 中 `REVIEW_CHUNK_JSON_SCHEMA_INSTRUCTION` |
+| **预期** | 两侧嵌入的 Schema 指令**逐字一致**；mock Provider 产出字段集合一致 |
+| **失败排查** | `lib/ai/prompts/contract-review.ts` 被单侧改动 |
+
+#### TC-AI-05 环境变量缺失时抛出正确变量名
+
+| | |
+|--|--|
+| **步骤** | 清空目标 Key 后实例化对应 Provider / 调用 `requireEnv`；或跑 `lib/ai/env-assert.test.ts` |
+| **预期** | 抛出 `Missing required environment variable: <NAME>`（如 `QWEN_API_KEY` / `OPENAI_API_KEY` / `DEEPSEEK_API_KEY`） |
+| **失败排查** | 错误被吞掉或未带变量名 |
+
+### TC-P1-R 历史合同回归安全检查（P1 · 末尾新增）
+
+| | |
+|--|--|
+| **步骤** | 随机抽取 **3 份**历史合同（账户报告历史 / 本地曾测样本均可）：对每份执行重新扫描和/或导出（谈判邮件；Pro 则含 Word） |
+| **预期** | 功能正常；结果与先前版本在风险结构/关键条款上一致（允许模型小幅措辞差，但无解析异常、无条款大面积丢失、无导出损坏）；无控制台/服务端未处理错误 |
+| **失败排查** | 提取器回归；`review.source` 错配；配额耗尽误拒；导出管线版本漂移 |
 
 ### TC-A Stripe 结账抽查（建议 · 非全链路阻断）
 
